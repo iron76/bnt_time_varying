@@ -1,0 +1,12 @@
+To install the software:
+
+1. Edit the file install.sh.template by inserting the proper values for the 
+variables BTN_FOLDER and the BTN_MODIFIED_FOLDER folder.
+BTN_FOLDER : 'put here the folder containing the BNT distribution'
+BTN_MODIFIED_FOLDER : 'put here the folder containing bnt_time_varying'
+
+2. execute on terminal 'mv install.sh.template install.sh'
+
+3. execute on terminal 'chmod +x install.sh'
+
+4. execute on terminal './install.sh'
