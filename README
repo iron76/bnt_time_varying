@@ -1,0 +1,7 @@
+This is a code to be used with the BNT toolbox for matlab by Kevin Murphy. 
+The original toolbox can be downloaded from (https://code.google.com/p/bnt/).
+The plugin in this repository modifies the EM estimation procedure  
+described in www.ai.mit.edu/~murphyk/Papers/learncg.pdf
+The modifications allow to estimate the variance matrices $\Simga_i$
+by assuming that $B_i$ is known but time-varying in the sense that
+its value is a function of t, i.e. B_{i,t} in equation (1).
