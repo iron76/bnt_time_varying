@@ -7,7 +7,7 @@ sModel  = 1e1;
 sMeas   = 1e-5;
 sUknown = 1e3;
 
-nbVals = logspace(log10(1), log10(5), 40);
+nbVals = logspace(log10(1), log10(10), 40);
 nbVals = round(nbVals);
 nbVals = unique(nbVals','rows')';
 
@@ -26,17 +26,20 @@ for nb = nbVals
   d2q = rand(NB,1);
   
   % build the measurements
-  Npass = 10;
+  Npass = 2;
 
   t_rne = zeros(Npass, 1);
   t_mat = zeros(Npass, 1);
   t_cho = zeros(Npass, 1);
   t_net = zeros(Npass, 1);
+  t_sol = zeros(Npass, 1);
+  
 
   for t = 1: Npass
     ny = 0;
     ry = randfixedsum(NB, 1, 4*NB, 2, 6);
     ry = round(ry);
+    ry = 2*ones(size(ry))
     for i = 1 : NB
       if ry(i) >= 6
         ny = ny + 1;
@@ -78,14 +81,14 @@ for nb = nbVals
     [tau_mat, a_mat, fB_mat, f_mat]        = mID(model, q, dq, Y, y);
     
     % solve redundant ID with Cholesky
-    [ys, Ys]    = cholMeas (y, a_rne, fB_rne, f_rne, d2q, fx, ny, tau_rne, NB);
+    [ys, Ys, ym, Yx, Yy]    = cholMeas (y, a_rne, fB_rne, f_rne, d2q, fx, ny, tau_rne, NB);
     tic;
     [Sf_cho, S]  = cID(model, q, dq, Ys, ys);
     t_chl(nb) = toc;
     
     % solve redundant ID without matrix inversion
-    % sparseModel                     = calcSparse(model);
-    [tau_sol, a_sol, fB_sol, f_sol] = sID(model, q, dq, Ys, ys, S);
+    sparseModel                     = calcSparse(model);
+    [tau_sol, a_sol, fB_sol, f_sol] = sID(model, q, dq, Yx, Yy, ym, S, sparseModel);
 
     % solve ID with a Bayesian network
     [bnet , y] = buildBnet(model, y);
@@ -101,7 +104,7 @@ for nb = nbVals
     % norm(cell2mat(a_rne)-a_net')
     % norm(cell2mat(fB_rne)-fB_net')
     % norm(cell2mat(f_rne)-f_net')
-    norm(tau_sol-tau_net)
+    % norm(tau_sol-tau_net)
     % norm(cell2mat(Sf_cho) - cell2mat(Sf_net))
     
     
@@ -126,15 +129,16 @@ for nb = nbVals
     t_mat(t) = toc*1000;
     
     % solve redundant ID with Cholesky
-    [ys, Ys]  = cholMeas (y, a_rne, fB_rne, f_rne, d2q, fx, ny, tau_rne, NB);
+    [ys, Ys, ym, Yx, Yy]  = cholMeas (y, a_rne, fB_rne, f_rne, d2q, fx, ny, tau_rne, NB);
     tic;
     Sf_cho = cID(model, q, dq, Ys, ys, S);
     t_cho(t) = toc*1000;
 
     % solve redundant ID without matrix inversion
-    %tic;
-    [tau_sol, a_sol, fB_sol, f_sol] = sID(model, q, dq, Ys, ys, S);
-    %t_sol(t) = toc*1000;    
+    sparseModel                     = calcSparse(model);
+    tic;
+    [tau_sol, a_sol, fB_sol, f_sol] = sID(model, q, dq, Yx, Yy, ym, S, sparseModel);
+    t_sol(t) = toc*1000;    
     
     % solve ID with a Bayesian network
     tic;
@@ -168,7 +172,7 @@ hold on
 hm = shadedErrorBar(indeces,mu_mat(indeces)/1000,sqrt(var_mat(indeces))/1000, {'r-o','markerfacecolor','r'});
 hn = shadedErrorBar(indeces,mu_net(indeces)/1000,sqrt(var_net(indeces))/1000, {'g-o','markerfacecolor','g'});
 % h = legend([hm.mainLine hc.mainLine], 'Direct inversion', 'Sparse Cholesky','Location', 'Northwest');
-h = legend([hm.mainLine hc.mainLine hn.mainLine], 'Direct inversion', 'Sparse Cholesky', 'Junction tree','Location', 'Northwest');
+h = legend([hm.mainLine hc.mainLine hn.mainLine], 'Direct inversion', 'Sparse Cholesky', 'Junction tree', 'Location', 'Northwest');
 set(h, 'FontSize', 20)
 grid
 set(gca,'FontSize',20)
@@ -176,4 +180,18 @@ xlabel('N_B', 'FontSize', 20)
 ylabel('Computational time [s]', 'FontSize', 20)
 print(hh, '-dpdf', 'calcTime1to50.pdf')
 
+indeces = find(mu_rne~=0);
+
+hh = figure;
+hr = shadedErrorBar(indeces,mu_rne(indeces)/1000,sqrt(var_rne(indeces))/1000, {'b-o','markerfacecolor','b'});
+hold on
+hs = shadedErrorBar(indeces,mu_sol(indeces)/1000,sqrt(var_sol(indeces))/1000, {'k-o','markerfacecolor','k'});
+% h = legend([hm.mainLine hc.mainLine], 'Direct inversion', 'Sparse Cholesky','Location', 'Northwest');
+h = legend([hr.mainLine hs.mainLine], 'Recursive Newton-Euler', 'Redundant Newton-Euler', 'Location', 'Northwest');
+set(h, 'FontSize', 20)
+grid
+set(gca,'FontSize',20)
+xlabel('N_B', 'FontSize', 20)
+ylabel('Computational time [s]', 'FontSize', 20)
+print(hh, '-dpdf', 'solTime1to50.pdf')
 
