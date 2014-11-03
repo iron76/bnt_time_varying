@@ -125,25 +125,24 @@ for nb = nbVals
     [y, Y]    = calcMeas (y, a_rne, fB_rne, f_rne, d2q, fx, ny, tau_rne, NB);
     tic;
     [tau_mat, a_mat, fB_mat, f_mat, Sf_mat] = mID(model, q, dq, Y, y);
-    t_mat(t) = toc*1000;
+    t_mat(t) = toc*1000;    
     
-    % solve redundant ID without exploiting sparsity
-    tic;
-    [tau_red, a_red, fB_red, f_red] = rID(model, q, dq, Y, y);
-    t_red(t) = toc*1000;
-    
-    
-    % solve redundant ID with Cholesky
-    [ys, Ys, ym, Yx, Yy]  = cholMeas (y, a_rne, fB_rne, f_rne, d2q, fx, ny, tau_rne, NB);
-    tic;
-    Sf_cho = cID(model, q, dq, Ys, ys, S);
-    t_cho(t) = toc*1000;
-
     % solve redundant ID without matrix inversion
     sparseModel                     = calcSparse(model);
     tic;
     [tau_sol, a_sol, fB_sol, f_sol] = sID(model, q, dq, Yx, Yy, ym, S, sparseModel);
     t_sol(t) = toc*1000;    
+
+    % solve redundant ID without exploiting sparsity
+    tic;
+    [tau_red, a_red, fB_red, f_red] = rID(model, q, dq, Yx, Yy, ym, sparseModel);
+    t_red(t) = toc*1000;
+
+    % solve redundant ID with sparse Cholesky
+    [ys, Ys, ym, Yx, Yy]  = cholMeas (y, a_rne, fB_rne, f_rne, d2q, fx, ny, tau_rne, NB);
+    tic;
+    Sf_cho = cID(model, q, dq, Ys, ys, S);
+    t_cho(t) = toc*1000 + t_red(t);
     
     % solve ID with a Bayesian network
     tic;
@@ -179,9 +178,9 @@ end
 indeces = find(mu_cho~=0);
 
 hh = figure;
-hc = shadedErrorBar(indeces,mu_cho(indeces)/1000,sqrt(var_cho(indeces))/1000, {'b-o','markerfacecolor','b'});
-hold on
 hm = shadedErrorBar(indeces,mu_mat(indeces)/1000,sqrt(var_mat(indeces))/1000, {'r-o','markerfacecolor','r'});
+hold on
+hc = shadedErrorBar(indeces,mu_cho(indeces)/1000,sqrt(var_cho(indeces))/1000, {'b-o','markerfacecolor','b'});
 hn = shadedErrorBar(indeces,mu_net(indeces)/1000,sqrt(var_net(indeces))/1000, {'g-o','markerfacecolor','g'});
 % h = legend([hm.mainLine hc.mainLine], 'Direct inversion', 'Sparse Cholesky','Location', 'Northwest');
 h = legend([hm.mainLine hc.mainLine hn.mainLine], 'Direct inversion', 'Sparse Cholesky', 'Junction tree', 'Location', 'Northwest');
