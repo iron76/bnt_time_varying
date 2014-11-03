@@ -7,7 +7,7 @@ sModel  = 1e1;
 sMeas   = 1e-5;
 sUknown = 1e3;
 
-nbVals = logspace(log10(1), log10(10), 40);
+nbVals = logspace(log10(1), log10(5), 40);
 nbVals = round(nbVals);
 nbVals = unique(nbVals','rows')';
 
@@ -39,7 +39,6 @@ for nb = nbVals
     ny = 0;
     ry = randfixedsum(NB, 1, 4*NB, 2, 6);
     ry = round(ry);
-    ry = 2*ones(size(ry))
     for i = 1 : NB
       if ry(i) >= 6
         ny = ny + 1;
@@ -128,6 +127,12 @@ for nb = nbVals
     [tau_mat, a_mat, fB_mat, f_mat, Sf_mat] = mID(model, q, dq, Y, y);
     t_mat(t) = toc*1000;
     
+    % solve redundant ID without exploiting sparsity
+    tic;
+    [tau_red, a_red, fB_red, f_red] = rID(model, q, dq, Y, y);
+    t_red(t) = toc*1000;
+    
+    
     % solve redundant ID with Cholesky
     [ys, Ys, ym, Yx, Yy]  = cholMeas (y, a_rne, fB_rne, f_rne, d2q, fx, ny, tau_rne, NB);
     tic;
@@ -149,16 +154,23 @@ for nb = nbVals
     %  t_rne(t)*1000, t_mat(t)*1000, t_net(t)*1000);
     % norm(cell2mat(Sf_cho) - cell2mat(Sf_net))
   end
-  mu_rne(nb) = mean(t_rne);    mu_mat(nb) = mean(t_mat);    mu_cho(nb) = mean(t_cho);    mu_net(nb) = mean(t_net);    mu_sol(nb) = mean(t_sol);
-  var_rne(nb) = var(t_rne);    var_mat(nb) = var(t_mat);    var_cho(nb) = var(t_cho);    var_net(nb) = var(t_net);    var_sol(nb) = var(t_sol);
+  mu_rne(nb) = mean(t_rne);    mu_red(nb) = mean(t_red);    mu_sol(nb) = mean(t_sol);
+  var_net(nb) = var(t_net);    var_red(nb) = var(t_red);    var_sol(nb) = var(t_sol);
+  mu_mat(nb) = mean(t_mat);    mu_cho(nb) = mean(t_cho);    mu_net(nb) = mean(t_net);    
+  var_rne(nb) = var(t_rne);    var_mat(nb) = var(t_mat);    var_cho(nb) = var(t_cho);    
+  
   fprintf(1, ...
-    '[%d] total time is (rne, sol, mat, cho, net): %.4f[ms]+-%.4f, %.4f[ms]+-%.4f, %.4f[ms]+-%.4f, %.4f[ms]+-%.4f, %.4f+-%.4f[ms] \r',...
+    '[%d] total time is (mat, cho, net): %.4f[ms]+-%.4f, %.4f[ms]+-%.4f, %.4f+-%.4f[ms] \r',...
     nb, ...
-    mu_rne(nb), 2*sqrt(var_rne(nb)), ...
-    mu_sol(nb), 2*sqrt(var_sol(nb)), ...
     mu_mat(nb), 2*sqrt(var_mat(nb)), ...
     mu_cho(nb), 2*sqrt(var_cho(nb)), ...
     mu_net(nb), 2*sqrt(var_net(nb)));
+  fprintf(1, ...
+    '[%d] total time is (rne, red, sol): %.4f[ms]+-%.4f, %.4f[ms]+-%.4f, %.4f+-%.4f[ms] \r',...
+    nb, ...
+    mu_rne(nb), 2*sqrt(var_rne(nb)), ...
+    mu_red(nb), 2*sqrt(var_red(nb)), ...
+    mu_sol(nb), 2*sqrt(var_sol(nb)));  
   save res.mat t_pth t_chl ...
     mu_rne  mu_mat  mu_cho mu_net ...
     var_rne var_mat var_cho var_net
@@ -183,11 +195,12 @@ print(hh, '-dpdf', 'calcTime1to50.pdf')
 indeces = find(mu_rne~=0);
 
 hh = figure;
-hr = shadedErrorBar(indeces,mu_rne(indeces)/1000,sqrt(var_rne(indeces))/1000, {'b-o','markerfacecolor','b'});
+hf = shadedErrorBar(indeces,mu_rne(indeces)/1000,sqrt(var_rne(indeces))/1000, {'b-o','markerfacecolor','b'});
 hold on
-hs = shadedErrorBar(indeces,mu_sol(indeces)/1000,sqrt(var_sol(indeces))/1000, {'k-o','markerfacecolor','k'});
+hr = shadedErrorBar(indeces,mu_red(indeces)/1000,sqrt(var_red(indeces))/1000, {'r-o','markerfacecolor','r'});
+hs = shadedErrorBar(indeces,mu_sol(indeces)/1000,sqrt(var_sol(indeces))/1000, {'g-o','markerfacecolor','g'});
 % h = legend([hm.mainLine hc.mainLine], 'Direct inversion', 'Sparse Cholesky','Location', 'Northwest');
-h = legend([hr.mainLine hs.mainLine], 'Recursive Newton-Euler', 'Redundant Newton-Euler', 'Location', 'Northwest');
+h = legend([hf.mainLine hr.mainLine hs.mainLine], 'Recursive Newton-Euler', 'Redundant Newton-Euler', 'Sparse redundant Newton-Euler', 'Location', 'Northwest');
 set(h, 'FontSize', 20)
 grid
 set(gca,'FontSize',20)

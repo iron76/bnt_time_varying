@@ -96,7 +96,7 @@ b  = cell2mat(bc);
 y  = cell2mat(yc);
 % d  = pinv([D; Y])*[-b; y];
 A  = [D; Y];
-d  = inv(A'*A)*A'*[-b; y];
+d  = (A'*A)\A'*[-b; y];
 
 dc  = mat2cell(d, ones(NB,1).*26 , 1);
 a   = zeros(NB,6);
