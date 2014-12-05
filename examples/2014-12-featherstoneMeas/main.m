@@ -7,7 +7,7 @@ sModel  = 1e1;
 sMeas   = 1e-5;
 sUknown = 1e3;
 
-nbVals = logspace(log10(1), log10(5), 40);
+nbVals = logspace(log10(1), log10(20), 10);
 nbVals = round(nbVals);
 nbVals = unique(nbVals','rows')';
 
@@ -189,7 +189,7 @@ grid
 set(gca,'FontSize',20)
 xlabel('N_B', 'FontSize', 20)
 ylabel('Computational time [s]', 'FontSize', 20)
-print(hh, '-dpdf', 'calcTime1to50.pdf')
+print(hh, '-dpdf', 'calcTime1to20.pdf')
 
 indeces = find(mu_rne~=0);
 
@@ -205,5 +205,5 @@ grid
 set(gca,'FontSize',20)
 xlabel('N_B', 'FontSize', 20)
 ylabel('Computational time [s]', 'FontSize', 20)
-print(hh, '-dpdf', 'solTime1to50.pdf')
+print(hh, '-dpdf', 'solTime1to20.pdf')
 

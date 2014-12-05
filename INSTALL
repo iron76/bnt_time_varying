@@ -15,7 +15,7 @@ the toolboxes downloaded at step 0.
 
 3. execute on terminal 'chmod +x install.sh'
 
-4. execute on terminal './install.sh'
+4. execute on terminal './install.sh' saying [yes] to all overwriting
 
 TO TEST THE SPARSE INVERSE DYNAMICS COMPUTATIONS
 
@@ -25,7 +25,7 @@ TO TEST THE SPARSE INVERSE DYNAMICS COMPUTATIONS
 
 3. Add the BNT and FEATHERSTONE toolboxes to the Matlab path
 
-4. Try the tests in the 'tests' folder
+4. Try to test the installation running exmples/2014-12-featherstoneMeas/main.m
 
 TO TEST THE KALMAN FILTERS ROUTINES
 
