@@ -1,4 +1,4 @@
-To install the software:
+TO INSTALL THE SOFTWARE
 
 0. Download and unzip where preferred the 
 dependencies (a) BNT toolbox and (b) FEATHERSTONE toolbox:
@@ -17,10 +17,26 @@ the toolboxes downloaded at step 0.
 
 4. execute on terminal './install.sh'
 
-5. Download the dataset provided here:
+TO TEST THE SPARSE INVERSE DYNAMICS COMPUTATIONS
+
+1. Open Matlab
+
+2. Add 'src' folder to the Matlab path
+
+3. Add the BNT and FEATHERSTONE toolboxes to the Matlab path
+
+4. Try the tests in the 'tests' folder
+
+TO TEST THE KALMAN FILTERS ROUTINES
+
+1. Download the dataset provided here:
 https://db.codyco.eu/uploads/5481c384912095330a03f869.zip
 and unzip it in the folder where bnt_time_varying is located
 
-6. Open Matlab and add both downloaded toolboxes to the 
-Matlab search path. Execute main.m in examples/2014-12-featherstoneMeas
+2. Open Matlab and add both downloaded toolboxes to the 
+Matlab search path. 
+
+3. Add the src/utils folder to the Matlab path
+
+4. Execute main.m in examples/2014-12-featherstoneMeas
 
