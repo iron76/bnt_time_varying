@@ -7,22 +7,22 @@ mkdir -p $BNT_FOLDER/BNT/inference/@inf_engine
 mkdir -p $BNT_FOLDER/KPMstats
 mkdir -p $BNT_FOLDER/modifiedEM
 
-cp -v $BNT_TIME_VARYING_FOLDER/bnt/BNT/CPDs/@gaussian_CPD/maximize_params_modified.m $BNT_FOLDER/BNT/CPDs/@gaussian_CPD/maximize_params_modified.m
+cp -v -i  $BNT_TIME_VARYING_FOLDER/extern/bnt/BNT/CPDs/@gaussian_CPD/maximize_params_modified.m $BNT_FOLDER/BNT/CPDs/@gaussian_CPD/maximize_params_modified.m
 
-cp -v $BNT_TIME_VARYING_FOLDER/bnt/BNT/CPDs/@gaussian_CPD/update_ess_modified.m $BNT_FOLDER/BNT/CPDs/@gaussian_CPD/update_ess_modified.m
+cp -v -i  $BNT_TIME_VARYING_FOLDER/extern/extern/bnt/BNT/CPDs/@gaussian_CPD/update_ess_modified.m $BNT_FOLDER/BNT/CPDs/@gaussian_CPD/update_ess_modified.m
 
-cp -v $BNT_TIME_VARYING_FOLDER/bnt/BNT/CPDs/@gaussian_CPD/updateCov_modified.m $BNT_FOLDER/BNT/CPDs/@gaussian_CPD/updateCov_modified.m
+cp -v -i  $BNT_TIME_VARYING_FOLDER/extern/extern/bnt/BNT/CPDs/@gaussian_CPD/updateCov_modified.m $BNT_FOLDER/BNT/CPDs/@gaussian_CPD/updateCov_modified.m
 
-cp -v $BNT_TIME_VARYING_FOLDER/bnt/BNT/inference/@inf_engine/update_engine_modified.m $BNT_FOLDER/BNT/inference/@inf_engine/update_engine_modified.m
+cp -v -i  $BNT_TIME_VARYING_FOLDER/extern/bnt/BNT/inference/@inf_engine/update_engine_modified.m $BNT_FOLDER/BNT/inference/@inf_engine/update_engine_modified.m
 
-cp -v $BNT_TIME_VARYING_FOLDER/bnt/KPMstats/mixgauss_Mstep_modified.m $BNT_FOLDER/KPMstats/mixgauss_Mstep_modified.m
+cp -v -i $BNT_TIME_VARYING_FOLDER/extern/bnt/KPMstats/mixgauss_Mstep_modified.m $BNT_FOLDER/KPMstats/mixgauss_Mstep_modified.m
 
-cp -v $BNT_TIME_VARYING_FOLDER/bnt/modifiedEM/clg_Mstep_modified.m $BNT_FOLDER/modifiedEM/clg_Mstep_modified.m
+cp -v -i $BNT_TIME_VARYING_FOLDER/extern/bnt/modifiedEM/clg_Mstep_modified.m $BNT_FOLDER/modifiedEM/clg_Mstep_modified.m
 
-cp -v $BNT_TIME_VARYING_FOLDER/bnt/modifiedEM/learn_params_em_modified.m $BNT_FOLDER/modifiedEM/learn_params_em_modified.m
+cp -v -i $BNT_TIME_VARYING_FOLDER/extern/bnt/modifiedEM/learn_params_em_modified.m $BNT_FOLDER/modifiedEM/learn_params_em_modified.m
 
-cp -v $BNT_TIME_VARYING_FOLDER/bnt/BNT/inference/@inf_engine/bnet_to_engine.m $BNT_FOLDER/BNT/inference/@inf_engine/bnet_to_engine.m
+cp -v -i $BNT_TIME_VARYING_FOLDER/extern/bnt/BNT/inference/@inf_engine/bnet_to_engine.m $BNT_FOLDER/BNT/inference/@inf_engine/bnet_to_engine.m
 
-cp -v $BNT_TIME_VARYING_FOLDER/featherstone/dynamics/ID.m $SPATIAL_FOLDER/dynamics/ID.m
+cp -v -i $BNT_TIME_VARYING_FOLDER/extern/featherstone/dynamics/ID.m $SPATIAL_FOLDER/dynamics/ID.m
 
-cp -v $BNT_TIME_VARYING_FOLDER/featherstone/dynamics/apply_external_forces.m $SPATIAL_FOLDER/dynamics/apply_external_forces.m
+cp -v -i $BNT_TIME_VARYING_FOLDER/extern/featherstone/dynamics/apply_external_forces.m $SPATIAL_FOLDER/dynamics/apply_external_forces.m
