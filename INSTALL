@@ -38,5 +38,5 @@ Matlab search path.
 
 3. Add the src/utils folder to the Matlab path
 
-4. Execute main.m in examples/2014-12-featherstoneMeas
+4. Execute examples/2014-09-floatingVisualize/NEgraph.m
 
