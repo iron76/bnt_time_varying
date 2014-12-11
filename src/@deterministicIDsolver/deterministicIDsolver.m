@@ -3,13 +3,22 @@
 % deterministicIDsolver is a class that is used to wrap mutiple solvers for
 % computing inverse dynamics. Inverse dynamic solvers compute an estimation
 % of the dynamic varaibles (forces, torques, accelerations, etc.) given a
-% set of measurements, possibly redundant. The computed solution 
-% for  example for documentation. It implements the following properties and methods:
+% set of measurements, possibly redundant. The deterministic solvers, give
+% only an estimated value for the dynamic variables, with no variance
+% associated to them (see also the class stochasticIDsolver). The class
+% include the following properties and methods:
+%
 % PROPERTIES
-%    myProp - empty sample property (some more explanation could follow here)
+%    IDstate - the current articulated rigid body state: q, dq (class state)
+%     IDmeas - the current measurements: y (class meas)
+%    IDmodel - the model of the articulated rigid body (class model)
+%     IDsens - the model of the sensor distribution (class sensors)
+%          d - dynamic varaibles [a_i, fB_i, f_i, tau_i, fx_i, d2q_i]
 %
 % METHODS
-%    myMethod - sample method that calls doc
+%       setQ - set the current value for the position q
+%      setDq - set the current value for the velocity dq
+%       setY - set the current value for the measurement y
 %
 % Author: Francesco Nori
 % Genova, Dec 2014
@@ -25,7 +34,7 @@ classdef deterministicIDsolver
    end
    
    properties (SetAccess = protected)
-      Xup, vJ, v, a, fB, f, Xa, fx, d2q, tau
+      Xup, vJ, v, a, fB, f, Xa, fx, d2q, tau, jn, S
    end
    
    % Class methods
@@ -42,6 +51,7 @@ classdef deterministicIDsolver
             b.IDmeas  = meas(sns.m);
             b.Xup     = cell(mdl.n, 1);
             b.Xa      = cell(mdl.n, 1);
+            b.S       = cell(mdl.n, 1);
             b.vJ      = zeros(6, mdl.n);
             b.d       = zeros(26*mdl.n,1);
             b.v       = zeros(6, mdl.n);
@@ -51,11 +61,15 @@ classdef deterministicIDsolver
             b.fx      = zeros(6, mdl.n);
             b.tau     = zeros(mdl.n, 1);
             b.d2q     = zeros(mdl.n, 1);
+            b.jn      = zeros(mdl.n, 1);
             for i = 1 : mdl.n
                b.Xup{i}  = zeros(6,6);
                b.Xa{i}   = zeros(6,6);
             end
-            
+            for i = 1:mdl.n
+               [ ~, b.S{i} ] = jcalc( mdl.modelParams.jtype{i}, 0);
+               [~,  b.jn(i)] = size(b.S{i});
+            end
          else
             error(['You should provide a featherstone-like ' ...
                'model to instantiate deterministicIDsolver'] )
@@ -65,7 +79,7 @@ classdef deterministicIDsolver
       function disp(a)
          % Display a deterministicIDsolver object
          fprintf('deterministicIDsolver disp to be implemented! \n')
-         disp(a.model)
+         disp(a.IDmodel)
          %fprintf('Description: %s\nDate: %s\nType: %s\nCurrent Value: $%4.2f\n',...
          %   a.Description,a.Date,a.Type,a.CurrentValue);
       end % disp
@@ -85,7 +99,7 @@ classdef deterministicIDsolver
          obj.IDstate.q = q;
          
          for i = 1 : obj.IDstate.n
-            [ XJ, ~ ] = jcalc( obj.IDmodel.modelParams.jtype{i}, q(i) );          
+            [ XJ, ~ ] = jcalc( obj.IDmodel.modelParams.jtype{i}, q(i) );
             obj.Xup{i} = XJ * obj.IDmodel.modelParams.Xtree{i};
          end
       end % Set.q
@@ -96,9 +110,9 @@ classdef deterministicIDsolver
             error('[ERROR] The input dq should be provided as a column vector with model.NB rows');
          end
          obj.IDstate.dq = dq;
-
+         
          for i = 1 : obj.IDstate.n
-           obj.vJ(:,i) = obj.IDmodel.S(:,i)*dq(i);
+            obj.vJ(:,i) = obj.IDmodel.S(:,i)*dq(i);
          end
          
       end % Set.q
@@ -112,6 +126,6 @@ classdef deterministicIDsolver
       end % Set.q
       
       obj = solveID(obj)
-   end   
+   end
 end % classdef
 

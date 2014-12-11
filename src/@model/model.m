@@ -20,9 +20,13 @@ classdef model
    end
    
    properties(SetAccess = private, GetAccess = public)
-      modelParams
+      modelParams, sparseParams
    end
    
+   methods(Static = true)
+      sparseModel = calcSparse(model)
+   end
+      
    methods
       function a = model(modelParams)
          % deterministicIDsolver Constructor function
@@ -30,10 +34,11 @@ classdef model
             if ~checkModel(modelParams)
                error('You should provide a featherstone-like mdoel')
             end
-            a.modelParams = modelParams;
+            a.modelParams  = modelParams;
+            a.sparseParams = a.calcSparse(a.modelParams);
             a.n      = modelParams.NB;
             a.S      = zeros(6, a.n);
-
+            
             for i = 1:a.n
                a.S(:, i) = scalc( modelParams.jtype{i} );
             end

@@ -5,7 +5,7 @@ clc
 NB        = 5;
 m         = 4;
 dmodel    = autoTree(NB);
-ymodel    = autoSensRNEA(NB);
+ymodel    = autoSensRNEA(dmodel);
 
 q         = rand(dmodel.NB,1);
 dq        = rand(dmodel.NB,1);

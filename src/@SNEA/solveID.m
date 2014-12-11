@@ -1,10 +1,10 @@
 function obj = solveID(obj)
-%solveID Inverse Dynamics with recursive Newton-Euler Algorithm (RNEA)
-%   This function solves the inverse dynamics problem with the classical
-%   recursive Newton-Euler algorithm, as implemented in the Featherstone's
-%   toolbox. Differently from the classical implementatio, the function
-%   produces an output which includes all relevant dynamic quantities. In
-%   particular the output 'd' is structured as follows:
+%solveID Inverse Dynamics with sparse Newton-Euler Algorithm (SNEA)
+%   This function solves the inverse dynamics problem with the sparse
+%   Newton-Euler algorithm, as described in the paper "BERDY: Bayesian 
+%   Estimation for Robot Dynamics. A Probabilistic Estimation of Whole-Body
+%   Dynamics with Redundant Measurements." The output 'd' is structured as
+%   follows:
 %
 %   d   = [d_1, d_2, ..., d_obj.IDstate.n]
 %
@@ -18,7 +18,12 @@ function obj = solveID(obj)
 %   link-i and d2q_i is acceleration of joint-i. The input to the algorithm
 %   is in obj.IDmeas.y organized as follows:
 %
-%   obj.IDmeas.y = [fx_1, d2q_1, ... , fx_obj.IDstate.n, d2q_obj.IDstate.n]
+%   obj.IDmeas.y = [y_1, y_2, ... , y_obj.IDsens.m]
+%
+%   The relationship between d and y is given by Y(q, dq) d = y where the
+%   matrix Y(q, dq), is represented as a sparse matrix. Moreover, the
+%   variables d should satisfy the Newton-Euler equations represented as
+%   D(q,dq) d + b(q, dq) = 0, again represented as a sparse matrix. 
 %
 % Author: Francesco Nori
 % Genova, Dec 2014
