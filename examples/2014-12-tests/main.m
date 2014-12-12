@@ -6,7 +6,7 @@ global Sm Su
 global dSv_inv idSv_inv jdSv_inv
 global dSw_inv idSw_inv jdSw_inv
 global dSy_inv idSy_inv jdSy_inv
-sModel  = 1e1;
+sModel  = 1e-3;
 sMeas   = 1e-5;
 sUknown = 1e3;
 
@@ -18,6 +18,7 @@ nbVals = unique(nbVals','rows')';
 for nb = nbVals
    NB = nb;
    model = autoTree(NB, 1+rand(1)*ceil(NB/4));
+   model = floatbase(model);
    NB = NB + 5;
    n  = NB;
    idSw_inv = []; jdSw_inv = []; dSw_inv=[];
@@ -51,7 +52,7 @@ for nb = nbVals
       %dSw_inv((i-1)*7+(1:7), 1)   = [...
       %   1./diag(Su.fx{i});  1./diag(Su.d2q{i})];      
    end   
-   model = floatbase(model);
+
    fx = cell(NB);
    for i = 1 : NB
       fx{i} = rand(6,1);
@@ -72,7 +73,7 @@ for nb = nbVals
          ny = ny + 1;
          y.sizes{ny,1}  = 6;
          y.labels{ny,1} = ['a' num2str(i)];
-         y.S{ny,1}      = sMeas.*eye(6);
+         y.S{ny,1}      = sMeas.*generateSPDmatrix(6);
          [ii, jj, ss] = submatrixSparse(my, my, inv(y.S{ny,1}));
          idSy_inv = [idSy_inv; ii];
          jdSy_inv = [jdSy_inv; jj];
@@ -83,7 +84,7 @@ for nb = nbVals
          ny = ny + 1;
          y.sizes{ny,1} = 6;
          y.labels{ny,1} = ['fB' num2str(i)];
-         y.S{ny,1}      = sMeas.*eye(6);
+         y.S{ny,1}      = sMeas.*generateSPDmatrix(6);
          [ii, jj, ss] = submatrixSparse(my, my, inv(y.S{ny,1}));
          idSy_inv = [idSy_inv; ii];
          jdSy_inv = [jdSy_inv; jj];
@@ -94,7 +95,7 @@ for nb = nbVals
          ny = ny + 1;
          y.sizes{ny,1} = 6;
          y.labels{ny,1} = ['f' num2str(i)];
-         y.S{ny,1}      = sMeas.*eye(6);
+         y.S{ny,1}      = sMeas.*generateSPDmatrix(6);
          [ii, jj, ss] = submatrixSparse(my, my, inv(y.S{ny,1}));
          idSy_inv = [idSy_inv; ii];
          jdSy_inv = [jdSy_inv; jj];
@@ -105,7 +106,7 @@ for nb = nbVals
          ny = ny + 1;
          y.sizes{ny,1} = 1;
          y.labels{ny,1} = ['tau' num2str(i)];
-         y.S{ny,1}      = sMeas.*eye(1);
+         y.S{ny,1}      = sMeas.*generateSPDmatrix(1);
          [ii, jj, ss] = submatrixSparse(my, my, inv(y.S{ny,1}));
          idSy_inv = [idSy_inv; ii];
          jdSy_inv = [jdSy_inv; jj];
@@ -116,7 +117,7 @@ for nb = nbVals
          ny = ny + 1;
          y.sizes{ny,1} = 6;
          y.labels{ny,1} = ['fx'  num2str(i)];
-         y.S{ny,1}      = sMeas.*eye(6);
+         y.S{ny,1}      = sMeas.*generateSPDmatrix(6);
          [ii, jj, ss] = submatrixSparse(my, my, inv(y.S{ny,1}));
          idSy_inv = [idSy_inv; ii];
          jdSy_inv = [jdSy_inv; jj];
@@ -127,7 +128,7 @@ for nb = nbVals
          ny = ny + 1;
          y.sizes{ny,1} = 1;
          y.labels{ny,1} = ['d2q' num2str(i)];
-         y.S{ny,1}      = sMeas.*eye(1);
+         y.S{ny,1}      = sMeas.*generateSPDmatrix(1);
          [ii, jj, ss] = submatrixSparse(my, my, inv(y.S{ny,1}));
          idSy_inv = [idSy_inv; ii];
          jdSy_inv = [jdSy_inv; jj];
@@ -138,6 +139,10 @@ for nb = nbVals
    
    % solve ID with the RNEA
    [tau_rne, a_rne, fB_rne, f_rne]        =  ID(model, q, dq, d2q, fx);
+   d_rne = zeros(26*NB, 1);
+   for i = 1 : NB
+      d_rne((1:26)+(i-1)*26, 1) = [a_rne{i}; fB_rne{i}; f_rne{i}; tau_rne(i,1); fx{i,1}; d2q(i,1)];
+   end
    
    % solve redundant ID with matrix inversion
    [y, Y]          = calcMeas (y, a_rne, fB_rne, f_rne, d2q, fx, ny, tau_rne, NB);
