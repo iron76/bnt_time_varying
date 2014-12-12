@@ -88,5 +88,13 @@ for i = 1 : ymodel.ny
       end
    end
 end
-ymodel.Ys = cell2mat(ymodel.Ys);
+
+for i = 1 : ymodel.ny
+  for j = 1 : ymodel.NB
+    Yx{i,j}  = ymodel.Ys{i,j}(:, 1:19);
+    Yy{i,j}  = ymodel.Ys{i,j}(:, 20:end);
+  end
+end
+
+ymodel.Ys = cell2mat([Yx Yy]);
 end
