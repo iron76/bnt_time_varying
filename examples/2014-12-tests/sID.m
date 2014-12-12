@@ -15,8 +15,8 @@ function  [d, S1] = sID( model, q, qd , Yx, Yy, y, S1, sparseModel)
 % dn = 24 * model.NB + 2*n
 
 global dSv_inv idSv_inv jdSv_inv
-global dSw_inv idSw_inv jdSw_inv
 global dSy_inv idSy_inv jdSy_inv
+global dSw_inv idSw_inv jdSw_inv
 
 NB  = model.NB;
 
@@ -203,16 +203,16 @@ Dy = Ds(1:19*NB, 19*NB+1:26*NB);
 
 % Sv_inv = eye(19*NB)./sModel;
 Sv_inv = sparse(idSv_inv, jdSv_inv, dSv_inv);
-% Sy_inv = eye(7*NB) ./sUknown;
-Sy_inv = sparse(idSw_inv, jdSw_inv, dSw_inv);
-% Sw_inv = eye(my)   ./sMeas;
-Sw_inv = sparse(idSy_inv, jdSy_inv, dSy_inv);
-Sinv   = [Dx'*Sv_inv*Dx Dx'*Sv_inv*Dy; Dy'*Sv_inv*Dx, Sy_inv+ Dy'*Sv_inv*Dy];
+% Sw_inv = eye(7*NB) ./sUknown;
+Sw_inv = sparse(idSw_inv, jdSw_inv, dSw_inv);
+% Sy_inv = eye(my)   ./sMeas;
+Sy_inv = sparse(idSy_inv, jdSy_inv, dSy_inv);
+Sinv   = [Dx'*Sv_inv*Dx Dx'*Sv_inv*Dy; Dy'*Sv_inv*Dx, Sw_inv+ Dy'*Sv_inv*Dy];
 
 Dx_inv = Dx\sparse(1:19*NB, 1:19*NB, 1);
-Sy     = Sy_inv\sparse(1:7*NB, 1:7*NB, 1);
+Sw     = Sw_inv\sparse(1:7*NB, 1:7*NB, 1);
 
-Ss = Sinv+[Yx Yy]'*Sw_inv*[Yx Yy];
+Ss = Sinv+[Yx Yy]'*Sy_inv*[Yx Yy];
 % L = chol(S1'*Ss*S1, 'lower');    % S1'*W*S1 = L*L'
 % PWinv1 = S1*inv_chol(L)*S1';
 % Ls = S1*L;
@@ -222,13 +222,13 @@ Ss = Sinv+[Yx Yy]'*Sw_inv*[Yx Yy];
 % mxy = -Sxy*[ -Sv^(-1)*mx; -Dy'*Sv^(-1)*mx - Sy^(-1)*my]
 
 
-% Sxy = S = [Dx^(-1)*inv(Sv_inv)*Dx^(-1)' + Dx^(-1)*Dy*inv(Sy_inv)*Dy'*Dx^(-1)', -Dx^(-1)*Dy*inv(Sy_inv); -inv(Sy_inv)*Dy'*Dx^(-1)', inv(Sy_inv)],1)
-Sxy = [Dx_inv + Dx_inv*Dy*Sy*Dy'*Sv_inv, -Dx_inv*Dy*Sy; -Sy*Dy'*Sv_inv, Sy];
+% Sxy = S = [Dx^(-1)*inv(Sv_inv)*Dx^(-1)' + Dx^(-1)*Dy*inv(Sw_inv)*Dy'*Dx^(-1)', -Dx^(-1)*Dy*inv(Sw_inv); -inv(Sw_inv)*Dy'*Dx^(-1)', inv(Sw_inv)],1)
+Sxy = [Dx_inv + Dx_inv*Dy*Sw*Dy'*Sv_inv, -Dx_inv*Dy*Sw; -Sw*Dy'*Sv_inv, Sw];
 mx  = -b;
 my  = zeros(7*NB,1);
-mxy = -Sxy*[-mx; -Dy'*Sv_inv*mx - Sy_inv*my];
-% d   = mxy + Ss\[Yx Yy]'*Sw_inv*(y-[Yx Yy]*mxy);
-d   = mxy +S1*((S1'*Ss*S1)\(S1'*([Yx Yy]'*Sw_inv*(y-[Yx Yy]*mxy))));
+mxy = -Sxy*[-mx; -Dy'*Sv_inv*mx - Sw_inv*my];
+% d   = mxy + Ss\[Yx Yy]'*Sy_inv*(y-[Yx Yy]*mxy);
+d   = mxy +S1*((S1'*Ss*S1)\(S1'*([Yx Yy]'*Sy_inv*(y-[Yx Yy]*mxy))));
 
 dx    =      d(1:NB*19      , 1);
 dy    =      d(1+NB*19 : end, 1);
