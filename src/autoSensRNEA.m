@@ -60,7 +60,8 @@ ymodel.Ys = cell(ymodel.ny, ymodel.NB);
 for i = 1 : ymodel.ny
    for j = 1 : ymodel.NB
       my = ymodel.sizes{i,1};
-      ymodel.Y{i,j} = zeros(my, 26);
+      ymodel.Y{i,j}  = zeros(my, 26);
+      ymodel.Ys{i,j} = zeros(my, 26);
       if strcmp(ymodel.labels{i,1}, ['a' num2str(j)])
          ymodel.Y{i,j}  = [eye(6) zeros(6,6) zeros(6,6) zeros(6, 1) zeros(6,6) zeros(6, 1)];
          ymodel.Ys{i,j} = sparse(1:6,1:6,ones(6,1), 6, 26);
@@ -88,3 +89,4 @@ for i = 1 : ymodel.ny
    end
 end
 ymodel.Ys = cell2mat(ymodel.Ys);
+end

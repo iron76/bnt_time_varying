@@ -23,9 +23,16 @@ function obj = solveID(obj)
 % Author: Francesco Nori
 % Genova, Dec 2014
 
-for i = 1 : obj.IDmodel.n
-   obj.fx(:,i)  = obj.IDmeas.y((1:6)+(i-1)*7,1);
-   obj.d2q(i,1) = obj.IDmeas.y(7*i);
+iy = 1;
+for j = 1 : obj.IDsens.sensorsParams.ny
+   for i = 1 : obj.IDmodel.n
+      if strcmp(obj.IDsens.sensorsParams.labels{j,1}, ['fx' num2str(i)])
+         obj.fx(:,i)  = obj.IDmeas.y(iy:iy+5,1);
+      elseif strcmp(obj.IDsens.sensorsParams.labels{j,1}, ['d2q' num2str(i)])
+         obj.d2q(i,1) = obj.IDmeas.y(iy, 1);
+      end
+   end
+   iy = iy + obj.IDsens.sensorsParams.sizes{j,1};
 end
 
 a_grav = get_gravity(obj.IDmodel.modelParams);
@@ -36,10 +43,8 @@ for i = 1 : obj.IDmodel.n
    % vJ = S{i}*dq(i);
    % Xup{i} = XJ * model.Xtree{i};
    if obj.IDmodel.modelParams.parent(i) == 0
-      obj.v(:,i) = obj.vJ(:,i);
       obj.a(:,i) = obj.Xup{i}*(-a_grav) + obj.IDmodel.S(:,i)*obj.d2q(i,1);
    else
-      obj.v(:,i) = obj.Xup{i}*obj.v(:,obj.IDmodel.modelParams.parent(i)) + obj.vJ(:,i);
       obj.a(:,i) = obj.Xup{i}*obj.a(:,obj.IDmodel.modelParams.parent(i)) + obj.IDmodel.S(:,i)*obj.d2q(i,1) + crm(obj.v(:,i))*obj.vJ(:,i);
    end
    obj.fB(:,i) = obj.IDmodel.modelParams.I{i}*obj.a(:,i) + crf(obj.v(:,i))*obj.IDmodel.modelParams.I{i}*obj.v(:,i);
@@ -49,11 +54,6 @@ obj.f = obj.fB;
 
 if ~isempty(obj.fx) 
   for i = 1:length(obj.IDmodel.modelParams.parent)
-    if obj.IDmodel.modelParams.parent(i) == 0
-      obj.Xa{i} = obj.Xup{i};
-    else
-      obj.Xa{i} = obj.Xup{i} * obj.Xa{obj.IDmodel.modelParams.parent(i)};
-    end
     if ~isempty(obj.fx(:,i)) 
       obj.f(:,i) = obj.f(:,i) - obj.Xa{i}' \ obj.fx(:,i);
     end

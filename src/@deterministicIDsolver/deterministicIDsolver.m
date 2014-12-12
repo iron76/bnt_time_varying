@@ -102,6 +102,15 @@ classdef deterministicIDsolver
             [ XJ, ~ ] = jcalc( obj.IDmodel.modelParams.jtype{i}, q(i) );
             obj.Xup{i} = XJ * obj.IDmodel.modelParams.Xtree{i};
          end
+         
+         for i = 1:length(obj.IDmodel.modelParams.parent)
+            if obj.IDmodel.modelParams.parent(i) == 0
+               obj.Xa{i} = obj.Xup{i};
+            else
+               obj.Xa{i} = obj.Xup{i} * obj.Xa{obj.IDmodel.modelParams.parent(i)};
+            end
+         end
+         
       end % Set.q
       
       function obj = setDq(obj,dq)
@@ -113,6 +122,11 @@ classdef deterministicIDsolver
          
          for i = 1 : obj.IDstate.n
             obj.vJ(:,i) = obj.IDmodel.S(:,i)*dq(i);
+            if obj.IDmodel.modelParams.parent(i) == 0
+               obj.v(:,i) = obj.vJ(:,i);
+            else
+               obj.v(:,i) = obj.Xup{i}*obj.v(:,obj.IDmodel.modelParams.parent(i)) + obj.vJ(:,i);
+            end
          end
          
       end % Set.q

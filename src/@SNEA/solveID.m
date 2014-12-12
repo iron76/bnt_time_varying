@@ -159,8 +159,6 @@ NB = obj.IDmodel.modelParams.NB;
 b  = sparse(ib, ones(length(ib),1), b1s, 19*NB, 1);
 Ds = sparse(iD, jD, D1s, 19*NB, 26*NB); 
 
-my = obj.IDmeas.m;
-
 Dx = Ds(1:19*NB, 1:19*NB);
 Dy = Ds(1:19*NB, 19*NB+1:26*NB);
 
@@ -194,16 +192,18 @@ Dy = Ds(1:19*NB, 19*NB+1:26*NB);
 % (S^(-1)+[Yy Yx]'*Sw^(-1)*[Yy Yx])^(-1)
 
 % Sv_inv = eye(19*NB)./sModel;
-Sv_inv = sparse(1:19*NB, 1:19*NB, 1);
-% Sy_inv = eye(7*NB) ./sUknown;
-Sy_inv = sparse(1:7*NB, 1:7*NB, 1);
-Sy     = sparse(1:7*NB, 1:7*NB, 1);
-% Sw_inv = eye(my)   ./sMeas;
-Sw_inv = sparse(1:my, 1:my, 1);
-Sinv   = [Dx'*Sv_inv*Dx Dx'*Sv_inv*Dy; Dy'*Sv_inv*Dx, Sy_inv+ Dy'*Sv_inv*Dy];
-Dx_inv = Dx\sparse(1:19*NB, 1:19*NB, 1);
+Sv_inv = obj.IDmodel.modelParams.Sv_inv
+% Sw_inv = eye(7*NB) ./sUknown;
+Sw_inv = obj.IDmodel.modelParams.Sw_inv
+% Sy_inv = eye(my)   ./sMeas;
+Sy_inv = obj.IDsens.sensorsParams.Sy_inv
 
-Ss = Sinv+obj.IDsens.sensorsParams.Ys'*Sw_inv*obj.IDsens.sensorsParams.Ys;
+Sinv   = [Dx'*Sv_inv*Dx Dx'*Sv_inv*Dy; Dy'*Sv_inv*Dx, Sw_inv+ Dy'*Sv_inv*Dy];
+Sw     = Sw_inv\sparse(1:7*NB, 1:7*NB, 1);
+Dx_inv = Dx\sparse(1:19*NB, 1:19*NB, 1);
+Y = obj.IDsens.sensorsParams.Ys;
+
+Ss = Sinv+Y'*Sy_inv*Y;
 % L = chol(S1'*Ss*S1, 'lower');    % S1'*W*S1 = L*L'
 % PWinv1 = S1*inv_chol(L)*S1';
 % Ls = S1*L;
@@ -213,13 +213,13 @@ Ss = Sinv+obj.IDsens.sensorsParams.Ys'*Sw_inv*obj.IDsens.sensorsParams.Ys;
 % mxy = -Sxy*[ -Sv^(-1)*mx; -Dy'*Sv^(-1)*mx - Sy^(-1)*my]
 
 
-% Sxy = S = [Dx^(-1)*inv(Sv_inv)*Dx^(-1)' + Dx^(-1)*Dy*inv(Sy_inv)*Dy'*Dx^(-1)', -Dx^(-1)*Dy*inv(Sy_inv); -inv(Sy_inv)*Dy'*Dx^(-1)', inv(Sy_inv)],1)
-Sxy = [Dx_inv + Dx_inv*Dy*Sy*Dy'*Sv_inv, -Dx_inv*Dy*Sy; -Sy*Dy'*Sv_inv, Sy];
+% Sxy = S = [Dx^(-1)*inv(Sv_inv)*Dx^(-1)' + Dx^(-1)*Dy*inv(Sw_inv)*Dy'*Dx^(-1)', -Dx^(-1)*Dy*inv(Sw_inv); -inv(Sw_inv)*Dy'*Dx^(-1)', inv(Sw_inv)],1)
+Sxy = [Dx_inv + Dx_inv*Dy*Sw*Dy'*Sv_inv, -Dx_inv*Dy*Sw; -Sw*Dy'*Sv_inv, Sw];
 mx  = -b;
 my  = zeros(7*NB,1);
-mxy = -Sxy*[-mx; -Dy'*Sv_inv*mx - Sy_inv*my];
-d   = mxy + Ss\obj.IDsens.sensorsParams.Ys'*Sw_inv*(obj.IDmeas.y-obj.IDsens.sensorsParams.Ys*mxy);
-% d   = mxy +S1*((S1'*Ss*S1)\(S1'*([Yx Yy]'*Sw_inv*(y-[Yx Yy]*mxy))));
+mxy = -Sxy*[-mx; -Dy'*Sv_inv*mx - Sw_inv*my];
+d   = mxy + Ss\Y'*Sy_inv*(obj.IDmeas.y-Y*mxy);
+% d   = mxy +S1*((S1'*Ss*S1)\(S1'*(Y'*Sy_inv*(y-Y*mxy))));
 
 dx    =      d(1:NB*19      , 1);
 dy    =      d(1+NB*19 : end, 1);
@@ -227,23 +227,19 @@ dy    =      d(1+NB*19 : end, 1);
 dxc  = mat2cell( dx, 19*ones(1, NB), 1);
 dyc  = mat2cell( dy,  7*ones(1, NB), 1);
 
-a   = zeros(NB,6);
-fB  = zeros(NB,6);
-f   = zeros(NB,6);
-tau = zeros(NB,1);
-d2q = zeros(NB,1);
-fx  = zeros(NB,6);
-
 for i = 1 : NB
   dc{i}   = [dxc{i,1}; dyc{i,1}];
   
-  a( i,1:6) = dc{i}( 1: 6, 1);
-  fB(i,1:6) = dc{i}( 7: 12, 1);
-  f( i,1:6) = dc{i}(13: 18, 1);
-  tau(i,1)  = dc{i}(19, 1);
-  fx(i,1:6) = dc{i}( 20: 25, 1);
-  d2q(i,1)  = dc{i}(26, 1);
+  obj.a  (1:6,i) = dc{i}( 1: 6, 1);
+  obj.fB (1:6,i) = dc{i}( 7: 12, 1);
+  obj.f  (1:6,i) = dc{i}(13: 18, 1);
+  obj.tau(1:1,i)  = dc{i}(19, 1);
+  obj.fx (1:6,i) = dc{i}( 20: 25, 1);
+  obj.d2q(1:1,i)  = dc{i}(26, 1);
+  
+  d((1:26)+(i-1)*26, 1) = [obj.a(1:6,i); obj.fB(1:6,i); obj.f(1:6,i); obj.tau(1,i); obj.fx(1:6,i); obj.d2q(1,i)];
 end
+obj.d = d;
 
 
 end % solveID
