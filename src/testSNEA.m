@@ -3,7 +3,6 @@ close all
 clc
 
 NB        = 5;
-m         = 4;
 dmodel    = autoTree(NB);
 ymodel    = autoSensRNEA(dmodel);
 
@@ -12,7 +11,7 @@ ymodel    = autoSensStochastic(ymodel);
 
 q         = rand(dmodel.NB,1);
 dq        = rand(dmodel.NB,1);
-y         = rand(ymodel.m,1)*0;
+y         = rand(ymodel.m,1);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 myModel = model(dmodel);
@@ -47,4 +46,6 @@ mySNEA.d;
 
 myRNEA = myRNEA.solveID();
 myRNEA.d;
+
+disp(num2str(norm(mySNEA.d-myRNEA.d)))
 

@@ -113,8 +113,8 @@ for i = 1 : ymodel.ny
    end
 end
 
-for i = 1 : ny
-  for j = 1 : NB
+for i = 1 : ymodel.ny
+  for j = 1 : ymodel.NB
     Yx{i,j}  = ymodel.Ys{i,j}(:, 1:19);
     Yy{i,j}  = ymodel.Ys{i,j}(:, 20:end);
   end
