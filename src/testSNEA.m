@@ -47,5 +47,5 @@ mySNEA.d;
 myRNEA = myRNEA.solveID();
 myRNEA.d;
 
-disp(num2str(norm(mySNEA.d-myRNEA.d)))
+disp(['Diff between RNEA and SNEA is ' num2str(norm(mySNEA.d-myRNEA.d))]);
 
