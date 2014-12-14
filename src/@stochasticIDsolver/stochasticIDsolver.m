@@ -1,16 +1,16 @@
 classdef stochasticIDsolver < deterministicIDsolver
    
    properties
-      S = 0;
+      Sd
    end
    
    methods
-      function b = stochasticIDsolver(model)
+      function b = stochasticIDsolver(m,y)
          if nargin == 0
             error(['You should provide a featherstone-like ' ... 
              'model to instantiate stochasticIDsolver'] )            
          end
-         b = b@deterministicIDsolver(model);
+         b = b@deterministicIDsolver(m,y);
       end % stochasticIDsolver
       
       function disp(b)

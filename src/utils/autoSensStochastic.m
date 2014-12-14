@@ -19,48 +19,48 @@ my = 1;
 for i = 1 : model.ny
    for j = 1 : model.NB
       if strcmp(model.labels{i,1}, ['a' num2str(j)])
-         model.S{i,1}      = sMeas.*eye(6);
-         [ii, jj, ss] = submatrixSparse(my, my, inv(model.S{i,1}));
+         model.Sy{i,1}      = sMeas.*eye(6);
+         [ii, jj, ss] = submatrixSparse(my, my, inv(model.Sy{i,1}));
          idSy_inv = [idSy_inv; ii];
          jdSy_inv = [jdSy_inv; jj];
          dSy_inv  = [dSy_inv;  ss];
          my = my + 6;
       end
       if strcmp(model.labels{i,1}, ['fB' num2str(j)])
-         model.S{i,1}      = sMeas.*eye(6);
-         [ii, jj, ss] = submatrixSparse(my, my, inv(model.S{i,1}));
+         model.Sy{i,1}      = sMeas.*eye(6);
+         [ii, jj, ss] = submatrixSparse(my, my, inv(model.Sy{i,1}));
          idSy_inv = [idSy_inv; ii];
          jdSy_inv = [jdSy_inv; jj];
          dSy_inv  = [dSy_inv;  ss];
          my = my + 6;
       end
       if strcmp(model.labels{i,1}, ['f' num2str(j)])
-         model.S{i,1}      = sMeas.*eye(6);
-         [ii, jj, ss] = submatrixSparse(my, my, inv(model.S{i,1}));
+         model.Sy{i,1}      = sMeas.*eye(6);
+         [ii, jj, ss] = submatrixSparse(my, my, inv(model.Sy{i,1}));
          idSy_inv = [idSy_inv; ii];
          jdSy_inv = [jdSy_inv; jj];
          dSy_inv  = [dSy_inv;  ss];
          my = my + 6;
       end
       if strcmp(model.labels{i,1}, ['tau' num2str(j)])
-         model.S{i,1}      = sMeas.*eye(1);
-         [ii, jj, ss] = submatrixSparse(my, my, inv(model.S{i,1}));
+         model.Sy{i,1}      = sMeas.*eye(1);
+         [ii, jj, ss] = submatrixSparse(my, my, inv(model.Sy{i,1}));
          idSy_inv = [idSy_inv; ii];
          jdSy_inv = [jdSy_inv; jj];
          dSy_inv  = [dSy_inv;  ss];
          my = my + 1;
       end
       if strcmp(model.labels{i,1}, ['fx' num2str(j)])
-         model.S{i,1}      = sMeas.*eye(6);
-         [ii, jj, ss] = submatrixSparse(my, my, inv(model.S{i,1}));
+         model.Sy{i,1}      = sMeas.*eye(6);
+         [ii, jj, ss] = submatrixSparse(my, my, inv(model.Sy{i,1}));
          idSy_inv = [idSy_inv; ii];
          jdSy_inv = [jdSy_inv; jj];
          dSy_inv  = [dSy_inv;  ss];
          my = my + 6;
       end
       if strcmp(model.labels{i,1}, ['d2q' num2str(j)])
-         model.S{i,1}      = sMeas.*eye(1);
-         [ii, jj, ss] = submatrixSparse(my, my, inv(model.S{i,1}));
+         model.Sy{i,1}      = sMeas.*eye(1);
+         [ii, jj, ss] = submatrixSparse(my, my, inv(model.Sy{i,1}));
          idSy_inv = [idSy_inv; ii];
          jdSy_inv = [jdSy_inv; jj];
          dSy_inv  = [dSy_inv;  ss];

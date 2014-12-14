@@ -41,7 +41,7 @@ function [ ymodel ] = autoSensSNEA( dmodel )
 ymodel.NB = dmodel.NB;
 ny = 0;
 
-ry = randfixedsum(ymodel.NB, 1, 3*ymodel.NB, 2, 6);
+ry = randfixedsum(ymodel.NB, 1, 4*ymodel.NB, 2, 6);
 ry = round(ry);
 for i = 1 : ymodel.NB
    if ry(i) >= 6
