@@ -1,19 +1,18 @@
-% SNEA computes inverse dynamics with recursive Newton-Euler
+% SNEA solves inverse dynamics with redundant measurements.
 %
 % The class is instantiated with two additional classes to describe the
-% articulated rigid body model (e.g. myModel = model(autoTree(NB))) and to
-% describe the sensor distribution (e.g. mySens  = sensors(autoSens(m,NB)))
-% with the following instanatiation: mySNEA = SNEA(myModel, mySens).
-% Computations are then performed with the method d = mySNEA.solveID(y);
+% articulated rigid body model, e.g.:
+%            myModel = model(autoTree(NB)) 
+% and to describe the sensor distribution, e.g.: 
+%            mySens  = sensors(autoSensStochastic(autoSensSNEA(myModel)))
+% with the following instanatiation: 
+%             mySNEA = SNEA(myModel, mySens).
+% Computations are then performed with the method d = mySNEA.solveID();
 %
 % Author: Francesco Nori
 % Genova, Dec 2014
 
 classdef SNEA < deterministicIDsolver
-   
-   properties
-      % FaceValue = 0;
-   end
    
    methods
       function b = SNEA(m,y)
