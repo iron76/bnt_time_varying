@@ -19,7 +19,12 @@
 %
 % [I, J] = indeces(As, i, j);
 %
-% so that we have A(I,J) = A_ij.
+% so that we have A(I,J) = A_ij. Setting the value of A_ij can be obtained
+% by running the folllwing command:
+%
+% As = set(As, A_ij, i, j);
+%
+% Remarkably, in all the examples above i and j can be vectors.
 %
 %
 % Author: Francesco Nori
@@ -50,19 +55,32 @@ classdef submatrix
          if strcmp(S.type, '()') && length(S.subs) == 2
             [I, J] = obj.indeces(S.subs{1}, S.subs{2});
             B = obj.A(I, J);
-            %          elseif strcmp(S.type, '()') && length(S.subs) == 4
-            %             B = obj.A(S.subs{3}, S.subs{4});
+            % B = submatrix(obj.A(I, J), obj.m(S.subs{1}), obj.n(S.subs{2}));
+         % elseif strcmp(S.type, '.') && strcmp(S.subs, 'toDouble')
+            % B = obj.A;
          else
             error('The sumatrix class can be accessed only as A(i,j).')
          end
       end
       
       function [I, J] = indeces(obj, i, j)
-         if i < 0 || i > length(obj.m) || j < 0 || j > length(obj.n)
-            error('Trying to access the sumatrix outside its definition')
-         else
-            I = 1 + obj.cm(i) : obj.cm(i+1);
-            J = 1 + obj.cn(j) : obj.cn(j+1);
+         I  = zeros(sum(obj.m(i)),1);
+         ii = [1 cumsum(obj.m(i)) + 1];
+         for h = 1 : length(i)
+            if i(h) < 0 || i(h) > length(obj.m)
+               error('Trying to access the sumatrix outside its definition')
+            else
+               I(ii(h) : ii(h+1)-1,1) = 1 + obj.cm(i(h)) : obj.cm(i(h)+1);
+            end
+         end
+         J  = zeros(sum(obj.n(j)),1);
+         jj = [1 cumsum(obj.n(j)) + 1];
+         for k = 1 : length(j)
+            if j(k) < 0 || j(k) > length(obj.n)
+               error('Trying to access the sumatrix outside its definition')
+            else
+               J(jj(k) : jj(k+1)-1,1) = 1 + obj.cn(j(k)) : obj.cn(j(k)+1);
+            end
          end
       end
       
@@ -73,7 +91,6 @@ classdef submatrix
             for k = 1 : length(I)
                for j = 1 : length(b.n)
                   [I,J] = b.indeces(i, j);
-                  %for k = 1 : length(I)
                   for h = 1 : length(J)
                      fprintf('%s ', num2str(b.A(I(k),J(h)), '%1.4f  '))
                   end
