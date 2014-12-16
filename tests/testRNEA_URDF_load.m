@@ -22,6 +22,7 @@ NB = 2;
 R = RigidBodyManipulator('model.urdf');
 dmodel = R.featherstone;
 dmodel.jtype = {'R','R'};
+dmodel.appearance = {'1' '1'}';
 
 ymodel = autoSensRNEA(dmodel);
 
