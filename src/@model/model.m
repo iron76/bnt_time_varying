@@ -16,7 +16,7 @@
 
 classdef model
    properties(SetAccess = immutable, GetAccess = public)
-      n, S
+      n, S, jn, g
    end
    
    properties(SetAccess = private, GetAccess = public)
@@ -37,11 +37,16 @@ classdef model
             a.modelParams  = modelParams;
             a.sparseParams = a.calcSparse(a.modelParams);
             a.n      = modelParams.NB;
-            a.S      = zeros(6, a.n);
+            a.S      = cell (a.n, 1);
+            a.jn     = zeros(a.n, 1);
+            a.g      = get_gravity(modelParams);
+
             
             for i = 1:a.n
-               a.S(:, i) = scalc( modelParams.jtype{i} );
+               [~, a.S{i} ] = jcalc( modelParams.jtype{i} , 0);
+               [~, a.jn(i)] = size(a.S{i});
             end
+            
          else
             error('You should provide a featherstone-like model')
          end
