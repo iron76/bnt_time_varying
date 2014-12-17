@@ -30,7 +30,6 @@ function obj = solveID(obj)
 % Genova, Dec 2014
 
 NB     = obj.IDmodel.modelParams.NB;
-a_grav = get_gravity(obj.IDmodel.modelParams);
 
 % % for i = 1:obj.IDmodel.modelParams.NB
 % %   [ XJ, S{i} ] = jcalc( model.jtype{i}, q(i) );
@@ -64,11 +63,11 @@ for i = 1:obj.IDmodel.modelParams.NB
       Wa    = cell(1, length(pars));
       for j = 1 : length(pars)
          if pars(j) == d2qi
-            Wa{1, j} = obj.IDmodel.S(:,i);
+            Wa{1, j} = obj.IDmodel.S{i};
          end
       end
       W = cell2mat(Wa);
-      obj.bnt.bnet.CPD{ai} = gaussian_CPD(obj.bnt.bnet, ai, 'mean', obj.Xup{i}*(-a_grav), 'cov', obj.IDmodel.modelParams.Sm.a{i}, 'weights', W);
+      obj.bnt.bnet.CPD{ai} = gaussian_CPD(obj.bnt.bnet, ai, 'mean', obj.Xup{i}*(-obj.IDmodel.g), 'cov', obj.IDmodel.modelParams.Sm.a{i}, 'weights', W);
    else
       % a{i} = ... + S{i}*qdd(i) + crm(v{i})*vJ;
       % a{i} = Xup{i}*a{model.parent(i)} + ...
@@ -83,7 +82,7 @@ for i = 1:obj.IDmodel.modelParams.NB
          if pars(j) == aj
             Wa{1, j} = obj.Xup{i};
          elseif pars(j) == d2qi
-            Wa{1, j} = obj.IDmodel.S(:,i);
+            Wa{1, j} = obj.IDmodel.S{i};
          end
       end
       W = cell2mat(Wa);
@@ -132,7 +131,7 @@ for i = obj.IDmodel.modelParams.NB:-1:1
    Wa    = cell(1, length(pars));
    for j = 1 : length(pars)
       if pars(j) == fi
-         Wa{1, j} = obj.IDmodel.S(:,i)';
+         Wa{1, j} = obj.IDmodel.S{i}';
       end
    end
    W = cell2mat(Wa);
