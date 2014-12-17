@@ -44,8 +44,7 @@ mySens  = sensors(ymodel);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 myRNEA    = RNEA(myModel, mySens);
-myRNEA    = myRNEA.setQ(q);
-myRNEA    = myRNEA.setDq(dq);
+myRNEA    = myRNEA.setState(q,dq);
 myRNEA    = myRNEA.setY(y);
 
 if (sum(q-myRNEA.IDstate.q))

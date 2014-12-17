@@ -2,7 +2,7 @@ clear all
 close all
 clc
 
-NB        = 5;
+NB        = 20;
 dmodel    = autoTree(NB);
 
 ymodel    = autoSensSNEA(dmodel);
@@ -20,34 +20,23 @@ mySens  = sensors(ymodel);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 myPNEA    = PNEA(myModel, mySens);
-myPNEA    = myPNEA.setQ(q);
-myPNEA    = myPNEA.setDq(dq);
-myPNEA    = myPNEA.setY(y);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 mySNEA    = SNEA(myModel, mySens);
-mySNEA    = mySNEA.setQ(q);
-mySNEA    = mySNEA.setDq(dq);
-mySNEA    = mySNEA.setY(y);
 
-if (sum(q-myPNEA.IDstate.q))
-   error('Something wrong with the setQ method');
-end
-
-if (sum(dq-myPNEA.IDstate.dq))
-   error('Something wrong with the setDq method');
-end
-
-if (sum(y-myPNEA.IDmeas.y))
-   error('Something wrong with the setY method');
-end
-
+tic;
+myPNEA = myPNEA.setState(q, dq);
+myPNEA = myPNEA.setY(y);
 myPNEA = myPNEA.solveID();
-myPNEA.d;
-myPNEA.Sd;
+t_PNEA = toc;
+disp(['Computation time for PNEA is: ' num2str(t_PNEA) '[sec]']);
 
+tic;
+mySNEA = mySNEA.setState(q,dq);
+mySNEA = mySNEA.setY(y);
 mySNEA = mySNEA.solveID();
-mySNEA.d;
+t_SNEA = toc;
+disp(['Computation time for SNEA is: ' num2str(t_SNEA) '[sec]']);
 
 disp(['Diff between SNEA and PNEA is ' num2str(norm(myPNEA.d-mySNEA.d))]);
 

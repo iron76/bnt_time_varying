@@ -19,17 +19,17 @@ myModel = model(dmodel);
 mySens  = sensors(ymodel);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-myBNEA    = BNEA(myModel, mySens);
+myMNEA    = MNEA(myModel, mySens);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 myPNEA    = PNEA(myModel, mySens);
 
 tic;
-myBNEA = myBNEA.setState(q, dq);
-myBNEA = myBNEA.setY(y);
-myBNEA = myBNEA.solveID();
-t_BNEA = toc;
-disp(['Computation time for BNEA is: ' num2str(t_BNEA) '[sec]']);
+myMNEA = myMNEA.setState(q, dq);
+myMNEA = myMNEA.setY(y);
+myMNEA = myMNEA.solveID();
+t_MNEA = toc;
+disp(['Computation time for MNEA is: ' num2str(t_MNEA) '[sec]']);
 
 tic;
 myPNEA = myPNEA.setState(q, dq);
@@ -38,6 +38,6 @@ myPNEA = myPNEA.solveID();
 t_PNEA = toc;
 disp(['Computation time for PNEA is: ' num2str(t_PNEA) '[sec]']);
 
-disp(['Diff d  between PNEA and BNEA is ' num2str(norm(myBNEA.d-myPNEA.d))]);
-disp(['Diff Sd between PNEA and BNEA is ' num2str(norm(myBNEA.Sd-myPNEA.Sd))]);
+disp(['Diff d  between PNEA and MNEA is ' num2str(norm(myMNEA.d-myPNEA.d))]);
+disp(['Diff Sd between PNEA and MNEA is ' num2str(norm(myMNEA.Sd-myPNEA.Sd))]);
 

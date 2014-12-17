@@ -2,7 +2,7 @@ clear all
 close all
 clc
 
-NB        = 5;
+NB        = 20;
 dmodel    = autoTree(NB);
 ymodel    = autoSensRNEA(dmodel);
 
@@ -19,14 +19,12 @@ mySens  = sensors(ymodel);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 mySNEA    = SNEA(myModel, mySens);
-mySNEA    = mySNEA.setQ(q);
-mySNEA    = mySNEA.setDq(dq);
+mySNEA    = mySNEA.setState(q,dq);
 mySNEA    = mySNEA.setY(y);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 myRNEA    = RNEA(myModel, mySens);
-myRNEA    = myRNEA.setQ(q);
-myRNEA    = myRNEA.setDq(dq);
+myRNEA    = myRNEA.setState(q,dq);
 myRNEA    = myRNEA.setY(y);
 
 if (sum(q-mySNEA.IDstate.q))
