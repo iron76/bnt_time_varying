@@ -35,17 +35,15 @@ for j = 1 : obj.IDsens.sensorsParams.ny
    iy = iy + obj.IDsens.sensorsParams.sizes{j,1};
 end
 
-a_grav = get_gravity(obj.IDmodel.modelParams);
-
 for i = 1 : obj.IDmodel.n
    % [ XJ, S{i} ] = jcalc( model.jtype{i}, q(i) );
    % [~, jn{i}] = size(S{i});
    % vJ = S{i}*dq(i);
    % Xup{i} = XJ * model.Xtree{i};
    if obj.IDmodel.modelParams.parent(i) == 0
-      obj.a(:,i) = obj.Xup{i}*(-a_grav) + obj.IDmodel.S(:,i)*obj.d2q(i,1);
+      obj.a(:,i) = obj.Xup{i}*(-obj.IDmodel.g) + obj.IDmodel.S{i}*obj.d2q(i,1);
    else
-      obj.a(:,i) = obj.Xup{i}*obj.a(:,obj.IDmodel.modelParams.parent(i)) + obj.IDmodel.S(:,i)*obj.d2q(i,1) + crm(obj.v(:,i))*obj.vJ(:,i);
+      obj.a(:,i) = obj.Xup{i}*obj.a(:,obj.IDmodel.modelParams.parent(i)) + obj.IDmodel.S{i}*obj.d2q(i,1) + crm(obj.v(:,i))*obj.vJ(:,i);
    end
    obj.fB(:,i) = obj.IDmodel.modelParams.I{i}*obj.a(:,i) + crf(obj.v(:,i))*obj.IDmodel.modelParams.I{i}*obj.v(:,i);
 end
@@ -61,7 +59,7 @@ if ~isempty(obj.fx)
 end
 
 for i = obj.IDmodel.n:-1:1
-   obj.tau(i,1) = obj.IDmodel.S(:,i)' * obj.f(:,i);
+   obj.tau(i,1) = obj.IDmodel.S{i}' * obj.f(:,i);
    if obj.IDmodel.modelParams.parent(i) ~= 0
       obj.f(:,obj.IDmodel.modelParams.parent(i)) = obj.f(:,obj.IDmodel.modelParams.parent(i)) + obj.Xup{i}'*obj.f(:,i);
    end
