@@ -5,7 +5,9 @@ clc
 m = 5;
 n = 10;
 A  = rand(5, 10);
-As = submatrix(A, [2 2 1], [3 7]);
+As = submatrix([2 2 1]', [3 7]');
+As = set(As, A, [1 2 3], [1 2]);
+
 
 [I, J] = indeces(As, 1, 1);
 if (norm(A(I,J)-A(1:2, 1:3))) || (norm(As(1,1)-A(I,J)))

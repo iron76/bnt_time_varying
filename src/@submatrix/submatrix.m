@@ -10,6 +10,12 @@
 %
 % As = submatrix(A, [m_1 ... m_M], [n_1 ... n_N])
 %
+% or alternatively
+%
+% As = submatrix([m_1 ... m_M], [n_1 ... n_N])
+%
+% in the latter case the matrix being instantiated identically null of
+% suitable dimensions given the vectors [m_1 ... m_M], [n_1 ... n_N].
 % The submatrix A_ij corresponding to the blocks m_i, n_j can be obtained
 % by simply using:
 %
@@ -35,19 +41,28 @@ classdef submatrix
       A, m, n, cm, cn
    end
    methods
-      function b = submatrix(A, m, n)
-         b.A  = A;
-         b.m  = m;
-         b.n  = n;
-         b.cm = [0, cumsum(b.m)];
-         b.cn = [0, cumsum(b.n)];
-         
-         
-         [mA, nA] = size(A);
-         if mA ~= b.cm(end)
-            error('when calling submatrix(A, m, n) the sum(m) should equal the number of rows in A')
-         elseif nA ~= b.cn(end)
-            error('when calling submatrix(A, m, n) the sum(n) should equal the number of columns in A')
+      function b = submatrix(m, n, A)
+         if nargin == 3
+            b.A  = A;
+            b.m  = m(:)';
+            b.n  = n(:)';
+            b.cm = [0, cumsum(b.m)];
+            b.cn = [0, cumsum(b.n)];
+            
+            
+            [mA, nA] = size(A);
+            if mA ~= b.cm(end)
+               error('when calling submatrix(A, m, n) the sum(m) should equal the number of rows in A')
+            elseif nA ~= b.cn(end)
+               error('when calling submatrix(A, m, n) the sum(n) should equal the number of columns in A')
+            end
+         elseif nargin == 2
+            b.m  = m(:)';
+            b.n  = n(:)';
+            
+            b.cm = [0, cumsum(b.m)];
+            b.cn = [0, cumsum(b.n)];
+            b.A = zeros(b.cm(end), b.cn(end));
          end
       end
       
@@ -56,7 +71,7 @@ classdef submatrix
             [I, J] = obj.indeces(S.subs{1}, S.subs{2});
             B = obj.A(I, J);
             % B = submatrix(obj.A(I, J), obj.m(S.subs{1}), obj.n(S.subs{2}));
-         % elseif strcmp(S.type, '.') && strcmp(S.subs, 'toDouble')
+            % elseif strcmp(S.type, '.') && strcmp(S.subs, 'toDouble')
             % B = obj.A;
          else
             error('The sumatrix class can be accessed only as A(i,j).')
