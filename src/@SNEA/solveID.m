@@ -30,12 +30,6 @@ function obj = solveID(obj)
 
 %%
 %
-ib  = zeros(obj.IDmodel.sparseParams.nb, 1);
-b1s = zeros(obj.IDmodel.sparseParams.nb, 1);
-
-iD  = zeros(sum(obj.IDmodel.sparseParams.nD), 1);
-jD  = zeros(sum(obj.IDmodel.sparseParams.nD), 1);
-D1s = zeros(sum(obj.IDmodel.sparseParams.nD), 1);
 
 pD = 1;
 
@@ -44,17 +38,12 @@ for i = 1:obj.IDmodel.modelParams.NB
     % a{i} = obj.Xup{i}*(-a_grav) + obj.IDmodel.S{i}*qdd(i);
     % D1  = [-eye(6) zeros(6,6) zeros(6,6) zeros(6, obj.jn(i)) zeros(6,6) obj.IDmodel.S{i}];
     % b1  = obj.Xup{i}*(-a_grav);
-    b1s((i-1)*12+1: (i-1)*12+6, 1) = obj.Xup{i}*(-obj.IDmodel.g);
-    ib((i-1)*12+1: (i-1)*12+6, 1)  = (i-1)*19+1: (i-1)*19+6;
+    obj.b1s((i-1)*12+1: (i-1)*12+6, 1) = obj.Xup{i}*(-obj.IDmodel.g);
 
-    D1s(pD : pD+5, 1) = -1*ones(6,1);
-    iD (pD : pD+5, 1) = obj.IDmodel.sparseParams.iD11(1:6:36,i,i)+[0 1 2 3 4 5]';
-    jD (pD : pD+5, 1) = obj.IDmodel.sparseParams.jD11(1:6:36,i,i);
+    obj.D1s(pD : pD+5, 1) = -1*ones(6,1);
     pD = pD + 6;
     
-    D1s(pD: pD+obj.IDmodel.jn(i)*6-1, 1) = obj.IDmodel.S{i};
-    iD (pD: pD+obj.IDmodel.jn(i)*6-1, 1) = obj.IDmodel.sparseParams.iD16(:,i,i);
-    jD (pD: pD+obj.IDmodel.jn(i)*6-1, 1) = obj.IDmodel.sparseParams.jD16(:,i,i);  
+    obj.D1s(pD: pD+obj.IDmodel.jn(i)*6-1, 1) = obj.IDmodel.S{i};
     pD = pD + obj.IDmodel.jn(i)*6;
   else
     % a{i} = ... + obj.IDmodel.S{i}*qdd(i) + crm(obj.v(:,i))*vJ;
@@ -62,26 +51,19 @@ for i = 1:obj.IDmodel.modelParams.NB
     % D1 = [-eye(6) zeros(6,6) zeros(6,6) zeros(6, obj.jn(i)) zeros(6,6) obj.IDmodel.S{i}];
     % b1 = crm(obj.v(:,i))*vJ;
     
-    b1s((i-1)*12+1: (i-1)*12+6, 1)    = crm(obj.v(:,i))*obj.vJ(:,i);
-    ib((i-1)*12+1: (i-1)*12+6, 1)     = (i-1)*19+1: (i-1)*19+6;
+    obj.b1s((i-1)*12+1: (i-1)*12+6, 1)    = crm(obj.v(:,i))*obj.vJ(:,i);
     
-    D1s(pD : pD+5, 1) = -1*ones(6,1);
-    iD (pD : pD+5, 1) = obj.IDmodel.sparseParams.iD11(1:6:36,i,i)+[0 1 2 3 4 5]';
-    jD (pD : pD+5, 1) = obj.IDmodel.sparseParams.jD11(1:6:36,i,i);
+    obj.D1s(pD : pD+5, 1) = -1*ones(6,1);
     pD = pD + 6;
     
-    D1s(pD: pD+obj.IDmodel.jn(i)*6-1, 1) = obj.IDmodel.S{i};
-    iD (pD: pD+obj.IDmodel.jn(i)*6-1, 1) = obj.IDmodel.sparseParams.iD16(:,i,i);
-    jD (pD: pD+obj.IDmodel.jn(i)*6-1, 1) = obj.IDmodel.sparseParams.jD16(:,i,i);  
+    obj.D1s(pD: pD+obj.IDmodel.jn(i)*6-1, 1) = obj.IDmodel.S{i};
     pD = pD + obj.IDmodel.jn(i)*6;
     % a{i} = obj.Xup{i}*a{obj.IDmodel.modelParams.parent(i)} + ...
     % Dc{i, obj.IDmodel.modelParams.parent(i)} = [ obj.Xup{i} zeros(6,6) zeros(6,6) zeros(6, obj.jn(i)) zeros(6,6) zeros(6, obj.jn(i))
     %     zeros(12+obj.jn(i), 24+2*obj.jn(i))];
     
     j = obj.IDmodel.modelParams.parent(i);
-    D1s(pD: pD+35, 1) = obj.Xup{i}(:);
-    iD (pD: pD+35, 1) = obj.IDmodel.sparseParams.iD11(:,j,i);
-    jD (pD: pD+35, 1) = obj.IDmodel.sparseParams.jD11(:,j,i);  
+    obj.D1s(pD: pD+35, 1) = obj.Xup{i}(:);
     pD = pD + 36;    
 
   end
@@ -89,17 +71,12 @@ for i = 1:obj.IDmodel.modelParams.NB
   % D2 = [obj.IDmodel.modelParams.I{i} -eye(6) zeros(6,6) zeros(6, obj.jn(i)) zeros(6,6) zeros(6, obj.jn(i))];
   % b2 = crf(obj.v(:,i))*obj.IDmodel.modelParams.I{i}*obj.v(:,i);
   
-  b1s((i-1)*12+7: i*12, 1) = crf(obj.v(:,i))*obj.IDmodel.modelParams.I{i}*obj.v(:,i);
-  ib((i-1)*12+7: i*12, 1)  = (i-1)*19+7: (i-1)*19+12;
+  obj.b1s((i-1)*12+7: i*12, 1) = crf(obj.v(:,i))*obj.IDmodel.modelParams.I{i}*obj.v(:,i);
 
-  D1s(pD : pD+35, 1) = obj.IDmodel.modelParams.I{i}(:);
-  iD (pD : pD+35, 1) = obj.IDmodel.sparseParams.iD21(:,i,i);
-  jD (pD : pD+35, 1) = obj.IDmodel.sparseParams.jD21(:,i,i);
+  obj.D1s(pD : pD+35, 1) = obj.IDmodel.modelParams.I{i}(:);
   pD = pD + 36;
   
-  D1s(pD : pD+5, 1) = -1*ones(6,1);
-  iD (pD : pD+5, 1) = obj.IDmodel.sparseParams.iD22(1:6:36,i,i)+[0 1 2 3 4 5]';
-  jD (pD : pD+5, 1) = obj.IDmodel.sparseParams.jD22(1:6:36,i,i);
+  obj.D1s(pD : pD+5, 1) = -1*ones(6,1);
   pD = pD + 6;
   
   % f{i} = fB{i} - obj.Xa{i}' \ f_ext{i};
@@ -109,33 +86,23 @@ for i = 1:obj.IDmodel.modelParams.NB
   
   A  = -inv(obj.Xa{i}');
 
-  D1s(pD : pD+5, 1) = 1*ones(6,1);
-  iD (pD : pD+5, 1) = obj.IDmodel.sparseParams.iD32(1:6:36,i,i)+[0 1 2 3 4 5]';
-  jD (pD : pD+5, 1) = obj.IDmodel.sparseParams.jD32(1:6:36,i,i);
+  obj.D1s(pD : pD+5, 1) = 1*ones(6,1);
   pD = pD + 6;
 
-  D1s(pD : pD+5, 1) = -1*ones(6,1);
-  iD (pD : pD+5, 1) = obj.IDmodel.sparseParams.iD33(1:6:36,i,i)+[0 1 2 3 4 5]';
-  jD (pD : pD+5, 1) = obj.IDmodel.sparseParams.jD33(1:6:36,i,i);
+  obj.D1s(pD : pD+5, 1) = -1*ones(6,1);
   pD = pD + 6;
 
-  D1s(pD : pD+35, 1) = A(:);
-  iD (pD : pD+35, 1) = obj.IDmodel.sparseParams.iD35(:,i,i);
-  jD (pD : pD+35, 1) = obj.IDmodel.sparseParams.jD35(:,i,i);
+  obj.D1s(pD : pD+35, 1) = A(:);
   pD = pD + 36;
     
   % tau(i,1) = obj.IDmodel.S{i}' * f{i};
   % D4 = [zeros(obj.jn(i), 6) zeros(obj.jn(i), 6) obj.IDmodel.S{i}' -eye(obj.jn(i)) zeros(obj.jn(i), 6) zeros(obj.jn(i), obj.jn(i))];
   % b4 =  zeros(obj.jn(i), 1);
   
-  D1s(pD : pD+5, 1) = obj.IDmodel.S{i}';
-  iD (pD : pD+5, 1) = obj.IDmodel.sparseParams.iD43(:,i,i);
-  jD (pD : pD+5, 1) = obj.IDmodel.sparseParams.jD43(:,i,i);
+  obj.D1s(pD : pD+5, 1) = obj.IDmodel.S{i}';
   pD = pD + 6*obj.IDmodel.jn(i);
   
-  D1s(pD : pD+obj.IDmodel.jn(i)-1, 1) = -ones(1,obj.IDmodel.jn(i));
-  iD (pD : pD+obj.IDmodel.jn(i)-1, 1) = obj.IDmodel.sparseParams.iD44(:,i,i);
-  jD (pD : pD+obj.IDmodel.jn(i)-1, 1) = obj.IDmodel.sparseParams.jD44(:,i,i);
+  obj.D1s(pD : pD+obj.IDmodel.jn(i)-1, 1) = -ones(1,obj.IDmodel.jn(i));
   pD = pD + obj.IDmodel.jn(i);
 
   for j = obj.IDmodel.sparseParams.ind_j{i}
@@ -146,16 +113,14 @@ for i = 1:obj.IDmodel.modelParams.NB
     
     A       = obj.Xup{j}';
     
-    D1s(pD : pD+35, 1) = A(:);
-    iD (pD : pD+35, 1) = obj.IDmodel.sparseParams.iD33(:,j,i);
-    jD (pD : pD+35, 1) = obj.IDmodel.sparseParams.jD33(:,j,i);
+    obj.D1s(pD : pD+35, 1) = A(:);
     pD = pD + 36;
   end
 end
 
 NB = obj.IDmodel.modelParams.NB;
-b  = sparse(ib, ones(length(ib),1), b1s, 19*NB, 1);
-Ds = sparse(iD, jD, D1s, 19*NB, 26*NB); 
+b  = sparse(obj.ibs, ones(length(obj.ibs),1), obj.b1s, 19*NB, 1);
+Ds = sparse(obj.iDs, obj.jDs, obj.D1s, 19*NB, 26*NB); 
 
 Dx = Ds(1:19*NB, 1:19*NB);
 Dy = Ds(1:19*NB, 19*NB+1:26*NB);
@@ -206,18 +171,22 @@ Ss = Sinv+Y'*Sy_inv*Y;
 % PWinv1 = S1*inv_chol(L)*S1';
 % Ls = S1*L;
 
-
 % Sxy = [Sv + Dy*Sy*Dy', -Dy*Sy; -Sy*Dy', Sy];
 % mxy = -Sxy*[ -Sv^(-1)*mx; -Dy'*Sv^(-1)*mx - Sy^(-1)*my]
-
 
 % Sxy = S = [Dx^(-1)*inv(Sv_inv)*Dx^(-1)' + Dx^(-1)*Dy*inv(Sw_inv)*Dy'*Dx^(-1)', -Dx^(-1)*Dy*inv(Sw_inv); -inv(Sw_inv)*Dy'*Dx^(-1)', inv(Sw_inv)],1)
 Sxy = [Dx_inv + Dx_inv*Dy*Sw*Dy'*Sv_inv, -Dx_inv*Dy*Sw; -Sw*Dy'*Sv_inv, Sw];
 mx  = -b;
 my  = zeros(7*NB,1);
 mxy = -Sxy*[-mx; -Dy'*Sv_inv*mx - Sw_inv*my];
-d   = mxy + Ss\Y'*Sy_inv*(obj.IDmeas.y-Y*mxy);
-% d   = mxy +S1*((S1'*Ss*S1)\(S1'*(Y'*Sy_inv*(y-Y*mxy))));
+
+if ~obj.sparsified 
+   [~,~,obj.S] = chol(Ss, 'lower');
+   % obj.S1 = symamd(Ss);
+   obj.sparsified = 1;
+end
+% d   = mxy + Ss\Y'*Sy_inv*(obj.IDmeas.y-Y*mxy);
+d   = mxy +obj.S*((obj.S'*Ss*obj.S)\(obj.S'*(Y'*Sy_inv*(obj.IDmeas.y-Y*mxy))));
 
 dx    =      d(1:NB*19      , 1);
 dy    =      d(1+NB*19 : end, 1);

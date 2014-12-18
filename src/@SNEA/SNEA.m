@@ -13,6 +13,14 @@
 % Genova, Dec 2014
 
 classdef SNEA < deterministicIDsolver
+   properties
+      sparsified = 0;
+      S, b1s, D1s
+   end
+
+   properties (SetAccess = protected, GetAccess = public)
+      ibs, iDs, jDs;
+   end
    
    methods
       function b = SNEA(m,y)
@@ -25,15 +33,19 @@ classdef SNEA < deterministicIDsolver
                   'model to instantiate SNEA'] )
             end
          end
-         b = b@deterministicIDsolver(m,y);
+         b = b@deterministicIDsolver(m,y);                 
+         b = initSparseIndices(b); 
+
       end % SNEA
+      
+      obj = initSparseIndices(obj)
       
       function disp(b)
          % Display SNEA object
          disp@deterministicIDsolver(b)
          fprintf('SNEA disp to be implemented! \n')
       end % disp
-      
+     
    end % methods
 end % classdef
 
