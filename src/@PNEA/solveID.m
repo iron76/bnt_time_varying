@@ -216,8 +216,9 @@ Sxy = [Dx_inv + Dx_inv*Dy*Sw*Dy'*Sv_inv, -Dx_inv*Dy*Sw; -Sw*Dy'*Sv_inv, Sw];
 mx  = -b;
 my  = zeros(7*NB,1);
 mxy = -Sxy*[-mx; -Dy'*Sv_inv*mx - Sw_inv*my];
-d   = mxy + Ss\Y'*Sy_inv*(obj.IDmeas.y-Y*mxy);
-% d   = mxy +S1*((S1'*Ss*S1)\(S1'*(Y'*Sy_inv*(y-Y*mxy))));
+% d   = mxy + Ss\Y'*Sy_inv*(obj.IDmeas.y-Y*mxy);
+[~,~,S1] = chol(Ss, 'lower');
+d   = mxy +S1*((S1'*Ss*S1)\(S1'*(Y'*Sy_inv*(obj.IDmeas.y-Y*mxy))));
 
 dx    =      d(1:NB*19      , 1);
 dy    =      d(1+NB*19 : end, 1);
@@ -238,6 +239,6 @@ for i = 1 : NB
   d((1:26)+(i-1)*26, 1) = [obj.a(1:6,i); obj.fB(1:6,i); obj.f(1:6,i); obj.tau(1,i); obj.fx(1:6,i); obj.d2q(1,i)];
 end
 obj.d     = d;
-obj.Sd = inv(Ss);
+obj.Sd = full(inv(S1'*Ss*S1));
 
 end % solveID

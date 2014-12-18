@@ -14,7 +14,7 @@
 
 classdef MNEA < stochasticIDsolver
       
-   methods
+   methods      
       function b = MNEA(m,y)
          if nargin == 0
             error(['You should provide a ' ...
@@ -26,8 +26,7 @@ classdef MNEA < stochasticIDsolver
             end
          end
          b    = b@stochasticIDsolver(m,y);
-         b.Sd = zeros(b.IDmodel.modelParams.NB, b.IDmodel.modelParams.NB);
-         
+         b.Sd = zeros(b.IDmodel.modelParams.NB, b.IDmodel.modelParams.NB);         
       end % MNEA
       
       function disp(b)

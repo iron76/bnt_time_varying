@@ -15,11 +15,7 @@
 classdef SNEA < deterministicIDsolver
    properties
       sparsified = 0;
-      S, b1s, D1s
-   end
-
-   properties (SetAccess = protected, GetAccess = public)
-      ibs, iDs, jDs;
+      S
    end
    
    methods

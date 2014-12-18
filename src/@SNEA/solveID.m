@@ -38,12 +38,12 @@ for i = 1:obj.IDmodel.modelParams.NB
     % a{i} = obj.Xup{i}*(-a_grav) + obj.IDmodel.S{i}*qdd(i);
     % D1  = [-eye(6) zeros(6,6) zeros(6,6) zeros(6, obj.jn(i)) zeros(6,6) obj.IDmodel.S{i}];
     % b1  = obj.Xup{i}*(-a_grav);
-    obj.b1s((i-1)*12+1: (i-1)*12+6, 1) = obj.Xup{i}*(-obj.IDmodel.g);
+    obj.bs((i-1)*12+1: (i-1)*12+6, 1) = obj.Xup{i}*(-obj.IDmodel.g);
 
-    obj.D1s(pD : pD+5, 1) = -1*ones(6,1);
+    obj.Ds(pD : pD+5, 1) = -1*ones(6,1);
     pD = pD + 6;
     
-    obj.D1s(pD: pD+obj.IDmodel.jn(i)*6-1, 1) = obj.IDmodel.S{i};
+    obj.Ds(pD: pD+obj.IDmodel.jn(i)*6-1, 1) = obj.IDmodel.S{i};
     pD = pD + obj.IDmodel.jn(i)*6;
   else
     % a{i} = ... + obj.IDmodel.S{i}*qdd(i) + crm(obj.v(:,i))*vJ;
@@ -51,19 +51,18 @@ for i = 1:obj.IDmodel.modelParams.NB
     % D1 = [-eye(6) zeros(6,6) zeros(6,6) zeros(6, obj.jn(i)) zeros(6,6) obj.IDmodel.S{i}];
     % b1 = crm(obj.v(:,i))*vJ;
     
-    obj.b1s((i-1)*12+1: (i-1)*12+6, 1)    = crm(obj.v(:,i))*obj.vJ(:,i);
+    obj.bs((i-1)*12+1: (i-1)*12+6, 1)    = crm(obj.v(:,i))*obj.vJ(:,i);
     
-    obj.D1s(pD : pD+5, 1) = -1*ones(6,1);
+    obj.Ds(pD : pD+5, 1) = -1*ones(6,1);
     pD = pD + 6;
     
-    obj.D1s(pD: pD+obj.IDmodel.jn(i)*6-1, 1) = obj.IDmodel.S{i};
+    obj.Ds(pD: pD+obj.IDmodel.jn(i)*6-1, 1) = obj.IDmodel.S{i};
     pD = pD + obj.IDmodel.jn(i)*6;
     % a{i} = obj.Xup{i}*a{obj.IDmodel.modelParams.parent(i)} + ...
     % Dc{i, obj.IDmodel.modelParams.parent(i)} = [ obj.Xup{i} zeros(6,6) zeros(6,6) zeros(6, obj.jn(i)) zeros(6,6) zeros(6, obj.jn(i))
     %     zeros(12+obj.jn(i), 24+2*obj.jn(i))];
     
-    j = obj.IDmodel.modelParams.parent(i);
-    obj.D1s(pD: pD+35, 1) = obj.Xup{i}(:);
+    obj.Ds(pD: pD+35, 1) = obj.Xup{i}(:);
     pD = pD + 36;    
 
   end
@@ -71,12 +70,12 @@ for i = 1:obj.IDmodel.modelParams.NB
   % D2 = [obj.IDmodel.modelParams.I{i} -eye(6) zeros(6,6) zeros(6, obj.jn(i)) zeros(6,6) zeros(6, obj.jn(i))];
   % b2 = crf(obj.v(:,i))*obj.IDmodel.modelParams.I{i}*obj.v(:,i);
   
-  obj.b1s((i-1)*12+7: i*12, 1) = crf(obj.v(:,i))*obj.IDmodel.modelParams.I{i}*obj.v(:,i);
+  obj.bs((i-1)*12+7: i*12, 1) = crf(obj.v(:,i))*obj.IDmodel.modelParams.I{i}*obj.v(:,i);
 
-  obj.D1s(pD : pD+35, 1) = obj.IDmodel.modelParams.I{i}(:);
+  obj.Ds(pD : pD+35, 1) = obj.IDmodel.modelParams.I{i}(:);
   pD = pD + 36;
   
-  obj.D1s(pD : pD+5, 1) = -1*ones(6,1);
+  obj.Ds(pD : pD+5, 1) = -1*ones(6,1);
   pD = pD + 6;
   
   % f{i} = fB{i} - obj.Xa{i}' \ f_ext{i};
@@ -86,23 +85,23 @@ for i = 1:obj.IDmodel.modelParams.NB
   
   A  = -inv(obj.Xa{i}');
 
-  obj.D1s(pD : pD+5, 1) = 1*ones(6,1);
+  obj.Ds(pD : pD+5, 1) = 1*ones(6,1);
   pD = pD + 6;
 
-  obj.D1s(pD : pD+5, 1) = -1*ones(6,1);
+  obj.Ds(pD : pD+5, 1) = -1*ones(6,1);
   pD = pD + 6;
 
-  obj.D1s(pD : pD+35, 1) = A(:);
+  obj.Ds(pD : pD+35, 1) = A(:);
   pD = pD + 36;
     
   % tau(i,1) = obj.IDmodel.S{i}' * f{i};
   % D4 = [zeros(obj.jn(i), 6) zeros(obj.jn(i), 6) obj.IDmodel.S{i}' -eye(obj.jn(i)) zeros(obj.jn(i), 6) zeros(obj.jn(i), obj.jn(i))];
   % b4 =  zeros(obj.jn(i), 1);
   
-  obj.D1s(pD : pD+5, 1) = obj.IDmodel.S{i}';
+  obj.Ds(pD : pD+5, 1) = obj.IDmodel.S{i}';
   pD = pD + 6*obj.IDmodel.jn(i);
   
-  obj.D1s(pD : pD+obj.IDmodel.jn(i)-1, 1) = -ones(1,obj.IDmodel.jn(i));
+  obj.Ds(pD : pD+obj.IDmodel.jn(i)-1, 1) = -ones(1,obj.IDmodel.jn(i));
   pD = pD + obj.IDmodel.jn(i);
 
   for j = obj.IDmodel.sparseParams.ind_j{i}
@@ -113,17 +112,17 @@ for i = 1:obj.IDmodel.modelParams.NB
     
     A       = obj.Xup{j}';
     
-    obj.D1s(pD : pD+35, 1) = A(:);
+    obj.Ds(pD : pD+35, 1) = A(:);
     pD = pD + 36;
   end
 end
 
 NB = obj.IDmodel.modelParams.NB;
-b  = sparse(obj.ibs, ones(length(obj.ibs),1), obj.b1s, 19*NB, 1);
-Ds = sparse(obj.iDs, obj.jDs, obj.D1s, 19*NB, 26*NB); 
+b  = sparse(obj.ibs, ones(length(obj.ibs),1), obj.bs, 19*NB, 1);
+D  = sparse(obj.iDs, obj.jDs, obj.Ds, 19*NB, 26*NB); 
 
-Dx = Ds(1:19*NB, 1:19*NB);
-Dy = Ds(1:19*NB, 19*NB+1:26*NB);
+Dx = D(1:19*NB, 1:19*NB);
+Dy = D(1:19*NB, 19*NB+1:26*NB);
 
 % We write the estimation problem as:
 %

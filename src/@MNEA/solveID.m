@@ -29,45 +29,26 @@ function obj = solveID(obj)
 % Genova, Dec 2014
 
 NB = obj.IDmodel.modelParams.NB;
-b  = obj.b(1:4*NB,1);
 
-iDx = zeros(4*NB,1);  iDy = zeros(2*NB,1);
-for i = 1:obj.IDmodel.modelParams.NB  
-   iDx((i-1)*4+1 : i*4,1) = [(i-1)*6+1 : (i-1)*6+4]';
-   iDy((i-1)*2+1 : i*2,1) = [(i-1)*6+5 : (i-1)*6+6]';
-end
+% INIT: NON-SPARSE VERSION
 
-Dx = obj.D(1:4*NB,iDx);
-Dy = obj.D(1:4*NB,iDy);
+% b  = obj.b(1:4*NB,1);
+% iDx = zeros(4*NB,1);  iDy = zeros(2*NB,1);
+% for i = 1:obj.IDmodel.modelParams.NB  
+%    iDx((i-1)*4+1 : i*4,1) = ((i-1)*6+1 : (i-1)*6+4)';
+%    iDy((i-1)*2+1 : i*2,1) = ((i-1)*6+5 : (i-1)*6+6)';
+% end
+% 
+% Dx = obj.D(1:4*NB,iDx);
+% Dy = obj.D(1:4*NB,iDy);
 
-% We write the estimation problem as:
-%
-%     [Dx Dy]*[dx; dy] = v
-%
-% z - [Yx Yy]*[dx; dy] = w
-%
-%    dy   ~ N(             muy, Sy);
-%     v   ~ N(               0, Sv);
-% z|dx,dy ~ N([Yx Yy]*[dx; dy], Sw);
-%
-% With easy substitutions:
-%
-%     dx + Dx^(-1)*Dy*dy] = Dx^(-1)v
-%
-%    z - [Yx Yy]*[dx; dy] = w
-%
-%   dy    ~ N(             muy, Sy);
-%dx|dy    ~ N(               0, Dx^(-1)*Sv*Dx^(-1)');
-% z|dx,dy ~ N([Yx Yy]*[dx; dy], Sw);
-%
-% which is totally equivalent to 'SIXTH  EXAMPLE'
-% in gaussSumImplicit.m Some simplifications using`
-% the Shur complement inversion have been used to
-% reduce the computational cost.
-%
-%  S      = [Sy, -Sy*Dy'; -Dy*Sy, Sv + Dy*Sy*Dy'];
-%  S^(-1) = [Sy^(-1)+Dy'*Sv^(-1)*Dy, Sv^(-1)*Dy; Dy'*Sv^(-1), Sv^(-1)];
-% (S^(-1)+[Yy Yx]'*Sw^(-1)*[Yy Yx])^(-1)
+% INIT: SPARSE VERSION
+
+D = sparse(obj.iDs, obj.jDs, obj.Ds, 19*NB, 26*NB);
+b = sparse(obj.ibs, ones(size(obj.ibs)), obj.bs, 19*NB, 1);
+
+Dx = D(1:19*NB, 1:19*NB);
+Dy = D(1:19*NB, 19*NB+1:26*NB);
 
 % Sv_inv = eye(19*NB)./sModel;
 Sv_inv = obj.IDmodel.modelParams.Sv_inv;
@@ -86,7 +67,6 @@ Ss = Sinv+Y'*Sy_inv*Y;
 % PWinv1 = S1*inv_chol(L)*S1';
 % Ls = S1*L;
 
-
 % Sxy = [Sv + Dy*Sy*Dy', -Dy*Sy; -Sy*Dy', Sy];
 % mxy = -Sxy*[ -Sv^(-1)*mx; -Dy'*Sv^(-1)*mx - Sy^(-1)*my]
 
@@ -96,8 +76,9 @@ Sxy = [Dx_inv + Dx_inv*Dy*Sw*Dy'*Sv_inv, -Dx_inv*Dy*Sw; -Sw*Dy'*Sv_inv, Sw];
 mx  = -b;
 my  = zeros(7*NB,1);
 mxy = -Sxy*[-mx; -Dy'*Sv_inv*mx - Sw_inv*my];
-d   = mxy + Ss\Y'*Sy_inv*(obj.IDmeas.y-Y*mxy);
-% d   = mxy +S1*((S1'*Ss*S1)\(S1'*(Y'*Sy_inv*(y-Y*mxy))));
+% d   = mxy + Ss\Y'*Sy_inv*(obj.IDmeas.y-Y*mxy);
+[~,~,S1] = chol(Ss, 'lower');
+d   = mxy +S1*((S1'*Ss*S1)\(S1'*(Y'*Sy_inv*(obj.IDmeas.y-Y*mxy))));
 
 dx    =      d(1:NB*19      , 1);
 dy    =      d(1+NB*19 : end, 1);
@@ -119,6 +100,6 @@ for i = 1 : NB
 end
 
 obj.d  = d;
-obj.Sd = inv(Ss);
+obj.Sd = full(inv(S1'*Ss*S1));
 
 end % solveID

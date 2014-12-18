@@ -2,7 +2,7 @@ clear all
 close all
 clc
 
-NB        = 20;
+NB        = 30;
 dmodel    = autoTree(NB);
 
 ymodel    = autoSensSNEA(dmodel);
