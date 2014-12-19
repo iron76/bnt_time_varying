@@ -9,9 +9,9 @@ mkdir -p $BNT_FOLDER/modifiedEM
 
 cp -v -i  $BNT_TIME_VARYING_FOLDER/extern/bnt/BNT/CPDs/@gaussian_CPD/maximize_params_modified.m $BNT_FOLDER/BNT/CPDs/@gaussian_CPD/maximize_params_modified.m
 
-cp -v -i  $BNT_TIME_VARYING_FOLDER/extern/extern/bnt/BNT/CPDs/@gaussian_CPD/update_ess_modified.m $BNT_FOLDER/BNT/CPDs/@gaussian_CPD/update_ess_modified.m
+cp -v -i  $BNT_TIME_VARYING_FOLDER/extern/bnt/BNT/CPDs/@gaussian_CPD/update_ess_modified.m $BNT_FOLDER/BNT/CPDs/@gaussian_CPD/update_ess_modified.m
 
-cp -v -i  $BNT_TIME_VARYING_FOLDER/extern/extern/bnt/BNT/CPDs/@gaussian_CPD/updateCov_modified.m $BNT_FOLDER/BNT/CPDs/@gaussian_CPD/updateCov_modified.m
+cp -v -i  $BNT_TIME_VARYING_FOLDER/extern/bnt/BNT/CPDs/@gaussian_CPD/updateCov_modified.m $BNT_FOLDER/BNT/CPDs/@gaussian_CPD/updateCov_modified.m
 
 cp -v -i  $BNT_TIME_VARYING_FOLDER/extern/bnt/BNT/inference/@inf_engine/update_engine_modified.m $BNT_FOLDER/BNT/inference/@inf_engine/update_engine_modified.m
 
