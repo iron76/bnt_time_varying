@@ -34,7 +34,7 @@ classdef deterministicIDsolver
    end
    
    properties (SetAccess = protected)
-      Xup, vJ, v, a, fB, f, Xa, fx, d2q, tau, jn, iD, jD, iDs, jDs, ibs
+      Xup, vJ, v, a, fB, f, Xa, fx, d2q, tau, iD, jD, iDs, jDs, ibs
    end
    
    % Class methods
@@ -60,7 +60,6 @@ classdef deterministicIDsolver
             a.fx      = zeros(6, mdl.n);
             a.tau     = zeros(mdl.n, 1);
             a.d2q     = zeros(mdl.n, 1);
-            a.jn      = zeros(mdl.n, 1);
             for i = 1 : mdl.n
                a.Xup{i}  = zeros(6,6);
                a.Xa{i}   = zeros(6,6);
