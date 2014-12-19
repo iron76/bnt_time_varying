@@ -35,10 +35,15 @@ idSw_inv = []; jdSw_inv = []; dSw_inv=[];
 idSv_inv = []; jdSv_inv = []; dSv_inv=[];
 
 for i = 1 : model.NB
-   model.Sm.a{i}   = sModel.*generateSPDmatrix(6);
-   model.Sm.fB{i}  = sModel.*generateSPDmatrix(6);
-   model.Sm.f{i}   = sModel.*generateSPDmatrix(6);
-   model.Sm.tau{i} = sModel.*generateSPDmatrix(1);
+%    model.Sm.a{i}   = sModel.*generateSPDmatrix(6);
+%    model.Sm.fB{i}  = sModel.*generateSPDmatrix(6);
+%    model.Sm.f{i}   = sModel.*generateSPDmatrix(6);
+%    model.Sm.tau{i} = sModel.*generateSPDmatrix(1);
+
+   model.Sm.a{i}   = sModel.*eye(6);
+   model.Sm.fB{i}  = sModel.*eye(6);
+   model.Sm.f{i}   = sModel.*eye(6);
+   model.Sm.tau{i} = sModel.*eye(1);
    
    [ii, jj, ss] = submatrixSparse(19*i-18, 19*i-18, ...
       [inv(model.Sm.a{i})  zeros(6,6)    zeros(6,6)   zeros(6,1); ...
@@ -49,9 +54,12 @@ for i = 1 : model.NB
    jdSv_inv = [jdSv_inv; jj];
    dSv_inv  = [dSv_inv;  ss];
    
-   model.Su.fx{i}  = sUknown.*generateSPDmatrix(6);
-   model.Su.d2q{i} = sUknown.*generateSPDmatrix(1);
-   
+%    model.Su.fx{i}  = sUknown.*generateSPDmatrix(6);
+%    model.Su.d2q{i} = sUknown.*generateSPDmatrix(1);
+
+   model.Su.fx{i}  = sUknown.*eye(6);
+   model.Su.d2q{i} = sUknown.*eye(1);
+
    [ii, jj, ss] = submatrixSparse(7*i-6, 7*i-6, [inv(model.Su.fx{i}) zeros(6,1); zeros(1,6) inv(model.Su.d2q{i})]);
    idSw_inv = [idSw_inv; ii];
    jdSw_inv = [jdSw_inv; jj];
