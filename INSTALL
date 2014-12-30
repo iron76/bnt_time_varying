@@ -21,7 +21,8 @@ TO TEST THE SPARSE INVERSE DYNAMICS COMPUTATIONS
 
 1. Open Matlab
 
-2. Add the BNT and FEATHERSTONE toolboxes to the Matlab path
+2. Add the BNT and FEATHERSTONE toolboxes to the Matlab path 
+(use the genpath function to include all the subdirectories of the toolboxes )  
 
 3. Try to test the installation running exmples/2014-12-featherstoneMeas/main.m
 
