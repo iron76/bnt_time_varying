@@ -26,3 +26,11 @@ cp -v -i $BNT_TIME_VARYING_FOLDER/extern/bnt/BNT/inference/@inf_engine/bnet_to_e
 cp -v -i $BNT_TIME_VARYING_FOLDER/extern/featherstone/dynamics/ID.m $SPATIAL_FOLDER/dynamics/ID.m
 
 cp -v -i $BNT_TIME_VARYING_FOLDER/extern/featherstone/dynamics/apply_external_forces.m $SPATIAL_FOLDER/dynamics/apply_external_forces.m
+
+cp -v -i $BNT_TIME_VARYING_FOLDER/extern/featherstone/dynamics/jcalcderiv.m $SPATIAL_FOLDER/dynamics/jcalcderiv.m
+
+cp -v -i $BNT_TIME_VARYING_FOLDER/extern/featherstone/spatial/rotxderiv.m $SPATIAL_FOLDER/spatial/rotxderiv.m
+
+cp -v -i $BNT_TIME_VARYING_FOLDER/extern/featherstone/spatial/rotyderiv.m $SPATIAL_FOLDER/spatial/rotyderiv.m
+
+cp -v -i $BNT_TIME_VARYING_FOLDER/extern/featherstone/spatial/rotzderiv.m $SPATIAL_FOLDER/spatial/rotzderiv.m

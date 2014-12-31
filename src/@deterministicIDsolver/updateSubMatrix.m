@@ -1,6 +1,13 @@
-function [ obj ] = updateSubMatrix( obj )
-%UPDATESUBMATRIX Summary of this function goes here
-%   Detailed explanation goes here
+function [ obj ] = updateDerivativeMatrix( obj )
+%UPDATEDERIVATIVEMATRIX Compute \frac{\partial (Dd + b)}{\partial x}
+%   Compute the derivative of D(q)d + b(q,\dot{q}) with respect to x
+%   (x is defined as (q,\dot{q}).
+%   The output is saved in the Ddbx (please suggest a better name) attribute
+%   of the input obj.
+%   
+
+%% Compute D_{i,i} submatrices of D matrix 
+%  and b_{i} subvectors of b vector 
 for i = 1 : obj.IDstate.n
    I = (i-1)*4;
    J = (i-1)*6;
@@ -14,6 +21,7 @@ for i = 1 : obj.IDstate.n
    obj.D = set(obj.D, -inv(obj.Xa{i}'), I+3, J+5);
 end
 
+%% Compute D_{i,j} submatrices of D matrix 
 for i = 1 : obj.IDstate.n
    for j = obj.IDmodel.sparseParams.ind_j{i}
       I = (i-1)*4;
@@ -26,6 +34,7 @@ for i = 1 : obj.IDstate.n
    end
 end
 
+%% Compute D_{i,\lambda{i}} submatrices of D matrix 
 for i = 1 : obj.IDstate.n
    if obj.IDmodel.modelParams.parent(i) ~= 0
       j = obj.IDmodel.modelParams.parent(i);
