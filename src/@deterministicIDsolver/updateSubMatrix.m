@@ -1,13 +1,9 @@
-function [ obj ] = updateDerivativeMatrix( obj )
-%UPDATEDERIVATIVEMATRIX Compute \frac{\partial (Dd + b)}{\partial x}
-%   Compute the derivative of D(q)d + b(q,\dot{q}) with respect to x
-%   (x is defined as (q,\dot{q}).
-%   The output is saved in the Ddbx (please suggest a better name) attribute
-%   of the input obj.
-%   
+function [ obj ] = updateSubMatrix( obj )
+%UPDATESUBMATRIX Summary of this function goes here 	
+% Detailed explanation goes here
 
-%% Compute D_{i,i} submatrices of D matrix 
-%  and b_{i} subvectors of b vector 
+%% Compute D_{i,i} submatrices of D matrix
+% and b_{i} subvectors of b vector
 for i = 1 : obj.IDstate.n
    I = (i-1)*4;
    J = (i-1)*6;
