@@ -147,7 +147,7 @@ for j = 1 : k
 end
 
 for i=1:nsamples
-    bnet0std{i} = insertStandardization(bnet{i}, i_obs, M, S, covPriorWeight);
+    bnet0std{i} = insertStandardization(bnet{i}, M, S, i_obs, covPriorWeight);
     %DO NOT CHANGE THIS WHEN DOING learn_params_em
     
     engineStd{i} = jtree_inf_engine(bnet0std{i});
@@ -160,7 +160,7 @@ end
 save dataElaboration.mat
 
 bnetHat = learn_params_em_modified(engineStd, samplesStd, 10, 1e-4);
-bnetHat = removeStandardization(bnetHat{nsamples}, i_obs, M, S, covPriorWeight);
+bnetHat = removeStandardization(bnetHat{nsamples}, M, S, i_obs, covPriorWeight);
 
 %display learning results
 hat_d2t3 = struct(bnetHat.CPD{index.md2t(3)});
