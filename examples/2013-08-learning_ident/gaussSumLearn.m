@@ -12,7 +12,7 @@ evidence = cell(1,N);
 engine   = cell(1,nsamples);
 bnet     = cell(1,nsamples);
 
-bnet = buildGaussSum([10], [0 0], [1 5]);
+bnet = buildGaussSum([10], [1 1], [1 5]);
 %DO NOT CHANGE THIS WHEN DOING learn_params_em
 engine = jtree_inf_engine(bnet);
 [engine, ll] = enter_evidence(engine, evidence);
@@ -49,8 +49,8 @@ for j = 1 : N
     S{j} = 1./covStd{j};
 end
 
-bnet0 = buildGaussSum(10, [0 0], [10 100]);
-bnet0std = insertStandardization(bnet0, i_obs, M, S, 0.1);
+bnet0 = buildGaussSum(10, [1 1], [1 1]);
+bnet0std = insertStandardization(bnet0, M, S, i_obs, 1e-4);
 %DO NOT CHANGE THIS WHEN DOING learn_params_em
 engine0std = jtree_inf_engine(bnet0std);
 [engine0std, ll] = enter_evidence(engine0std, evidence);
@@ -79,8 +79,8 @@ engine0std = jtree_inf_engine(bnet0std);
 % hat_bnetStd = learn_params_em(engine0, samples, 20, 1e-2);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-hat_bnetStd = learn_params_em(engine0std, samplesStd, 60, 1e-5);
-hat_bnetStd = removeStandardization(hat_bnetStd, i_obs, M, S, 0.001);
+hat_bnetStd = learn_params_em(engine0std, samplesStd, 200, 1e-6);
+hat_bnetStd = removeStandardization(hat_bnetStd, M, S, i_obs, 0.00001);
 
 hat_x1 = struct(hat_bnetStd.CPD{1});
 hat_x1.cov
