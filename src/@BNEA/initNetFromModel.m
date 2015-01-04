@@ -1,7 +1,6 @@
-function [ IDnet ] = bnetFromModel( dmodel , ymodel )
+function [ IDnet ] = initNetFromModel( dmodel , ymodel )
 
 NB        = dmodel.NB;
-sUkn      = 1e12;
 N         = NB*6+ymodel.ny;
 
 for i = 1 : NB
@@ -100,11 +99,6 @@ new_dag = identity(bnet.order, :)*new_dag;
 new_ns = ns(bnet.order);
 bnet = mk_bnet(new_dag, new_ns, 'discrete', dnodes);
 
-for i = 1 : ymodel.ny
-  vi   = nodes.index{i+NB*6};
-  nvi  = nodes.sizes{i+NB*6,1};
-  bnet.CPD{vi} = gaussian_CPD(bnet, vi, 'mean', zeros(nvi,1), 'cov', sUkn.*eye(nvi));
-end
 
 IDnet.bnet   = bnet;
 IDnet.nodes  = nodes;

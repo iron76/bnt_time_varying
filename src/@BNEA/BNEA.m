@@ -16,7 +16,7 @@
 classdef BNEA < stochasticIDsolver
    
    properties
-      bnt;
+      bnt, evd;
    end
    methods
       function b = BNEA(m,y)
@@ -31,7 +31,8 @@ classdef BNEA < stochasticIDsolver
          end
          b     = b@stochasticIDsolver(m,y);
          b.Sd  = zeros(b.IDmodel.modelParams.NB, b.IDmodel.modelParams.NB);
-         b.bnt = b.bnetFromModel(b.IDmodel.modelParams, b.IDsens.sensorsParams);
+         b.bnt = b.initNetFromModel(b.IDmodel.modelParams, b.IDsens.sensorsParams);
+         b.evd = cell(1,6*b.IDmodel.modelParams.NB+b.IDsens.sensorsParams.ny);
       end % BNEA
       
       function disp(b)
@@ -40,11 +41,25 @@ classdef BNEA < stochasticIDsolver
          fprintf('BNEA disp to be implemented! \n')
       end % disp
       
+      function b = setY(b,y)
+         b = setY@deterministicIDsolver(b,y);
+         b = updateEvd(b);
+      end
+
+      function b = setState(b,q,dq)
+         b = setState@deterministicIDsolver(b,q,dq);
+         b = updateNet(b);
+      end
+      
    end % methods
    
    methods(Static = true)
-      bnt = bnetFromModel( dmodel , ymodel )
+      bnt = initNetFromModel( dmodel , ymodel )
    end
    
+   methods
+      obj = updateNet( obj )
+      obj = updateEvd( obj )
+   end
 end % classdef
 
