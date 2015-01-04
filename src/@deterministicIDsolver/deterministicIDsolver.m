@@ -193,7 +193,7 @@ classdef deterministicIDsolver
          %% Compute \frac{\partial (Dd+b)}{\partial x} matrix
          %  as defined in the IJRR Paper
          
-         %% ???
+         %% Update the sparse representation of the matrix D
          obj = updateSparseMatrix(obj);
 
       end % setState
