@@ -32,15 +32,6 @@ function obj = solveID(obj)
 % obj = updateNet(obj);    % called in the overload of setState
 % obj = updateEvd(obj);    % called in the overload of setY
 
-if isempty(obj.bnt.engine)
-   obj.bnt.engine = jtree_inf_engine(obj.bnt.bnet);
-   obj.bnt.engine = enter_evidence(obj.bnt.engine, obj.evd);
-else
-   % disp('Using previous path on jtree!')
-   obj.bnt.engine = bnet_to_engine(obj.bnt.bnet, obj.bnt.engine);
-   obj.bnt.engine = enter_evidence(obj.bnt.engine, obj.evd);
-end
-
 
 NB  = obj.IDmodel.modelParams.NB;
 
@@ -57,7 +48,7 @@ Sfx  = cell(NB,1);
 Sd2q = cell(NB,1);
 
 for i = NB:-1:1
-   tmp        = marginal_nodes(obj.bnt.engine, obj.bnt.nodes.index{i}(1));
+   tmp      = marginal_nodes(obj.bnt.engine, obj.bnt.nodes.index{i}(1));
    a(i,:)   = tmp.mu';
    Sa{i}    = tmp.Sigma;
    tmp      = marginal_nodes(obj.bnt.engine, obj.bnt.nodes.index{i}(2));
