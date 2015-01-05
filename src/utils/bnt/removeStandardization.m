@@ -19,7 +19,7 @@ for i = 1 : length(muStd)
       W = struct(bnetStd.CPD{i}).weights;
       
       if nargin == 5
-         if (~isempty(i==i_cov_learn))
+         if (~isempty(find(i==i_cov_learn,1)))
             bnet.CPD{i} = gaussian_CPD(bnet, i, 'mean', SY^(-1)* (muY_X - muY) + W*SX^(-1)*muX, 'cov',  SY^(-1)*SY_X*SY^(-1)', 'weights', SY^(-1)*W*SX, 'clamp_mean', 1, 'clamp_weights', 1, 'cov_prior_weight', covPriorWeight);
          else
             bnet.CPD{i} = gaussian_CPD(bnet, i, 'mean', SY^(-1)* (muY_X - muY) + W*SX^(-1)*muX, 'cov',  SY^(-1)*SY_X*SY^(-1)', 'weights', SY^(-1)*W*SX, 'clamp_mean', 1, 'clamp_weights', 1, 'clamp_cov', 1);
@@ -29,7 +29,7 @@ for i = 1 : length(muStd)
       end
    else
       if nargin == 5
-         if (~isempty(i==i_cov_learn))
+         if (~isempty(find(i==i_cov_learn,1)))
             bnet.CPD{i} = gaussian_CPD(bnet, i, 'mean', SY^(-1)* (muY_X - muY)                , 'cov',  SY^(-1)*SY_X*SY^(-1)', 'clamp_mean', 1, 'clamp_weights', 1, 'cov_prior_weight', covPriorWeight);
          else
             bnet.CPD{i} = gaussian_CPD(bnet, i, 'mean', SY^(-1)* (muY_X - muY)                , 'cov',  SY^(-1)*SY_X*SY^(-1)', 'clamp_mean', 1, 'clamp_weights', 1, 'clamp_cov', 1);
