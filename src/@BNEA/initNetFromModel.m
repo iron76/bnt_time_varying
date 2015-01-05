@@ -6,18 +6,18 @@ N         = NB*6+ymodel.ny;
 for i = 1 : NB
   nodes.index{i}    = (i-1)*6 + 1 : i*6;
   nodes.sizes{i,1}  = [6 6 6 1 6 1]';
-  nodes.labels{i,1} = ['a' num2str(i)];
-  nodes.labels{i,2} = ['fB' num2str(i)];
-  nodes.labels{i,3} = ['f' num2str(i)];
-  nodes.labels{i,4} = ['tau' num2str(i)];
-  nodes.labels{i,5} = ['fx' num2str(i)];
-  nodes.labels{i,6} = ['d2q' num2str(i)];
+  nodes.labels{nodes.index{i}(1)} = ['a' num2str(i)];
+  nodes.labels{nodes.index{i}(2)} = ['fB' num2str(i)];
+  nodes.labels{nodes.index{i}(3)} = ['f' num2str(i)];
+  nodes.labels{nodes.index{i}(4)} = ['tau' num2str(i)];
+  nodes.labels{nodes.index{i}(5)} = ['fx' num2str(i)];
+  nodes.labels{nodes.index{i}(6)} = ['d2q' num2str(i)];
 end
 
 for i = 1 : ymodel.ny
-  nodes.index{i+NB*6}    = i+NB*6;
-  nodes.sizes{i+NB*6,1}  = ymodel.sizes{i,1};
-  nodes.labels{i+NB*6,1} = ymodel.labels{i,1};
+  nodes.index{i+NB}    = i+NB*6;
+  nodes.sizes{i+NB,1}  = ymodel.sizes{i,1};
+  nodes.labels{nodes.index{i+NB}} = ymodel.labels{i,1};
 end
 
 dag = zeros(N, N);
@@ -45,32 +45,32 @@ for i = 1 : NB
   end
   for j = 1 : ymodel.ny
     if strcmp(ymodel.labels{j,1}, ['a' num2str(i)])
-      dag(nodes.index{i}(1), nodes.index{j+NB*6}) = 1;
+      dag(nodes.index{i}(1), nodes.index{j+NB}) = 1;
       IDnet.child{j,1} = nodes.index{i}(1);
       IDnet.Wy{j,1}     = eye(6);
     end
     if strcmp(ymodel.labels{j,1}, ['fB' num2str(i)])
-      dag(nodes.index{i}(2), nodes.index{j+NB*6}) = 1;
+      dag(nodes.index{i}(2), nodes.index{j+NB}) = 1;
       IDnet.child{j,1} = nodes.index{i}(2);
       IDnet.Wy{j,1}     = eye(6);
     end
     if strcmp(ymodel.labels{j,1}, ['f' num2str(i)])
-      dag(nodes.index{i}(3), nodes.index{j+NB*6}) = 1;
+      dag(nodes.index{i}(3), nodes.index{j+NB}) = 1;
       IDnet.child{j,1} = nodes.index{i}(3);
       IDnet.Wy{j,1}     = eye(6);
     end
     if strcmp(ymodel.labels{j,1}, ['tau' num2str(i)])
-      dag(nodes.index{i}(4), nodes.index{j+NB*6}) = 1;
+      dag(nodes.index{i}(4), nodes.index{j+NB}) = 1;
       IDnet.child{j,1} = nodes.index{i}(4);
       IDnet.Wy{j,1}     = eye(1);
     end
     if strcmp(ymodel.labels{j,1}, ['fx' num2str(i)])
-      dag(nodes.index{i}(5), nodes.index{j+NB*6}) = 1;
+      dag(nodes.index{i}(5), nodes.index{j+NB}) = 1;
       IDnet.child{j,1} = nodes.index{i}(5);
       IDnet.Wy{j,1}     = eye(6);
     end
     if strcmp(ymodel.labels{j,1}, ['d2q' num2str(i)])
-      dag(nodes.index{i}(6), nodes.index{j+NB*6}) = 1;
+      dag(nodes.index{i}(6), nodes.index{j+NB}) = 1;
       IDnet.child{j,1} = nodes.index{i}(6);
       IDnet.Wy{j,1}     = eye(1);
     end
@@ -90,7 +90,7 @@ for i = 1 : NB
 end
 
 for i = 1 : ymodel.ny
-  nodes.index{NB*6 + i} = find(bnet.order == nodes.index{NB*6 + i});
+  nodes.index{NB + i} = find(bnet.order == nodes.index{NB + i});
 end
 
 identity = eye(N);
