@@ -5,7 +5,7 @@ N = 3;
 x1 = 1;  x2 = 2;  x3 = 3;  
 nsamples = 200;
 
-i_obs    = [x1 x3];
+i_obs    = [x1 x2 x3];
 i_hidden = setdiff(1:N, i_obs);
 
 evidence = cell(1,N);
@@ -16,13 +16,14 @@ for i=1:nsamples
     bnet{i} = buildGaussSum([i i], [1/i 1/i 1/i], [10 1 1]);
     %DO NOT CHANGE THIS WHEN DOING learn_params_em
     engine{i} = jtree_inf_engine(bnet{i});
-    [engine{i}, ll(i)] = enter_evidence(engine{i}, evidence);
+    % [engine{i}, ll(i)] = enter_evidence(engine{i}, evidence);
 end
 
 % randn('seed',0);
 % %sample the original network
 for i=1:nsamples
-  samples(:,i) = sample_bnet(bnet{i}, 'evidence', evidence);
+  % samples(:,i) = sample_bnet(bnet{i}, 'evidence', evidence);
+  samples(:,i) = sample_bnet(bnet{i});
 end
  
 for j = 1 : length(i_hidden)
@@ -53,19 +54,19 @@ end
 
 %different initial conditions
 for i=1:nsamples
-    bnet0{i} = buildGaussSum([i i], [1/i 1/i 1/i], [10 1 .1]);
-    bnet0std{i} = insertStandardization(bnet0{i}, M, S);
+    bnet0{i} = buildGaussSum([i i], [1/i 1/i 1/i], [10 5 140]);
+    bnet0std{i} = insertStandardization(bnet0{i}, M, S, i_obs, 1e-12);
     %DO NOT CHANGE THIS WHEN DOING learn_params_em
     
     engineStd{i} = jtree_inf_engine(bnet0std{i});
-    [engineStd{i}, ll(i)] = enter_evidence(engineStd{i}, evidence);
+    % [engineStd{i}, ll(i)] = enter_evidence(engineStd{i}, evidence);
     
     engine{i} = jtree_inf_engine(bnet0{i});
-    [engine{i}, ll(i)] = enter_evidence(engine{i}, evidence);
+    % [engine{i}, ll(i)] = enter_evidence(engine{i}, evidence);
 end
 
 bnetHat = learn_params_em_modified(engineStd, samplesStd, 1000, 1e-5);
-bnetHat = removeStandardization(bnetHat{nsamples}, M, S);
+bnetHat = removeStandardization(bnetHat{nsamples}, M, S, i_obs, 1e-12);
 
 hat_x1 = struct(bnetHat.CPD{1});
 hat_x1.cov
