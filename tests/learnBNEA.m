@@ -2,8 +2,8 @@ clear all
 close all
 clc
 
-NB      = 30;
-n       = 10;
+NB      = 30;   %number of rigid bodies
+n       = 10;   %number of samples
 
 dmodel  = autoTree(NB);
 ymodel  = autoSensSNEA(dmodel);
@@ -43,4 +43,26 @@ end
 cov_prior_weight = 1e-15;
 bnetHat = EM_bnet_learn(bnet, sample, cov_prior_weight);
 
+dir_ind = cell2mat(myBNEA.bnt.nodes.index);
+inv_ind(dir_ind) = 1:length(dir_ind);
 
+for i = 1 : length(dir_ind(1:NB*6))
+   cov_ini = get_field(myBNEA.bnt.bnet.CPD{dir_ind(i)}, 'cov');
+   cov_est = get_field(bnetHat.CPD{dir_ind(i)},         'cov');
+   cov_upd = cov_est - cov_ini;
+   if cov_upd
+      fprintf('[ERROR] Something wrong with clamped covariance! \n')
+      return;
+   end
+end
+
+% Depending on the number of samples 'n' the updates can
+% be quite relevant. With increasing 'n' the magnitude of
+% the updates tends to become smaller.
+
+for i = length(dir_ind(1:NB*6))+1 : length(dir_ind)
+   cov_ini = get_field(myBNEA.bnt.bnet.CPD{dir_ind(i)}, 'cov');
+   cov_est = get_field(bnetHat.CPD{dir_ind(i)},         'cov');
+   cov_upd = cov_est - cov_ini;
+   fprintf('[INFO] %s was updated by %f \n', myBNEA.bnt.nodes.labels{i}, norm(cov_upd)./norm(cov_ini));
+end
