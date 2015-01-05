@@ -16,7 +16,7 @@ for i = 1:obj.IDmodel.modelParams.NB
          end
       end
       W = cell2mat(Wa);
-      obj.bnt.bnet.CPD{ai} = gaussian_CPD(obj.bnt.bnet, ai, 'mean', obj.Xup{i}*(-obj.IDmodel.g), 'cov', obj.IDmodel.modelParams.Sm.a{i}, 'weights', W);
+      obj.bnt.bnet.CPD{ai} = gaussian_CPD(obj.bnt.bnet, ai, 'mean', obj.Xup{i}*(-obj.IDmodel.g), 'cov', obj.IDmodel.modelParams.Sm.a{i}, 'weights', W, 'clamp_mean', 1, 'clamp_weights', 1, 'clamp_cov', 1);
    else
       % a{i} = ... + S{i}*qdd(i) + crm(v{i})*vJ;
       % a{i} = Xup{i}*a{model.parent(i)} + ...
@@ -35,7 +35,7 @@ for i = 1:obj.IDmodel.modelParams.NB
          end
       end
       W = cell2mat(Wa);
-      obj.bnt.bnet.CPD{ai} = gaussian_CPD(obj.bnt.bnet, ai, 'mean', crm(obj.v(:,i))*obj.vJ(:,i), 'cov', obj.IDmodel.modelParams.Sm.a{i}, 'weights', W);
+      obj.bnt.bnet.CPD{ai} = gaussian_CPD(obj.bnt.bnet, ai, 'mean', crm(obj.v(:,i))*obj.vJ(:,i), 'cov', obj.IDmodel.modelParams.Sm.a{i}, 'weights', W, 'clamp_mean', 1, 'clamp_weights', 1, 'clamp_cov', 1);
    end
    % fB{i} = model.I{i}*a{i} + crf(v{i})*model.I{i}*v{i};
    fBi  = obj.bnt.nodes.index{i}(2);
@@ -48,7 +48,7 @@ for i = 1:obj.IDmodel.modelParams.NB
       end
    end
    W = cell2mat(Wa);
-   obj.bnt.bnet.CPD{fBi} = gaussian_CPD(obj.bnt.bnet, fBi, 'mean', crf(obj.v(:,i))*obj.IDmodel.modelParams.I{i}*obj.v(:,i), 'cov', obj.IDmodel.modelParams.Sm.fB{i}, 'weights', W);
+   obj.bnt.bnet.CPD{fBi} = gaussian_CPD(obj.bnt.bnet, fBi, 'mean', crf(obj.v(:,i))*obj.IDmodel.modelParams.I{i}*obj.v(:,i), 'cov', obj.IDmodel.modelParams.Sm.fB{i}, 'weights', W, 'clamp_mean', 1, 'clamp_weights', 1, 'clamp_cov', 1);
 end
 
 for i = obj.IDmodel.modelParams.NB:-1:1
@@ -71,7 +71,7 @@ for i = obj.IDmodel.modelParams.NB:-1:1
    end
    W = cell2mat(Wa);
    
-   obj.bnt.bnet.CPD{fi} = gaussian_CPD(obj.bnt.bnet, fi, 'mean', zeros(nfi,1), 'cov', obj.IDmodel.modelParams.Sm.f{i}, 'weights', W);
+   obj.bnt.bnet.CPD{fi} = gaussian_CPD(obj.bnt.bnet, fi, 'mean', zeros(nfi,1), 'cov', obj.IDmodel.modelParams.Sm.f{i}, 'weights', W, 'clamp_mean', 1, 'clamp_weights', 1, 'clamp_cov', 1);
    
    % tau(i,1) = S{i}' * f{i};
    taui  = obj.bnt.nodes.index{i}(4);
@@ -84,22 +84,22 @@ for i = obj.IDmodel.modelParams.NB:-1:1
       end
    end
    W = cell2mat(Wa);
-   obj.bnt.bnet.CPD{taui} = gaussian_CPD(obj.bnt.bnet, taui, 'mean', zeros(ntaui, 1), 'cov', obj.IDmodel.modelParams.Sm.tau{i}, 'weights', W);
+   obj.bnt.bnet.CPD{taui} = gaussian_CPD(obj.bnt.bnet, taui, 'mean', zeros(ntaui, 1), 'cov', obj.IDmodel.modelParams.Sm.tau{i}, 'weights', W, 'clamp_mean', 1, 'clamp_weights', 1, 'clamp_cov', 1);
    
    % fxi
    fxi  = obj.bnt.nodes.index{i}(5);
    nfxi = obj.bnt.nodes.sizes{i,1}(5);
-   obj.bnt.bnet.CPD{fxi} = gaussian_CPD(obj.bnt.bnet, fxi, 'mean', zeros(nfxi, 1), 'cov', obj.IDmodel.modelParams.Su.fx{i});
+   obj.bnt.bnet.CPD{fxi} = gaussian_CPD(obj.bnt.bnet, fxi, 'mean', zeros(nfxi, 1), 'cov', obj.IDmodel.modelParams.Su.fx{i}, 'clamp_mean', 1, 'clamp_weights', 1, 'clamp_cov', 1);
    
    % d2qi
    d2qi  = obj.bnt.nodes.index{i}(6);
    nd2qi = obj.bnt.nodes.sizes{i,1}(6);
-   obj.bnt.bnet.CPD{d2qi} = gaussian_CPD(obj.bnt.bnet, d2qi, 'mean', zeros(nd2qi, 1), 'cov', obj.IDmodel.modelParams.Su.d2q{i});
+   obj.bnt.bnet.CPD{d2qi} = gaussian_CPD(obj.bnt.bnet, d2qi, 'mean', zeros(nd2qi, 1), 'cov', obj.IDmodel.modelParams.Su.d2q{i}, 'clamp_mean', 1, 'clamp_weights', 1, 'clamp_cov', 1);
    
 end
 
 for i = 1 : obj.IDsens.sensorsParams.ny
-   yi  = obj.bnt.nodes.index{NB*6 + i};
-   nyi = obj.bnt.nodes.sizes{NB*6 + i};
-   obj.bnt.bnet.CPD{yi} = gaussian_CPD(obj.bnt.bnet, yi, 'mean', zeros(nyi, 1), 'cov', obj.IDsens.sensorsParams.Sy{i,1}, 'weights', obj.bnt.Wy{i,1});
+   yi  = obj.bnt.nodes.index{NB + i};
+   nyi = obj.bnt.nodes.sizes{NB + i};
+   obj.bnt.bnet.CPD{yi} = gaussian_CPD(obj.bnt.bnet, yi, 'mean', zeros(nyi, 1), 'cov', obj.IDsens.sensorsParams.Sy{i,1}, 'weights', obj.bnt.Wy{i,1}, 'clamp_mean', 1, 'clamp_weights', 1, 'cov_prior_weight', obj.covPriorWeight);
 end
