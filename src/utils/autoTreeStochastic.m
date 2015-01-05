@@ -29,7 +29,7 @@ function [ model ] = autoTreeStochastic( model )
 %  sparse matrix in its inverse model.Sw_inv
 
 sModel  = 1e-5;
-sUknown = 1e3;
+sUknown = 10;
 
 idSw_inv = []; jdSw_inv = []; dSw_inv=[];
 idSv_inv = []; jdSv_inv = []; dSv_inv=[];
