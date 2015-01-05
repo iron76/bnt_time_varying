@@ -34,7 +34,6 @@ for i = 1 : n
    engine{1,i} = myBNEA.bnt.engine;
    sample(:,i) = yc;
 end
-% bnet = learn_params_em_modified(engine, sample, 10, 1e-4);
 
 % This parameters should be kept small (1e-15)for
 % simulated data. For real data is plays the role
