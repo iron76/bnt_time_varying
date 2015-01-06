@@ -811,7 +811,7 @@
         <parent link="l_upper_foot" />
         <child link="l_foot" />
     </joint>
-    <joint name="l_wrist_prosup" type="fixed">
+    <joint name="l_wrist_prosup" type="revolute">
         <origin xyz="-0.015 0 0" rpy="1.5708 -0 -1.5708" />
         <axis xyz="0 1 6.12323e-17" />
         <parent link="l_elbow_1" />
@@ -899,7 +899,7 @@
         <child link="l_upper_foot" />
         <limit effort="11" velocity="100" lower="-0.418879" upper="0.418879" />
     </joint>
-    <joint name="l_wrist_pitch" type="revolute">
+    <joint name="l_wrist_pitch" type="fixed">
         <origin xyz="0 0.1373 8.4072e-18" rpy="1.5708 -0 1.5708" />
         <axis xyz="0 1 6.12323e-17" />
         <parent link="l_forearm" />
@@ -960,7 +960,7 @@
         <parent link="r_upper_foot" />
         <child link="r_foot" />
     </joint>
-    <joint name="r_wrist_prosup" type="fixed">
+    <joint name="r_wrist_prosup" type="revolute">
         <origin xyz="0.015 0 0" rpy="1.5708 -0 -1.5708" />
         <axis xyz="0 1 6.12323e-17" />
         <parent link="r_elbow_1" />
@@ -1048,7 +1048,7 @@
         <child link="r_upper_foot" />
         <limit effort="11" velocity="100" lower="-0.418879" upper="0.418879" />
     </joint>
-    <joint name="r_wrist_pitch" type="revolute">
+    <joint name="r_wrist_pitch" type="fixed">
         <origin xyz="0 -0.1373 -8.4072e-18" rpy="1.5708 -0 1.5708" />
         <axis xyz="0 1 6.12323e-17" />
         <parent link="r_forearm" />
