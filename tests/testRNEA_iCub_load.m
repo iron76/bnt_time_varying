@@ -27,6 +27,8 @@ NB = dmodel.NB;
 for i = 1 : NB
    dmodel.jtype{i}      = 'R';
    dmodel.appearance{i} = '1';
+   dmodel.linkname{i}   = R.body(i+1).linkname;
+   dmodel.jointname{i}  = R.body(i+1).jointname;
 end
 
 ymodel = autoSensRNEA(dmodel);
