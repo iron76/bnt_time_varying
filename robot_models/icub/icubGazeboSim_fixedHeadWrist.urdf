@@ -785,13 +785,6 @@
         <parent link="head" />
         <child link="imu_frame" />
     </joint>
-    <joint name="l_ankle_pitch" type="revolute">
-        <origin xyz="-0.213 0 0" rpy="-1.5708 0 0" />
-        <axis xyz="0 -1 6.12323e-17" />
-        <parent link="l_shank" />
-        <child link="l_ankle_1" />
-        <limit effort="24" velocity="100" lower="-0.733038" upper="0.366519" />
-    </joint>
     <joint name="l_arm_ft_sensor" type="fixed">
         <origin xyz="0.015 9.36797e-18 0.15228" rpy="-1.5708 0 0" />
         <axis xyz="0 0 0" />
@@ -858,6 +851,20 @@
         <child link="l_shank" />
         <limit effort="30" velocity="100" lower="-2.18166" upper="0.401426" />
     </joint>
+    <joint name="l_ankle_pitch" type="revolute">
+        <origin xyz="-0.213 0 0" rpy="-1.5708 0 0" />
+        <axis xyz="0 -1 6.12323e-17" />
+        <parent link="l_shank" />
+        <child link="l_ankle_1" />
+        <limit effort="24" velocity="100" lower="-0.733038" upper="0.366519" />
+    </joint>
+    <joint name="l_ankle_roll" type="revolute">
+        <origin xyz="0 0 0" rpy="0 -1.5708 0" />
+        <axis xyz="1 0 0" />
+        <parent link="l_ankle_1" />
+        <child link="l_upper_foot" />
+        <limit effort="11" velocity="100" lower="-0.418879" upper="0.418879" />
+    </joint>
     <joint name="l_shoulder_pitch" type="revolute">
         <origin xyz="0.00525 0.1433 -0.11026" rpy="1.309 5.55112e-17 1.5708" />
         <axis xyz="0 -1 5.55112e-17" />
@@ -891,13 +898,6 @@
         <parent link="l_shoulder_2" />
         <child link="l_upper_arm" />
         <limit effort="34" velocity="100" lower="-0.645772" upper="1.74533" />
-    </joint>
-    <joint name="l_ankle_roll" type="revolute">
-        <origin xyz="0 0 0" rpy="0 -1.5708 0" />
-        <axis xyz="1 0 0" />
-        <parent link="l_ankle_1" />
-        <child link="l_upper_foot" />
-        <limit effort="11" velocity="100" lower="-0.418879" upper="0.418879" />
     </joint>
     <joint name="l_wrist_pitch" type="fixed">
         <origin xyz="0 0.1373 8.4072e-18" rpy="1.5708 -0 1.5708" />
@@ -933,13 +933,6 @@
         <parent link="neck_1" />
         <child link="neck_2" />
         <limit effort="20" velocity="100" lower="-1.22173" upper="1.0472" />
-    </joint>
-    <joint name="r_ankle_pitch" type="revolute">
-        <origin xyz="-0.213 0 0" rpy="1.5708 -0 0" />
-        <axis xyz="0 1 6.12323e-17" />
-        <parent link="r_shank" />
-        <child link="r_ankle_1" />
-        <limit effort="24" velocity="100" lower="-0.733038" upper="0.366519" />
     </joint>
     <joint name="r_arm_ft_sensor" type="fixed">
         <origin xyz="0.015 -8.93429e-18 0.15228" rpy="1.5708 -0 3.14159" />
@@ -1007,6 +1000,20 @@
         <child link="r_shank" />
         <limit effort="30" velocity="100" lower="-2.18166" upper="0.401426" />
     </joint>
+    <joint name="r_ankle_pitch" type="revolute">
+        <origin xyz="-0.213 0 0" rpy="1.5708 -0 0" />
+        <axis xyz="0 1 6.12323e-17" />
+        <parent link="r_shank" />
+        <child link="r_ankle_1" />
+        <limit effort="24" velocity="100" lower="-0.733038" upper="0.366519" />
+    </joint>
+    <joint name="r_ankle_roll" type="revolute">
+        <origin xyz="0 0 0" rpy="0.504019 1.5708 -2.63757" />
+        <axis xyz="-1 1.22465e-16 0" />
+        <parent link="r_ankle_1" />
+        <child link="r_upper_foot" />
+        <limit effort="11" velocity="100" lower="-0.418879" upper="0.418879" />
+    </joint>    
     <joint name="r_shoulder_pitch" type="revolute">
         <origin xyz="0.00525 0.1433 0.11026" rpy="-1.309 -0 1.5708" />
         <axis xyz="0 1 5.55112e-17" />
@@ -1040,13 +1047,6 @@
         <parent link="r_shoulder_2" />
         <child link="r_upper_arm" />
         <limit effort="34" velocity="100" lower="-0.645772" upper="1.74533" />
-    </joint>
-    <joint name="r_ankle_roll" type="revolute">
-        <origin xyz="0 0 0" rpy="0.504019 1.5708 -2.63757" />
-        <axis xyz="-1 1.22465e-16 0" />
-        <parent link="r_ankle_1" />
-        <child link="r_upper_foot" />
-        <limit effort="11" velocity="100" lower="-0.418879" upper="0.418879" />
     </joint>
     <joint name="r_wrist_pitch" type="fixed">
         <origin xyz="0 -0.1373 -8.4072e-18" rpy="1.5708 -0 1.5708" />
