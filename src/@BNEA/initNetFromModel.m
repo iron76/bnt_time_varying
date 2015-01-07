@@ -43,37 +43,38 @@ for i = 1 : NB
     % f{dmodel.parent(j)} = f{dmodel.parent(j)} + Xup{j}'*f{j};
     dag(nodes.index{j}(3), nodes.index{i}(3)) = 1;
   end
+  
   for j = 1 : ymodel.ny
-    if strcmp(ymodel.labels{j,1}, ['a' num2str(i)])
-      dag(nodes.index{i}(1), nodes.index{j+NB}) = 1;
-      IDnet.child{j,1} = nodes.index{i}(1);
-      IDnet.Wy{j,1}     = eye(6);
-    end
-    if strcmp(ymodel.labels{j,1}, ['fB' num2str(i)])
-      dag(nodes.index{i}(2), nodes.index{j+NB}) = 1;
-      IDnet.child{j,1} = nodes.index{i}(2);
-      IDnet.Wy{j,1}     = eye(6);
-    end
-    if strcmp(ymodel.labels{j,1}, ['f' num2str(i)])
-      dag(nodes.index{i}(3), nodes.index{j+NB}) = 1;
-      IDnet.child{j,1} = nodes.index{i}(3);
-      IDnet.Wy{j,1}     = eye(6);
-    end
-    if strcmp(ymodel.labels{j,1}, ['tau' num2str(i)])
-      dag(nodes.index{i}(4), nodes.index{j+NB}) = 1;
-      IDnet.child{j,1} = nodes.index{i}(4);
-      IDnet.Wy{j,1}     = eye(1);
-    end
-    if strcmp(ymodel.labels{j,1}, ['fx' num2str(i)])
-      dag(nodes.index{i}(5), nodes.index{j+NB}) = 1;
-      IDnet.child{j,1} = nodes.index{i}(5);
-      IDnet.Wy{j,1}     = eye(6);
-    end
-    if strcmp(ymodel.labels{j,1}, ['d2q' num2str(i)])
-      dag(nodes.index{i}(6), nodes.index{j+NB}) = 1;
-      IDnet.child{j,1} = nodes.index{i}(6);
-      IDnet.Wy{j,1}     = eye(1);
-    end
+     if ~isempty(find(ymodel.Y{j,i}(:,1:6),1))
+        IDnet.Wy{j,1}     = ymodel.Y{j,i}(:,1:6);
+        dag(nodes.index{i}(1), nodes.index{j+NB}) = 1;
+        IDnet.child{j,1} = nodes.index{i}(1);
+     end
+     if ~isempty(find(ymodel.Y{j,i}(:,7:12),1))
+        IDnet.Wy{j,1}     = ymodel.Y{j,i}(:,7:12);
+        dag(nodes.index{i}(2), nodes.index{j+NB}) = 1;
+        IDnet.child{j,1} = nodes.index{i}(2);
+     end
+     if ~isempty(find(ymodel.Y{j,i}(:,13:18),1))
+        IDnet.Wy{j,1}     = ymodel.Y{j,i}(:,13:18);
+        dag(nodes.index{i}(3), nodes.index{j+NB}) = 1;
+        IDnet.child{j,1} = nodes.index{i}(3);
+     end
+     if ~isempty(find(ymodel.Y{j,i}(:,19:19),1))
+        IDnet.Wy{j,1}     = ymodel.Y{j,i}(:,19:19);
+        dag(nodes.index{i}(4), nodes.index{j+NB}) = 1;
+        IDnet.child{j,1} = nodes.index{i}(4);
+     end
+     if ~isempty(find(ymodel.Y{j,i}(:,20:25),1))
+        IDnet.Wy{j,1}     = ymodel.Y{j,i}(:,20:25);
+        dag(nodes.index{i}(5), nodes.index{j+NB}) = 1;
+        IDnet.child{j,1} = nodes.index{i}(5);
+     end
+     if ~isempty(find(ymodel.Y{j,i}(:,26:26),1))
+        IDnet.Wy{j,1}     = ymodel.Y{j,i}(:,26:26);
+        dag(nodes.index{i}(6), nodes.index{j+NB}) = 1;
+        IDnet.child{j,1} = nodes.index{i}(6);
+     end
   end
 end
 
