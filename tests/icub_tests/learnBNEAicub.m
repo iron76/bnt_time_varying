@@ -3,8 +3,8 @@ close all
 clc
 
 run('iCub.m')
-dmodel  = iCub_dmodel;
-ymodel  = autoSensSNEA(dmodel);
+dmodel = iCub_dmodel;
+ymodel = iCubSens(dmodel);
 
 dmodel  = autoTreeStochastic(dmodel);
 ymodel  = autoSensStochastic(ymodel);

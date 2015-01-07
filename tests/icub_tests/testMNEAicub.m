@@ -4,7 +4,7 @@ clc
 
 run('iCub.m')
 dmodel = iCub_dmodel;
-ymodel = autoSensSNEA(dmodel);
+ymodel = iCubSens(dmodel);
 
 dmodel = autoTreeStochastic(dmodel);
 ymodel = autoSensStochastic(ymodel);
