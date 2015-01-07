@@ -24,14 +24,12 @@ R = RigidBodyManipulator([robotPath,filesep,robotName,'.urdf']);
 dmodel = R.featherstone;
 
 NB = dmodel.NB;
-dmodel.jtype = {'R','R','R','R','R','R','R','R','R','R',...
-                'R','R','R','R','R','R','R','R','R','R',...
-                'R','R','R','R','R','R','R','R','R','R',...
-                'R','R'};
-dmodel.appearance = {'1','1','1','1','1','1','1','1','1','1',...
-                     '1','1','1','1','1','1','1','1','1','1',...
-                     '1','1','1','1','1','1','1','1','1','1',...
-                        '1','1'};
+for i = 1 : NB
+   dmodel.jtype{i}      = 'R';
+   dmodel.appearance{i} = '1';
+   dmodel.linkname{i}   = R.body(i+1).linkname;
+   dmodel.jointname{i}  = R.body(i+1).jointname;
+end
 
 ymodel = autoSensRNEA(dmodel);
 
