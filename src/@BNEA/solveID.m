@@ -68,6 +68,20 @@ if strcmp(obj.inf_engine, 'jtree_inf_engine')
       ii(4*NB+(i-1)*2+1:4*NB+2*i, 1) = (i-1)*6 + 5 : (i-1)*6 + 6;
    end
    obj.Sd = obj.Sd_sm(ii,ii);
+   
+   for i = 1:NB
+      iSd(       (i-1)*4+1 :        4*i, 1) = [6 6 6 obj.IDmodel.jn(i)]';
+      iSd(4*NB + (i-1)*2+1 : 4*NB + 2*i, 1) = [6 obj.IDmodel.jn(i)]';
+   end
+   
+   Sd_sm = submatrix(iSd, iSd, obj.Sd);
+   for i = 1 : NB
+      S_ind((i-1)*6+1:(i-1)*6+4, 1) =        (i-1)*4+1:       i*4;
+      S_ind((i-1)*6+5:(i-1)*6+6, 1) = 4*NB + (i-1)*2+1:4*NB + i*2;
+   end
+   obj.Sd = Sd_sm(S_ind, S_ind);
+  
+   
 elseif strcmp(obj.inf_engine, 'gaussian_inf_engine')
    %% Gaussian inference engine
    I        = cell2mat(obj.bnt.nodes.index);
@@ -80,13 +94,21 @@ elseif strcmp(obj.inf_engine, 'gaussian_inf_engine')
    
    obj.Sd_sm = submatrix(ns, ns, S.Sigma);
    obj.Sd    = obj.Sd_sm(p_inv,p_inv);
-   obj.Sd_sm = submatrix(obj.iSd, obj.iSd, obj.Sd);
-   
-   for i = 1 : NB
-      S_ind(       (i-1)*4+1:       i*4, 1) = (i-1)*6+1:(i-1)*6+4;
-      S_ind(4*NB + (i-1)*2+1:4*NB + i*2, 1) = (i-1)*6+5:(i-1)*6+6;
-   end
-   obj.Sd = obj.Sd_sm(S_ind, S_ind);
+
+%    obj.Sd_sm = submatrix(obj.iSd, obj.iSd, obj.Sd);
+%    for i = 1 : NB
+%       S_ind(       (i-1)*4+1:       i*4, 1) = (i-1)*6+1:(i-1)*6+4;
+%       S_ind(4*NB + (i-1)*2+1:4*NB + i*2, 1) = (i-1)*6+5:(i-1)*6+6;
+%    end
+%    obj.Sd = obj.Sd_sm(S_ind, S_ind);
+%    
+%    obj.Sd_sm = submatrix(obj.iSd, obj.iSd, obj.Sd);
+%    for i = 1 : NB
+%       S_ind((i-1)*6+1:(i-1)*6+4, 1) =        (i-1)*4+1:       i*4;
+%       S_ind((i-1)*6+5:(i-1)*6+6, 1) = 4*NB + (i-1)*2+1:4*NB + i*2;
+%    end
+%    obj.Sd = obj.Sd_sm(S_ind, S_ind);
+
 end
 
 %% General computations

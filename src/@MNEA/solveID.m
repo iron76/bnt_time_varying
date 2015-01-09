@@ -1,7 +1,7 @@
 function obj = solveID(obj)
 %solveID Inverse Dynamics with redundant measures Newton-Euler (MNEA)
 %   This function solves the inverse dynamics problem with the sparse
-%   Newton-Euler algorithm, as described in the paper "BERDY: Bayesian 
+%   Newton-Euler algorithm, as described in the paper "BERDY: Bayesian
 %   Estimation for Robot Dynamics. A Probabilistic Estimation of Whole-Body
 %   Dynamics with Redundant Measurements." The output 'd' is structured as
 %   follows:
@@ -23,7 +23,7 @@ function obj = solveID(obj)
 %   The relationship between d and y is given by Y(q, dq) d = y where the
 %   matrix Y(q, dq), is represented as a sparse matrix. Moreover, the
 %   variables d should satisfy the Newton-Euler equations represented as
-%   D(q,dq) d + b(q, dq) = 0, again represented as a sparse matrix. 
+%   D(q,dq) d + b(q, dq) = 0, again represented as a sparse matrix.
 %
 % Author: Francesco Nori
 % Genova, Dec 2014
@@ -34,11 +34,11 @@ NB = obj.IDmodel.modelParams.NB;
 
 % b  = obj.b(1:4*NB,1);
 % iDx = zeros(4*NB,1);  iDy = zeros(2*NB,1);
-% for i = 1:obj.IDmodel.modelParams.NB  
+% for i = 1:obj.IDmodel.modelParams.NB
 %    iDx((i-1)*4+1 : i*4,1) = ((i-1)*6+1 : (i-1)*6+4)';
 %    iDy((i-1)*2+1 : i*2,1) = ((i-1)*6+5 : (i-1)*6+6)';
 % end
-% 
+%
 % Dx = obj.D(1:4*NB,iDx);
 % Dy = obj.D(1:4*NB,iDy);
 
@@ -87,19 +87,31 @@ dxc  = mat2cell( dx, 19*ones(1, NB), 1);
 dyc  = mat2cell( dy,  7*ones(1, NB), 1);
 
 for i = 1 : NB
-  dc{i}   = [dxc{i,1}; dyc{i,1}];
-  
-  obj.a  (1:6,i) = dc{i}( 1: 6, 1);
-  obj.fB (1:6,i) = dc{i}( 7: 12, 1);
-  obj.f  (1:6,i) = dc{i}(13: 18, 1);
-  obj.tau(1:1,i)  = dc{i}(19, 1);
-  obj.fx (1:6,i) = dc{i}( 20: 25, 1);
-  obj.d2q(1:1,i)  = dc{i}(26, 1);
-  
-  d((1:26)+(i-1)*26, 1) = [obj.a(1:6,i); obj.fB(1:6,i); obj.f(1:6,i); obj.tau(1,i); obj.fx(1:6,i); obj.d2q(1,i)];
+   dc{i}   = [dxc{i,1}; dyc{i,1}];
+   
+   obj.a  (1:6,i) = dc{i}( 1: 6, 1);
+   obj.fB (1:6,i) = dc{i}( 7: 12, 1);
+   obj.f  (1:6,i) = dc{i}(13: 18, 1);
+   obj.tau(1:1,i)  = dc{i}(19, 1);
+   obj.fx (1:6,i) = dc{i}( 20: 25, 1);
+   obj.d2q(1:1,i)  = dc{i}(26, 1);
+   
+   d((1:26)+(i-1)*26, 1) = [obj.a(1:6,i); obj.fB(1:6,i); obj.f(1:6,i); obj.tau(1,i); obj.fx(1:6,i); obj.d2q(1,i)];
 end
 
 obj.d  = d;
 obj.Sd = full(inv(Ss));
+
+for i = 1:NB
+   iSd(       (i-1)*4+1 :        4*i, 1) = [6 6 6 obj.IDmodel.jn(i)]';
+   iSd(4*NB + (i-1)*2+1 : 4*NB + 2*i, 1) = [6 obj.IDmodel.jn(i)]';
+end
+
+obj.Sd_sm = submatrix(iSd, iSd, obj.Sd);
+for i = 1 : NB
+   S_ind((i-1)*6+1:(i-1)*6+4, 1) =        (i-1)*4+1:       i*4;
+   S_ind((i-1)*6+5:(i-1)*6+6, 1) = 4*NB + (i-1)*2+1:4*NB + i*2;
+end
+obj.Sd = obj.Sd_sm(S_ind, S_ind);
 
 end % solveID

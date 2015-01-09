@@ -241,4 +241,17 @@ end
 obj.d     = d;
 % obj.Sd = full(inv(S1'*Ss*S1));
 obj.Sd = full(inv(Ss));
+
+
+for i = 1:NB
+   iSd(       (i-1)*4+1 :        4*i, 1) = [6 6 6 obj.IDmodel.jn(i)]';
+   iSd(4*NB + (i-1)*2+1 : 4*NB + 2*i, 1) = [6 obj.IDmodel.jn(i)]';
+end
+obj.Sd_sm = submatrix(iSd, iSd, obj.Sd);
+for i = 1 : NB
+   S_ind((i-1)*6+1:(i-1)*6+4, 1) =        (i-1)*4+1:       i*4;
+   S_ind((i-1)*6+5:(i-1)*6+6, 1) = 4*NB + (i-1)*2+1:4*NB + i*2;
+end
+obj.Sd = obj.Sd_sm(S_ind, S_ind);
+
 end % solveID
