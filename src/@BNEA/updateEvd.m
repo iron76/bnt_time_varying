@@ -8,11 +8,18 @@ for i = 1 : obj.IDsens.sensorsParams.ny
    iy = iy + obj.IDsens.sensorsParams.sizes{i,1};
 end
 
-if isempty(obj.bnt.engine)
-   obj.bnt.engine = jtree_inf_engine(obj.bnt.bnet);
-   obj.bnt.engine = enter_evidence(obj.bnt.engine, obj.evd);
-else
-   % disp('Using previous path on jtree!')
-   obj.bnt.engine = bnet_to_engine(obj.bnt.bnet, obj.bnt.engine);
+if strcmp(obj.inf_engine, 'jtree_inf_engine')
+   %% jtree
+   if isempty(obj.bnt.engine)
+      obj.bnt.engine = jtree_inf_engine(obj.bnt.bnet);
+      obj.bnt.engine = enter_evidence(obj.bnt.engine, obj.evd);
+   else
+      % disp('Using previous path on jtree!')
+      obj.bnt.engine = bnet_to_engine(obj.bnt.bnet, obj.bnt.engine);
+      obj.bnt.engine = enter_evidence(obj.bnt.engine, obj.evd);
+   end
+elseif strcmp(obj.inf_engine, 'gaussian_inf_engine')
+   %%gaussian
+   obj.bnt.engine = gaussian_inf_engine(obj.bnt.bnet);
    obj.bnt.engine = enter_evidence(obj.bnt.engine, obj.evd);
 end

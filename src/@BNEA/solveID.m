@@ -47,41 +47,67 @@ Stau = cell(NB,1);
 Sfx  = cell(NB,1);
 Sd2q = cell(NB,1);
 
-for i = NB:-1:1
+if strcmp(obj.inf_engine, 'jtree_inf_engine')
+   %% jtree_inf_engine
+   C = cliques_from_engine(obj.bnt.engine);
+   I = cell2mat(obj.bnt.nodes.index);
+   % J is the inverse index for the permutation I
+   J(I) = 1:length(I);
+   for i = 1:length(C)
+      for j = 1 : length(C{i})
+         if J(C{i}(j))>6*NB
+            C{i}(j) = [];
+         end
+      end
+      tmp       = marginal_nodes(obj.bnt.engine, C{i});
+      obj.Sd_sm = set(obj.Sd_sm, tmp.Sigma, J(C{i}), J(C{i}));
+   end
+   ii = zeros(6*NB,1);
+   for i = 1 : NB
+      ii(     (i-1)*4+1:     4*i, 1) = (i-1)*6 + 1 : (i-1)*6 + 4;
+      ii(4*NB+(i-1)*2+1:4*NB+2*i, 1) = (i-1)*6 + 5 : (i-1)*6 + 6;
+   end
+   obj.Sd = obj.Sd_sm(ii,ii);
+elseif strcmp(obj.inf_engine, 'gaussian_inf_engine')
+   %% Gaussian inference engine
+   I        = cell2mat(obj.bnt.nodes.index);
+   ns       = obj.bnt.bnet.node_sizes;
+   S        = marginal_nodes(obj.bnt.engine, I(1:6*NB));
+   [~, p]   = sort(I(1:6*NB));
+   ns       = ns(I(1:6*NB));
+   ns       = ns(p);
+   p_inv(p) = 1:length(p);
+   
+   obj.Sd_sm = submatrix(ns, ns, S.Sigma);
+   obj.Sd    = obj.Sd_sm(p_inv,p_inv);
+   obj.Sd_sm = submatrix(obj.iSd, obj.iSd, obj.Sd);
+   
+   for i = 1 : NB
+      S_ind(       (i-1)*4+1:       i*4, 1) = (i-1)*6+1:(i-1)*6+4;
+      S_ind(4*NB + (i-1)*2+1:4*NB + i*2, 1) = (i-1)*6+5:(i-1)*6+6;
+   end
+   obj.Sd = obj.Sd_sm(S_ind, S_ind);
+end
+
+%% General computations
+for i = 1:NB
    tmp      = marginal_nodes(obj.bnt.engine, obj.bnt.nodes.index{i}(1));
    a(i,:)   = tmp.mu';
-   Sa{i}    = tmp.Sigma;
    tmp      = marginal_nodes(obj.bnt.engine, obj.bnt.nodes.index{i}(2));
    fB(i,:)  = tmp.mu';
-   SfB{i}   = tmp.Sigma;
    tmp      = marginal_nodes(obj.bnt.engine, obj.bnt.nodes.index{i}(3));
    f(i,:)   = tmp.mu';
-   Sf{i}    = tmp.Sigma;
    tmp      = marginal_nodes(obj.bnt.engine, obj.bnt.nodes.index{i}(4));
-   tau(i,1) = tmp.mu;
-   Stau{i}  = tmp.Sigma;
+   tau(i,1) = tmp.mu';
    tmp      = marginal_nodes(obj.bnt.engine, obj.bnt.nodes.index{i}(5));
    fx(i,:)  = tmp.mu';
-   Sfx{i}   = tmp.Sigma;
    tmp      = marginal_nodes(obj.bnt.engine, obj.bnt.nodes.index{i}(6));
    d2q(i,1) = tmp.mu';
-   Sd2q{i}  = tmp.Sigma;
-   
 end
 
-for i = 1 : NB
-   obj.Sd((1:6)+(i-1)*19, (1:6)+(i-1)*19) = Sa{i};
-   obj.Sd((7:12)+(i-1)*19, (7:12)+(i-1)*19) = SfB{i};
-   obj.Sd((13:18)+(i-1)*19, (13:18)+(i-1)*19) = Sf{i};
-   obj.Sd((19:19)+(i-1)*19, (19:19)+(i-1)*19) = Stau{i};
-   
-   obj.d((1:26)+(i-1)*26, 1) = [a( i,1:6), fB(i,1:6), f( i,1:6), tau(i,1), fx(i,1:6), d2q(i,1)]';
-end
+
 
 for i = 1 : NB
-   obj.Sd((1:6)+(i-1)*7+19*NB, (1:6)+(i-1)*7+19*NB) = Sfx{i};
-   obj.Sd((7:7)+(i-1)*7+19*NB, (7:7)+(i-1)*7+19*NB) = Sd2q{i};
-   
    obj.d((1:26)+(i-1)*26, 1) = [a( i,1:6), fB(i,1:6), f( i,1:6), tau(i,1), fx(i,1:6), d2q(i,1)]';
 end
 
