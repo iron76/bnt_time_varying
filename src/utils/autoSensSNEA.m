@@ -47,32 +47,32 @@ for i = 1 : ymodel.NB
    if ry(i) >= 6
       ny = ny + 1;
       ymodel.sizes{ny,1} = 6;
-      ymodel.labels{ny,1} = ['a' num2str(i)];
+      ymodel.labels{ny,1} = ['y_a' num2str(i)];
    end
    if ry(i) >= 5
       ny = ny + 1;
       ymodel.sizes{ny,1} = 6;
-      ymodel.labels{ny,1} = ['fB' num2str(i)];
+      ymodel.labels{ny,1} = ['y_fB' num2str(i)];
    end
    if ry(i) >= 4
       ny = ny + 1;
       ymodel.sizes{ny,1} = 6;
-      ymodel.labels{ny,1} = ['f' num2str(i)];
+      ymodel.labels{ny,1} = ['y_f' num2str(i)];
    end
    if ry(i) >= 3
       ny = ny + 1;
       ymodel.sizes{ny,1} = 1;
-      ymodel.labels{ny,1} = ['tau' num2str(i)];
+      ymodel.labels{ny,1} = ['y_tau' num2str(i)];
    end
    if ry(i) >= 2
       ny = ny + 1;
       ymodel.sizes{ny,1} = 6;
-      ymodel.labels{ny,1} = ['fx'  num2str(i)];
+      ymodel.labels{ny,1} = ['y_fx'  num2str(i)];
    end
    if ry(i) >= 1
       ny = ny + 1;
       ymodel.sizes{ny,1} = 1;
-      ymodel.labels{ny,1} = ['d2q' num2str(i)];
+      ymodel.labels{ny,1} = ['y_d2q' num2str(i)];
    end
 end
 
@@ -86,32 +86,32 @@ for i = 1 : ymodel.ny
       my = ymodel.sizes{i,1};
       ymodel.Y{i,j}  = zeros(my, 26);
       ymodel.Ys{i,j} = zeros(my, 26);
-      if strcmp(ymodel.labels{i,1}, ['a' num2str(j)])
+      if strcmp(ymodel.labels{i,1}, ['y_a' num2str(j)])
          d = rand(6,1);
          ymodel.Y{i,j}  = [diag(d) zeros(6,6) zeros(6,6) zeros(6, 1) zeros(6,6) zeros(6, 1)];
          ymodel.Ys{i,j} = sparse(1:6,1:6,d, 6, 26);
       end
-      if strcmp(ymodel.labels{i,1}, ['fB' num2str(j)])
+      if strcmp(ymodel.labels{i,1}, ['y_fB' num2str(j)])
          d = rand(6,1);
          ymodel.Y{i,j}  = [zeros(6,6) diag(d) zeros(6,6) zeros(6, 1) zeros(6,6) zeros(6, 1)];
          ymodel.Ys{i,j} = sparse(1:6,7:12,d, 6, 26);
       end
-      if strcmp(ymodel.labels{i,1}, ['f' num2str(j)])
+      if strcmp(ymodel.labels{i,1}, ['y_f' num2str(j)])
          d = rand(6,1);
          ymodel.Y{i,j}  = [zeros(6,6) zeros(6,6) diag(d) zeros(6, 1) zeros(6,6) zeros(6, 1)];
          ymodel.Ys{i,j} = sparse(1:6,13:18,d, 6, 26);
       end
-      if strcmp(ymodel.labels{i,1}, ['tau' num2str(j)])
+      if strcmp(ymodel.labels{i,1}, ['y_tau' num2str(j)])
          d = rand(1,1);
          ymodel.Y{i,j}  = [zeros(1,6) zeros(1,6) zeros(1,6) diag(d) zeros(1,6) zeros(1, 1)];
          ymodel.Ys{i,j} = sparse(1,19,d,1,26);
       end
-      if strcmp(ymodel.labels{i,1}, ['fx' num2str(j)])
+      if strcmp(ymodel.labels{i,1}, ['y_fx' num2str(j)])
          d = ones(6,1)*10;
          ymodel.Y{i,j}  = [zeros(6,6) zeros(6,6) zeros(6, 6) zeros(6,1) diag(d) zeros(6, 1)];
          ymodel.Ys{i,j} = sparse(1:6,20:25,d, 6, 26);
       end
-      if strcmp(ymodel.labels{i,1}, ['d2q' num2str(j)])
+      if strcmp(ymodel.labels{i,1}, ['y_d2q' num2str(j)])
          d = rand(1,1);
          ymodel.Y{i,j}  = [zeros(1,6) zeros(1,6) zeros(1,6) zeros(1, 1) zeros(1,6) diag(d)];
          ymodel.Ys{i,j} = sparse(1,26,d,1,26);
