@@ -26,7 +26,7 @@ classdef PNEA < stochasticIDsolver
             end
          end
          b    = b@stochasticIDsolver(m,y);
-         b.Sd = zeros(b.IDmodel.modelParams.NB, b.IDmodel.modelParams.NB);
+         b.Sd = zeros(b.IDmodel.modelParams.NB*26, b.IDmodel.modelParams.NB*26);
          
       end % PNEA
       

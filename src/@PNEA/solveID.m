@@ -239,6 +239,6 @@ for i = 1 : NB
   d((1:26)+(i-1)*26, 1) = [obj.a(1:6,i); obj.fB(1:6,i); obj.f(1:6,i); obj.tau(1,i); obj.fx(1:6,i); obj.d2q(1,i)];
 end
 obj.d     = d;
-obj.Sd = full(inv(S1'*Ss*S1));
-
+% obj.Sd = full(inv(S1'*Ss*S1));
+obj.Sd = full(inv(Ss));
 end % solveID
