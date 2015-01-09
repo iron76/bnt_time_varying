@@ -1,7 +1,7 @@
 classdef stochasticIDsolver < deterministicIDsolver
    
    properties
-      Sd
+      Sd, Sd_sm, iSd, jSd
    end
    
    methods
@@ -11,6 +11,9 @@ classdef stochasticIDsolver < deterministicIDsolver
              'model to instantiate stochasticIDsolver'] )            
          end
          b = b@deterministicIDsolver(m,y);
+         b   = initSubMatrixIndices(b);
+         b   = initSubMatrix(b);
+
       end % stochasticIDsolver
       
       function disp(b)
@@ -18,6 +21,9 @@ classdef stochasticIDsolver < deterministicIDsolver
          disp@deterministicIDsolver(b)
          fprintf('stochasticIDsolver disp to be implemented! \n')
       end % disp
-   end % methods
+      
+      obj = initSubMatrixIndices(obj);
+      obj = initSubMatrix(obj);
+   end % methods   
 end % classdef
 
