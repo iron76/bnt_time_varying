@@ -1,4 +1,4 @@
-function [ model ] = autoTreeStochastic( model )
+function [ model ] = autoTreeStochastic( model , sModel, sUknown )
 %AUTOTREESTOCHASTIC Add stochastic component to a dynamic model
 %   This function takes a structure containing an articulated rigid body
 %   model (similar to the one created by autoSensSNEA) and adds to the
@@ -28,8 +28,12 @@ function [ model ] = autoTreeStochastic( model )
 %  Su.fx and Su.d2q, and the overall covariance matrix Sw represented as a
 %  sparse matrix in its inverse model.Sw_inv
 
-sModel  = 1e-5;
-sUknown = 10;
+if nargin == 1
+   sModel  = 1;
+   sUknown = 1;
+elseif nargin == 2
+   sUknown = sModel*1e3;
+end
 
 idSw_inv = []; jdSw_inv = []; dSw_inv=[];
 idSv_inv = []; jdSv_inv = []; dSv_inv=[];
