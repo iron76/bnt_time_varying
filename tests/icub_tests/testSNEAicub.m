@@ -6,8 +6,8 @@ run('iCub.m')
 dmodel = iCub_dmodel;
 ymodel = autoSensRNEA(dmodel);
 
-dmodel = autoTreeStochastic(dmodel);
-ymodel = autoSensStochastic(ymodel);
+dmodel = autoTreeStochastic(dmodel, 1e-3);
+ymodel = autoSensStochastic(ymodel, 1e-2);
 
 q      = rand(dmodel.NB,1);
 dq     = rand(dmodel.NB,1);

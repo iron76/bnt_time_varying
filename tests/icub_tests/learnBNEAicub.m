@@ -18,6 +18,8 @@ mySens  = sensors(ymodel);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 myBNEA  = BNEA(myModel, mySens);
+myBNEA  = myBNEA.setEngine('jtree_inf_engine');
+
 
 bnet    = cell(1,n);
 engine  = cell(1,n);
