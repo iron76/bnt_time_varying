@@ -9,8 +9,8 @@ ymodel = iCubSens(dmodel);
 dmodel  = autoTreeStochastic(dmodel);
 ymodel  = autoSensStochastic(ymodel);
 
-NB      = dmodel.NB;   %number of rigid bodies
-n       = 10;          %number of samples
+NB      = dmodel.NB; %number of rigid bodies
+n       = 10;        %number of samples (with n = 1000, 5 steps per hour)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 myModel = model(dmodel);
