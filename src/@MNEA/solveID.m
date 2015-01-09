@@ -100,6 +100,6 @@ for i = 1 : NB
 end
 
 obj.d  = d;
-obj.Sd = full(inv(S1'*Ss*S1));
+obj.Sd = full(inv(Ss));
 
 end % solveID
