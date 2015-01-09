@@ -1,4 +1,4 @@
-function [ model ] = autoSensStochastic( model )
+function [ model ] = autoSensStochastic( model , sMeas)
 %AUTOSENSSTOCHASTIC Add stochastic component to a sensor distribution
 %   This function takes a structure containing sensor distribution (similar
 %   to the one created by autoSensSNEA) and adds to the structure some
@@ -10,7 +10,9 @@ function [ model ] = autoSensStochastic( model )
 %   and the variance is associated with the confidence on the measurement
 %   equation.
 
-sMeas   = 1e-5;
+if nargin == 1
+   sMeas   = 1;
+end
 
 idSy_inv = []; jdSy_inv = []; dSy_inv=[];
 
