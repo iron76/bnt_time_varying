@@ -10,24 +10,25 @@ if ~exist('preprocess.mat', 'file')
    data.end       = 195;  %seconds to reach the end of the movement
    data.diff_imu  = 1;    %derivate the angular velocity of the IMUs
 
-   %%
+   %%strucutre from files
    data.path        = '/Users/iron/Desktop/iron/myTex/2015-01-rss/data';
-   data.parts       = {'inertial' , 'head'      , 'left_arm'  , 'right_arm' , 'left_leg'  , 'right_leg' , 'torso'     , 'left_arm_accelerometers', 'left_foot_inertial', 'left_hand_inertial', 'right_arm_accelerometers', 'right_foot_inertial', 'right_hand_inertial', 'torso_accelerometers', 'l_arm_ft_sensor:o', 'r_arm_ft_sensor:o', 'l_leg_ft_sensor:o', 'r_leg_ft_sensor:o', 'l_foot_ft_sensor:o', 'r_foot_ft_sensor:o'};
-   data.labels      = {'imu'      , 'h'         , 'la'        , 'ra'        , 'll'        , 'rl'        , 'to'        , 'la_acc'                 , 'lf_acc'            , 'lh_imu'            , 'ra_acc'                  , 'rf_acc'             , 'rh_imu'             , 'to_acc'              , 'la_fts'           , 'ra_fts'           , 'll_fts'           , 'rl_fts'           , 'lf_fts'            , 'rf_fts'            };
-   data.ndof        = {12         ,  6          , 16          , 16          , 6           , 6           , 3           , 18                       , 3                   , 6                   , 18                        , 3                    , 6                    , 12                    , 6                  , 6                  , 6                  , 6                  , 6                   , 6                   };
-   data.type        = {''         , 'stateExt:o', 'stateExt:o', 'stateExt:o', 'stateExt:o', 'stateExt:o', 'stateExt:o', 'analog:o'               , 'analog:o'          , 'analog:o'          , 'analog:o'                , 'analog:o'           , 'analog:o'           , 'analog:o'            , ''                 , ''                 , ''                 , ''                 , ''                  , ''                  };
-   data.visualize   = {1*data.plot, 1*data.plot , 1*data.plot , 1*data.plot , 1*data.plot , 1*data.plot , 1*data.plot , 1*data.plot              , 1*data.plot         , 1*data.plot         , 1*data.plot               , 1*data.plot          , 1*data.plot          , 1*data.plot           , 1*data.plot        , 1*data.plot        , 1*data.plot        , 1*data.plot        , 1*data.plot         , 1*data.plot         };
-   
+   data.parts       = {'inertial'                                 , 'left_arm_accelerometers', 'left_foot_inertial'        , 'left_hand_inertial'                  , 'right_arm_accelerometers', 'right_foot_inertial'       , 'right_hand_inertial'                 , 'torso_accelerometers'                    , 'l_arm_ft_sensor:o', 'r_arm_ft_sensor:o', 'l_leg_ft_sensor:o', 'r_leg_ft_sensor:o', 'l_foot_ft_sensor:o'        , 'r_foot_ft_sensor:o'        , 'head'      , 'left_arm'  , 'right_arm' , 'left_leg'  , 'right_leg' , 'torso'     };
+   data.labels      = {'imu'                                      , 'la_acc'                 , 'lf_acc'                    , 'lh_imu'                              , 'ra_acc'                  , 'rf_acc'                    , 'rh_imu'                              , 'to_acc'                                  , 'la_fts'           , 'ra_fts'           , 'll_fts'           , 'rl_fts'           , 'lf_fts'                    , 'rf_fts'                    , 'h'         , 'la'        , 'ra'        , 'll'        , 'rl'        , 'to'        };
+   data.ndof        = {12                                         , 18                       , 3                           , 6                                     , 18                        , 3                           , 6                                     , 12                                        , 6                  , 6                  , 6                  , 6                  , 6                           , 6                           ,  6          , 16          , 16          , 6           , 6           , 3           };
+   data.index       = {'4:9'                                      , '1:3'                    , '1:3'                       , '1:6'                                 , '1:3'                     , '1:3'                       , '1:6'                                 , '1:3'                                     , '1:6'              , '1:6'              , '1:6'              , '1:6'              , '1:6'                       , '1:6'                       ,  '1:6'      , '1:16'      , '1:16'      , '1:6'       , '1:6'       , '1:3'       };
+   data.type        = {''                                         , 'analog:o'               , 'analog:o'                  , 'analog:o'                            , 'analog:o'                , 'analog:o'                  , 'analog:o'                            , 'analog:o'                                , ''                 , ''                 , ''                 , ''                 , ''                          , ''                          , 'stateExt:o', 'stateExt:o', 'stateExt:o', 'stateExt:o', 'stateExt:o', 'stateExt:o'};
+   data.visualize   = {1*data.plot                                , 1*data.plot               , 1*data.plot                , 1*data.plot                           , 1*data.plot               , 1*data.plot                 , 1*data.plot                           , 1*data.plot                               , 1*data.plot        , 1*data.plot        , 1*data.plot        , 1*data.plot        , 1*data.plot                 , 1*data.plot                 , 1*data.plot , 1*data.plot , 1*data.plot , 1*data.plot , 1*data.plot , 1*data.plot };
    data = loadData(data);
+   %%strucutre for urdf
+   sens.parts       = {'chest+torso+neck_1+neck_2+head+imu_frame' , 'l_upper_arm+l_arm'      , 'l_upper_foot+l_foot+l_sole', 'l_forearm+l_wrist_1+l_hand+l_gripper', 'r_upper_arm+r_arm'       , 'r_upper_foot+r_foot+r_sole', 'r_forearm+r_wrist_1+r_hand+r_gripper', 'chest+torso+neck_1+neck_2+head+imu_frame', 'l_upper_arm+l_arm', 'r_upper_arm+r_arm', 'l_thigh'          , 'r_thigh'          , 'l_upper_foot+l_foot+l_sole', 'r_upper_foot+r_foot+r_sole'};
+   sens.labels      = {'imu'                                      , 'la_acc'                 , 'lf_acc'                    , 'lh_imu'                              , 'ra_acc'                  , 'rf_acc'                    , 'rh_imu'                              , 'to_acc'                                  , 'la_fts'           , 'ra_fts'           , 'll_fts'           , 'rl_fts'           , 'lf_fts'                    , 'rf_fts'                    };
+   sens.ndof        = {6                                          , 3                        , 3                           , 6                                     , 3                         , 3                           , 6                                     , 3                                         , 6                  , 6                  , 6                  , 6                  , 6                           , 6                           };
+   sens.type        = {''                                         , 'analog:o'               , 'analog:o'                  , 'analog:o'                            , 'analog:o'                , 'analog:o'                  , 'analog:o'                            , 'analog:o'                                , ''                 , ''                 , ''                 , ''                 , ''                          , ''                          };
+
    %%
    % for i = 1 : length(data.time)
    %    iCubVisualize(data.q(:,i), R)
    % end
-   
-   sens.parts       = {'chest+torso+neck_1+neck_2+head+imu_frame' , 'l_upper_arm+l_arm'      , 'l_upper_foot+l_foot+l_sole', 'l_forearm+l_wrist_1+l_hand+l_gripper', 'r_upper_arm+r_arm', 'r_upper_foot+r_foot+r_sole', 'r_forearm+r_wrist_1+r_hand+r_gripper', 'chest+torso+neck_1+neck_2+head+imu_frame', 'l_upper_arm+l_arm', 'r_upper_arm+r_arm', 'l_thigh', 'r_thigh', 'l_upper_foot+l_foot+l_sole', 'r_upper_foot+r_foot+r_sole'};
-   sens.labels      = {'imu'                                      , 'la_acc'                 , 'lf_acc'                    , 'lh_imu'                              , 'ra_acc'           , 'rf_acc'                    , 'rh_imu'                              , 'to_acc'                                  , 'la_fts'           , 'ra_fts'           , 'll_fts' , 'rl_fts' , 'lf_fts'                    , 'rf_fts'                    };
-   sens.ndof        = {6                                          , 3                        , 3                           , 6                                     , 3                  , 3                           , 6                                     , 3                                         , 6                  , 6                  , 6        , 6        , 6                           , 6                           };
-   sens.type        = {''                                         , 'analog:o'               , 'analog:o'                  , 'analog:o'                            , 'analog:o'         , 'analog:o'                  , 'analog:o'                            , 'analog:o'                                , ''                 , ''                 , ''       , ''       , ''                          , ''                          };
    
    run('iCub.m')
    dmodel  = iCub_dmodel;
@@ -84,7 +85,7 @@ py = [0; cumsum(cell2mat(myPNEA.IDsens.sensorsParams.sizes))];
 %    end
 % end
 
-label_to_plot = {'lf_acc' 'rf_acc' 'll_fts' 'rl_fts' 'la_fts' 'ra_fts' 'lh_imu'  'rh_imu'};
+label_to_plot = {'imu', 'la_acc', 'lf_acc', 'lh_imu', 'ra_acc', 'rf_acc', 'rh_imu', 'to_acc', 'la_fts', 'ra_fts', 'll_fts', 'rl_fts', 'lf_fts', 'rf_fts'};
 for l = 1 : length(label_to_plot)
    for i = 1 : length(data.parts)
       if strcmp(data.labels{i}, label_to_plot{l})
@@ -92,7 +93,7 @@ for l = 1 : length(label_to_plot)
          ys   = ['ys_' data.labels{i}];
          
          figure
-         J = data.ndof{i};
+         J = length(eval(data.index{i}));
          for j = 1 : J/3
             subplot([num2str(J/3) '1' num2str(j)])
             I = 1+(j-1)*3 : 3*j;

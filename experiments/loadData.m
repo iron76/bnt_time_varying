@@ -13,10 +13,15 @@ for i = 1 : length(data.parts)
       d2q  = ['d2q_' data.labels{i}];
       t    = ['time_' data.labels{i}];
       eval(['[data.' q ',data.' dq ',data.' d2q ',data.' t '] = readState(' num2str(data.ndof{i}) ',''' file ''');']);
+      eval(['data.'  q  '= data.'   q '(' data.index{i} ',:);']);
+      eval(['data.' dq  '= data.'  dq '(' data.index{i} ',:);']);
+      eval(['data.' d2q '= data.' d2q '(' data.index{i} ',:);']);
    else
       y    = ['y_' data.labels{i}];
       t    = ['time_' data.labels{i}];
       eval(['[data.' y ',data.' t '] = readDataDumper(''' file ''');']);
+      eval(['data.' y '= data.' y '(:,' data.index{i} ');']);
+
       if(strcmp(y(end-2:end), 'imu') && data.diff_imu)
          eval(['data.' y '(2:end,4:6)= diff(sgolayfilt(data.' y '(:,4:6),' sgolay_K ',' sgolay_F '));'])
       end
