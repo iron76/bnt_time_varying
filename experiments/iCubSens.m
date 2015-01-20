@@ -1,4 +1,4 @@
-function [ ymodel ] = iCubSens( dmodel )
+function [ ymodel ] = iCubSens( dmodel , sens)
 %AUTOSENSSNEA Generates a random sensor distribution articulated rigid body.
 %   This function generates a structure that contains all measurements
 %   needed to perform sparse inverse dynanmic compuations on the supplied
@@ -50,176 +50,36 @@ function [ ymodel ] = iCubSens( dmodel )
 
 ymodel.NB = dmodel.NB;
 ny = 0;
-            %6FT   %2ACC    %3ACC+GYRO
-ymodel.ny =   6  +    2   +   3;
-ymodel.m  = 6*6  +  3*2   + 6*3;
+
+ymodel.ny = length(sens.parts);
+ymodel.m  = sum(cell2mat(sens.ndof));
 ymodel.Y  = cell(ymodel.ny, ymodel.NB);
 ymodel.Ys = cell(ymodel.ny, ymodel.NB);
 
-for i = 1 : dmodel.NB
-   if strcmp(dmodel.linkname{i}, 'chest+torso+neck_1+neck_2+head+imu_frame')
-      ny = ny + 1;
-      dy = 6;
-      ymodel.labels{ny,1} = strcat(dmodel.linkname{i}, '_acc+gyr');
-      for j = 1 : dmodel.NB
-         ymodel.Y{ny,j}   = zeros(dy,26);         
-         ymodel.Ys{ny,j}  = sparse(zeros(dy,26));
+for i = 1 : ymodel.ny
+   ny = ny + 1;
+   dy = sens.ndof{i};
+   ymodel.labels{ny,1} = sens.labels{i};
+   for j = 1 : dmodel.NB
+      ymodel.Y{ny,j}   = zeros(dy,26);
+      ymodel.Ys{ny,j}  = sparse(zeros(dy,26));
+      if(strcmp(sens.parts{i}, dmodel.linkname{j}))
+         link_ind = j;
       end
-      ymodel.Y{ny,i}      = [eye(dy) zeros(dy,6) zeros(dy,6) zeros(dy, 1) zeros(dy,6) zeros(dy, 1)];      
-      ymodel.Ys{ny,i}     = sparse(1:6,1:6,ones(dy,1), dy, 26);
-      ymodel.sizes{ny,1}  = dy;
    end
-end
-
-for i = 1 : dmodel.NB
-   if strcmp(dmodel.linkname{i}, 'l_upper_foot+l_foot+l_sole') 
-      ny = ny + 1;
-      dy = 3;
-      ymodel.labels{ny,1} = strcat(dmodel.linkname{i}, '_acc');
-      for j = 1 : dmodel.NB
-         ymodel.Y{ny,j}   = zeros(dy,26);         
-         ymodel.Ys{ny,j}  = sparse(zeros(dy,26));
-      end
-      ymodel.Y{ny,i}      = [zeros(dy,3) eye(dy) zeros(dy,6) zeros(dy,6) zeros(dy, 1) zeros(dy,6) zeros(dy, 1)];      
-      ymodel.Ys{ny,i}     = sparse(1:3,4:6,ones(dy,1), dy, 26);
-      ymodel.sizes{ny,1}  = dy;
+   if strcmp(ymodel.labels{ny,1}(end-2:end), 'imu')
+      ymodel.Y{ny,link_ind}      = [[zeros(3,3) eye(3); eye(3) zeros(3,3)] zeros(dy,6) zeros(dy,6) zeros(dy, 1) zeros(dy,6) zeros(dy, 1)];      
+      ymodel.Ys{ny,link_ind}     = sparse(1:6,[4:6 1:3],ones(dy,1), dy, 26);
+   elseif strcmp(ymodel.labels{ny,1}(end-2:end), 'acc')
+      ymodel.Y{ny,link_ind}      = [zeros(dy,3) eye(dy) zeros(dy,6) zeros(dy,6) zeros(dy, 1) zeros(dy,6) zeros(dy, 1)];      
+      ymodel.Ys{ny,link_ind}     = sparse(1:3,4:6,ones(dy,1), dy, 26);
+   elseif strcmp(ymodel.labels{ny,1}(end-2:end), 'fts')
+      ymodel.Y{ny,link_ind}      = [zeros(dy,6) zeros(dy,6) [zeros(3,3) eye(3); eye(3) zeros(3,3)] zeros(dy, 1) zeros(dy,6) zeros(dy, 1)];      
+      ymodel.Ys{ny,link_ind}     = sparse(1:6, [16:18 13:15],ones(dy,1), dy, 26);
    end
+   ymodel.sizes{ny,1}  = dy;
 end
-
-for i = 1 : dmodel.NB
-   if strcmp(dmodel.linkname{i}, 'l_forearm+l_wrist_1+l_hand+l_gripper') 
-      ny = ny + 1;
-      dy = 6;
-      ymodel.labels{ny,1} = strcat(dmodel.linkname{i}, '_acc+gyr');
-      for j = 1 : dmodel.NB
-         ymodel.Y{ny,j}   = zeros(dy,26);         
-         ymodel.Ys{ny,j}  = sparse(zeros(dy,26));
-      end
-      ymodel.Y{ny,i}      = [eye(dy) zeros(dy,6) zeros(dy,6) zeros(dy, 1) zeros(dy,6) zeros(dy, 1)];      
-      ymodel.Ys{ny,i}     = sparse(1:6,1:6,ones(dy,1), dy, 26);
-      ymodel.sizes{ny,1}  = dy;
-   end   
-end
-
-for i = 1 : dmodel.NB
-   if  strcmp(dmodel.linkname{i}, 'r_upper_foot+r_foot+r_sole')
-      ny = ny + 1;
-      dy = 3;
-      ymodel.labels{ny,1} = strcat(dmodel.linkname{i}, '_acc');
-      for j = 1 : dmodel.NB
-         ymodel.Y{ny,j}   = zeros(dy,26);         
-         ymodel.Ys{ny,j}  = sparse(zeros(dy,26));
-      end
-      ymodel.Y{ny,i}      = [zeros(dy,3) eye(dy) zeros(dy,6) zeros(dy,6) zeros(dy, 1) zeros(dy,6) zeros(dy, 1)];      
-      ymodel.Ys{ny,i}     = sparse(1:3,4:6,ones(dy,1), dy, 26);
-      ymodel.sizes{ny,1}  = dy;
-   end
-end
-
-for i = 1 : dmodel.NB
-   if  strcmp(dmodel.linkname{i}, 'r_forearm+r_wrist_1+r_hand+r_gripper')
-      ny = ny + 1;
-      dy = 6;
-      ymodel.labels{ny,1} = strcat(dmodel.linkname{i}, '_acc+gyr');
-      for j = 1 : dmodel.NB
-         ymodel.Y{ny,j}   = zeros(dy,26);         
-         ymodel.Ys{ny,j}  = sparse(zeros(dy,26));
-      end
-      ymodel.Y{ny,i}      = [eye(dy) zeros(dy,6) zeros(dy,6) zeros(dy, 1) zeros(dy,6) zeros(dy, 1)];      
-      ymodel.Ys{ny,i}     = sparse(1:6,1:6,ones(dy,1), dy, 26);
-      ymodel.sizes{ny,1}  = dy;
-   end   
-end
-
-for i = 1 : dmodel.NB
-   if strcmp(dmodel.linkname{i}, 'l_upper_arm+l_arm')
-      ny = ny + 1;
-      dy = 6;
-      ymodel.labels{ny,1} = strcat(dmodel.linkname{i}, '_FT');
-      for j = 1 : dmodel.NB
-         ymodel.Y{ny,j}   = zeros(dy,26);         
-         ymodel.Ys{ny,j}  = sparse(zeros(dy,26));
-      end
-      ymodel.Y{ny,i}      = [zeros(dy,6) zeros(dy,6) eye(dy) zeros(dy, 1) zeros(dy,6) zeros(dy, 1)];      
-      ymodel.Ys{ny,i}     = sparse(1:6,13:18,ones(dy,1), dy, 26);
-      ymodel.sizes{ny,1}  = dy;
-   end
-end
-for i = 1 : dmodel.NB
-   if strcmp(dmodel.linkname{i}, 'r_upper_arm+r_arm')
-      ny = ny + 1;
-      dy = 6;
-      ymodel.labels{ny,1} = strcat(dmodel.linkname{i}, '_FT');
-      for j = 1 : dmodel.NB
-         ymodel.Y{ny,j}   = zeros(dy,26);         
-         ymodel.Ys{ny,j}  = sparse(zeros(dy,26));
-      end
-      ymodel.Y{ny,i}      = [zeros(dy,6) zeros(dy,6) eye(dy) zeros(dy, 1) zeros(dy,6) zeros(dy, 1)];      
-      ymodel.Ys{ny,i}     = sparse(1:6,13:18,ones(dy,1), dy, 26);
-      ymodel.sizes{ny,1}  = dy;
-   end
-end
-
-for i = 1 : dmodel.NB
-   if strcmp(dmodel.linkname{i}, 'l_thigh')
-      ny = ny + 1;
-      dy = 6;
-      ymodel.labels{ny,1} = strcat(dmodel.linkname{i}, '_FT');
-      for j = 1 : dmodel.NB
-         ymodel.Y{ny,j}   = zeros(dy,26);
-         ymodel.Ys{ny,j}  = sparse(zeros(dy,26));
-      end
-      ymodel.Y{ny,i}      = [zeros(dy,6) zeros(dy,6) eye(dy) zeros(dy, 1) zeros(dy,6) zeros(dy, 1)];      
-      ymodel.Ys{ny,i}     = sparse(1:6,13:18,ones(dy,1), dy, 26);
-      ymodel.sizes{ny,1}  = dy;
-   end
-end
-for i = 1 : dmodel.NB
-   if strcmp(dmodel.linkname{i}, 'r_thigh')
-      ny = ny + 1;
-      dy = 6;
-      ymodel.labels{ny,1} = strcat(dmodel.linkname{i}, '_FT');
-      for j = 1 : dmodel.NB
-         ymodel.Y{ny,j}   = zeros(dy,26);
-         ymodel.Ys{ny,j}  = sparse(zeros(dy,26));
-      end
-      ymodel.Y{ny,i}      = [zeros(dy,6) zeros(dy,6) eye(dy) zeros(dy, 1) zeros(dy,6) zeros(dy, 1)];      
-      ymodel.Ys{ny,i}     = sparse(1:6,13:18,ones(dy,1), dy, 26);
-      ymodel.sizes{ny,1}  = dy;
-   end
-end
-
-for i = 1 : dmodel.NB
-   if strcmp(dmodel.linkname{i}, 'l_upper_foot+l_foot+l_sole')
-      ny = ny + 1;
-      dy = 6;
-      ymodel.labels{ny,1} = strcat(dmodel.linkname{i}, '_FT');
-      for j = 1 : dmodel.NB
-         ymodel.Y{ny,j}   = zeros(dy,26);         
-         ymodel.Ys{ny,j}  = sparse(zeros(dy,26));
-      end
-      ymodel.Y{ny,i}      = [zeros(dy,6) zeros(dy,6) eye(dy) zeros(dy, 1) zeros(dy,6) zeros(dy, 1)];      
-      ymodel.Ys{ny,i}     = sparse(1:6,13:18,ones(dy,1), dy, 26);
-      ymodel.sizes{ny,1}  = dy;
-   end
-end
-
-for i = 1 : dmodel.NB
-   if  strcmp(dmodel.linkname{i}, 'r_upper_foot+r_foot+r_sole')
-      ny = ny + 1;
-      dy = 6;
-      ymodel.labels{ny,1} = strcat(dmodel.linkname{i}, '_FT');
-      for j = 1 : dmodel.NB
-         ymodel.Y{ny,j}   = zeros(dy,26);         
-         ymodel.Ys{ny,j}  = sparse(zeros(dy,26));
-      end
-      ymodel.Y{ny,i}      = [zeros(dy,6) zeros(dy,6) eye(dy) zeros(dy, 1) zeros(dy,6) zeros(dy, 1)];      
-      ymodel.Ys{ny,i}     = sparse(1:6,13:18,ones(dy,1), dy, 26);
-      ymodel.sizes{ny,1}  = dy;
-   end
-end
-
-
+   
 m  = sum(cell2mat(ymodel.sizes));
 
 if ymodel.ny ~= ny || ymodel.m ~= m
