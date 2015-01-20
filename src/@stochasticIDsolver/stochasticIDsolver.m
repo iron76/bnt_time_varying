@@ -21,6 +21,11 @@ classdef stochasticIDsolver < deterministicIDsolver
          disp@deterministicIDsolver(b)
          fprintf('stochasticIDsolver disp to be implemented! \n')
       end % disp
+
+      function y = simY(obj, d)
+         % fprintf('Calling the stochasticIDsolver simY method \n');
+         y = cell2mat(obj.IDsens.sensorsParams.Y)*d; % + chol(inv(obj.IDsens.sensorsParams.Sy_inv))*randn(obj.IDmeas.m, 1)
+      end 
       
       obj = initSubMatrixIndices(obj);
       obj = initSubMatrix(obj);
