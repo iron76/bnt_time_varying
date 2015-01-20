@@ -204,7 +204,12 @@ classdef deterministicIDsolver
             error('[ERROR] The input y should be provided as a column vector with model.NB rows');
          end
          obj.IDmeas.y = y;
-      end % Set.q
+      end 
+      
+      function y = simY(obj, d)
+         % fprintf('Calling the deterministicIDsolver simY method \n');
+         y = cell2mat(obj.IDsens.sensorsParams.Y)*d;
+      end 
       
       obj = solveID(obj)
    end
