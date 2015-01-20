@@ -3,7 +3,7 @@ close all
 clc
 
 % edit next line to the install path of drake
-path_to_drake_distro = '/home/naveenoid/Workspace/Simulation/Drake/drake-distro/';
+path_to_drake_distro = '/Users/iron/Code/drake-distro/';
 addpath(path_to_drake_distro);
 addpath(strcat(path_to_drake_distro,'drake'));
 addpath(strcat(path_to_drake_distro,'build/matlab'));
@@ -12,7 +12,7 @@ addpath_drake;
 
 % Now works with robot_models with stl meshes and collisions
 robotPath = '../robot_models/icub';
-robotName = 'icubGazeboSim';
+robotName = 'icubGazeboSim_fixedHeadWrist';
 
 %urdfPath = [robotPath,filesep,robotName,filesep,robotName];
 %addpath(urdfPath);
