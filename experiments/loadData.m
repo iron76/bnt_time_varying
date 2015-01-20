@@ -9,13 +9,13 @@ for i = 1 : length(data.parts)
       dq   = ['dq_' data.labels{i}];
       d2q  = ['d2q_' data.labels{i}];
       t    = ['time_' data.labels{i}];
-      eval(['[' q ',' dq ',' d2q ',' t '] = readState(' num2str(data.ndof{i}) ',''' file ''');']);
+      eval(['[data.' q ',data.' dq ',data.' d2q ',data.' t '] = readState(' num2str(data.ndof{i}) ',''' file ''');']);
    else
       y    = ['y_' data.labels{i}];
       t    = ['time_' data.labels{i}];
-      eval(['[' y ',' t '] = readDataDumper(''' file ''');']);
-      eval([t '=' t ''';']);
-      eval([y '=' y ''';']);
+      eval(['[data.' y ',data.' t '] = readDataDumper(''' file ''');']);
+      eval(['data.' t '=data.' t ''';']);
+      eval(['data.' y '=data.' y ''';']);
    end
 end
 
@@ -24,7 +24,7 @@ max_times = [];
 for i = 1 : length(data.labels)
    max_time  = ['max_time_', data.labels{i}];
    min_time  = ['min_time_', data.labels{i}];
-   t         = ['time_' data.labels{i}];
+   t         = ['data.time_' data.labels{i}];
    eval([max_time ' = max(' t ');']);
    eval([min_time ' = min(' t ');']);
    
@@ -40,7 +40,7 @@ for i = 1 : length(data.labels)
    ti  = eval(['min_time_', data.labels{i}]);
    
    if abs(tf - time_f) > 1 || abs(ti - time_i) > 1
-      disp(['[WARNING] There is some lag in the ' data.parts{i} ' data'])
+      fprintf(['[WARNING] There is some lag in the ' data.parts{i} ' data: %f, %f\n'], abs(tf - time_f) ,abs(ti - time_i))
    end
    
 end
@@ -54,10 +54,10 @@ dtime   = time(1);
 for i = 1 : length(data.parts)
    
    if strcmp(data.type{i}, 'stateExt:o');
-      q    = ['q_' data.labels{i}];
-      dq   = ['dq_' data.labels{i}];
-      d2q  = ['d2q_' data.labels{i}];
-      t    = ['time_' data.labels{i}];
+      q    = ['data.q_' data.labels{i}];
+      dq   = ['data.dq_' data.labels{i}];
+      d2q  = ['data.d2q_' data.labels{i}];
+      t    = ['data.time_' data.labels{i}];
       
       qs   = ['qs_' data.labels{i}];
       dqs  = ['dqs_' data.labels{i}];
@@ -66,8 +66,8 @@ for i = 1 : length(data.parts)
       % [qs_la, dqs_la, d2qs_la] = resampleState(time, time_la, q_la, dq_la, d2q_la);
       eval(['[data.' qs ', data.' dqs ', data.' d2qs '] = resampleState(time,' t ',' q ',' dq ',' d2q ');']);
    else
-      y    = ['y_'  data.labels{i}];
-      t    = ['time_' data.labels{i}];
+      y    = ['data.y_'  data.labels{i}];
+      t    = ['data.time_' data.labels{i}];
       ys   = ['ys_' data.labels{i}];
       eval(['data.' ys ' = interp1(' t ',' y ''', time)'';']);
    end
@@ -78,10 +78,10 @@ data.time = time    - dtime;
 
 for i = 1 : length(data.parts)
    if data.visualize{i} && strcmp(data.type{i}, 'stateExt:o')
-      q    = ['q_' data.labels{i}];
-      dq   = ['dq_' data.labels{i}];
-      d2q  = ['d2q_' data.labels{i}];
-      t    = ['time_' data.labels{i}];
+      q    = ['data.q_' data.labels{i}];
+      dq   = ['data.dq_' data.labels{i}];
+      d2q  = ['data.d2q_' data.labels{i}];
+      t    = ['data.time_' data.labels{i}];
       
       qs   = ['qs_' data.labels{i}];
       dqs  = ['dqs_' data.labels{i}];
@@ -104,8 +104,8 @@ for i = 1 : length(data.parts)
       eval(['plot(data.time,data.' d2qs ', ''--'' )' ]);
       title(['d2q_{' data.labels{i} '}'])
    elseif data.visualize{i}
-      y    = ['y_'  data.labels{i}];
-      t    = ['time_' data.labels{i}];
+      y    = ['data.y_'  data.labels{i}];
+      t    = ['data.time_' data.labels{i}];
       ys   = ['ys_' data.labels{i}];
       
       figure
