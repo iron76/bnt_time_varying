@@ -8,7 +8,8 @@ if ~exist('preprocess.mat', 'file')
    data.plot      = 0;
    data.ini       = 0;    %seconds to be skipped at the start
    data.end       = 195;  %seconds to reach the end of the movement
-   
+   data.diff_imu  = 1;    %derivate the angular velocity of the IMUs
+
    %%
    data.path        = '/Users/iron/Desktop/iron/myTex/2015-01-rss/data';
    data.parts       = {'inertial' , 'head'      , 'left_arm'  , 'right_arm' , 'left_leg'  , 'right_leg' , 'torso'     , 'left_arm_accelerometers', 'left_foot_inertial', 'left_hand_inertial', 'right_arm_accelerometers', 'right_foot_inertial', 'right_hand_inertial', 'torso_accelerometers', 'l_arm_ft_sensor:o', 'r_arm_ft_sensor:o', 'l_leg_ft_sensor:o', 'r_leg_ft_sensor:o', 'l_foot_ft_sensor:o', 'r_foot_ft_sensor:o'};

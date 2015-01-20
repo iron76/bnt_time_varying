@@ -2,6 +2,9 @@ function [ data ] = loadData( data )
 %LOADDATA Summary of this function goes here
 %   Detailed explanation goes here
 
+sgolay_K = num2str(3);
+sgolay_F = num2str(207);
+
 for i = 1 : length(data.parts)
    file = [data.path '/icub/' data.parts{i} '/' data.type{i} '/data.log'];
    if strcmp(data.type{i}, 'stateExt:o');
@@ -14,6 +17,9 @@ for i = 1 : length(data.parts)
       y    = ['y_' data.labels{i}];
       t    = ['time_' data.labels{i}];
       eval(['[data.' y ',data.' t '] = readDataDumper(''' file ''');']);
+      if(strcmp(y(end-2:end), 'imu') && data.diff_imu)
+         eval(['data.' y '(2:end,4:6)= diff(sgolayfilt(data.' y '(:,4:6),' sgolay_K ',' sgolay_F '));'])
+      end
       eval(['data.' t '=data.' t ''';']);
       eval(['data.' y '=data.' y ''';']);
    end
