@@ -3,6 +3,6 @@ function [ X ] = urdfpose2spatialplucker( rpy, xyz )
 %   into a plucker transformation 
      R = rotx(rpy(1))*roty(rpy(2))*rotz(rpy(3));
      R = R(1:3,1:3);
-     X = plux(R,xyz);
+     X = pluckerFromSE3Transform(R,[0.0 0.0 0.0]);
 end
 
