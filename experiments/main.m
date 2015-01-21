@@ -92,7 +92,7 @@ py = [0; cumsum(cell2mat(myPNEA.IDsens.sensorsParams.sizes))];
 % end
 sens.transform   = {'X_chest_imu'                              , 'X_l_upper_arm_la_acc'   , 'X_l_upper_foot_lf_acc'     , 'X_l_forearm_lh_imu'                  , 'X_r_upper_arm_ra_acc'    , 'X_r_upper_foot_rf_acc'     , 'X_r_forearm_rh_imu'                  , 'X_chest_to_acc'                          , 'X_l_upper_arm_la_fts_force','X_r_upper_arm_ra_fts_force','X_l_thigh_ll_fts_force','X_r_thigh_rl_fts_force','X_l_upper_foot_lf_fts_force'     , 'X_r_upper_foot_rf_fts_force'     }; 
 %label_to_plot = {'imu', 'la_acc', 'lf_acc', 'lh_imu', 'ra_acc', 'rf_acc', 'rh_imu', 'to_acc', 'la_fts', 'ra_fts', 'll_fts', 'rl_fts', 'lf_fts', 'rf_fts'};
-label_to_plot  = {'lf_fts', 'rf_fts'};
+label_to_plot  = {'la_fts', 'ra_fts'};
 
 sensorFrameExtraction
 
@@ -123,6 +123,7 @@ for l = 1 : length(label_to_plot)
              eval(['data.ys_' data.labels{i} ' = ' ...
                    sens.transform{i} ' * ' 'data.ys_' data.labels{i}]);
          end
+         
          % account for the wrong offset present in the input data
          if( strcmp(data.labels{i}(end-4:end),'f_fts') )
              eval(['data.ys_' data.labels{i} '(3,:) = ' ...
@@ -137,39 +138,6 @@ for l = 1 : length(label_to_plot)
 end
 
 %% Plot overlapped plots
-% for l = 1 : length(label_to_plot)
-%    for i = 1 : length(data.parts)
-%       if strcmp(data.labels{i}, label_to_plot{l})
-%          t    = ['time_' data.labels{i}];
-%          ys   = ['ys_' data.labels{i}];
-%          
-%          figure
-%          J = length(eval(data.index{i}));
-%          for j = 1 : J/3
-%             subplot([num2str(J/3) '1' num2str(j)])
-%             I = 1+(j-1)*3 : 3*j;
-%             eval(['plot(data.time,data.' ys '(I,:), ''--'' )' ]);
-%             hold on;
-%             title(strrep(['y_{' data.labels{i} '}'], '_', '~'))
-%          end
-%       end
-%    end
-%    for k = 1 : myPNEA.IDsens.sensorsParams.ny - dmodel.NB
-%       if strcmp(myPNEA.IDsens.sensorsParams.labels{k}, label_to_plot{l})
-%          %figure
-%          J = myPNEA.IDsens.sensorsParams.sizes{k};
-%          for j = 1 : J/3
-%             subplot([num2str(J/3) '1' num2str(j)])
-%             I = py(k)+1+(j-1)*3 : py(k)+3*j;
-%             plot(data.time, y(I,:))
-%             title(strrep(myPNEA.IDsens.sensorsParams.labels{k}, '_', '~'));
-%          end
-%       end
-%    end
-%    
-% end
-
-%% Plot separated graphs
 for l = 1 : length(label_to_plot)
    for i = 1 : length(data.parts)
       if strcmp(data.labels{i}, label_to_plot{l})
@@ -182,14 +150,14 @@ for l = 1 : length(label_to_plot)
             subplot([num2str(J/3) '1' num2str(j)])
             I = 1+(j-1)*3 : 3*j;
             eval(['plot(data.time,data.' ys '(I,:), ''--'' )' ]);
+            hold on;
             title(strrep(['y_{' data.labels{i} '}'], '_', '~'))
          end
       end
    end
-   
    for k = 1 : myPNEA.IDsens.sensorsParams.ny - dmodel.NB
       if strcmp(myPNEA.IDsens.sensorsParams.labels{k}, label_to_plot{l})
-         figure
+         %figure
          J = myPNEA.IDsens.sensorsParams.sizes{k};
          for j = 1 : J/3
             subplot([num2str(J/3) '1' num2str(j)])
@@ -199,5 +167,38 @@ for l = 1 : length(label_to_plot)
          end
       end
    end
+   
 end
 
+%% Plot separated graphs
+% for l = 1 : length(label_to_plot)
+%    for i = 1 : length(data.parts)
+%       if strcmp(data.labels{i}, label_to_plot{l})
+%          t    = ['time_' data.labels{i}];
+%          ys   = ['ys_' data.labels{i}];
+%          
+%          figure
+%          J = length(eval(data.index{i}));
+%          for j = 1 : J/3
+%             subplot([num2str(J/3) '1' num2str(j)])
+%             I = 1+(j-1)*3 : 3*j;
+%             eval(['plot(data.time,data.' ys '(I,:), ''--'' )' ]);
+%             title(strrep(['y_{' data.labels{i} '}'], '_', '~'))
+%          end
+%       end
+%    end
+%    
+%    for k = 1 : myPNEA.IDsens.sensorsParams.ny - dmodel.NB
+%       if strcmp(myPNEA.IDsens.sensorsParams.labels{k}, label_to_plot{l})
+%          figure
+%          J = myPNEA.IDsens.sensorsParams.sizes{k};
+%          for j = 1 : J/3
+%             subplot([num2str(J/3) '1' num2str(j)])
+%             I = py(k)+1+(j-1)*3 : py(k)+3*j;
+%             plot(data.time, y(I,:))
+%             title(strrep(myPNEA.IDsens.sensorsParams.labels{k}, '_', '~'));
+%          end
+%       end
+%    end
+% end
+% 
