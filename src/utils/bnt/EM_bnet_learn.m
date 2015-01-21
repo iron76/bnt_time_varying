@@ -1,4 +1,4 @@
-function bnetHat = EM_bnet_learn(bnet, sample, cov_prior_weight)
+function bnetHat = EM_bnet_learn(bnet, sample, cov_prior_weight, i_obs)
 
 [~,n] = size(sample);
 
@@ -6,7 +6,10 @@ bnetStd    = cell(1,n);
 engineStd  = cell(1,n);
 samStd     = cell(size(sample));
 
-i_obs   = find(~cellfun(@isempty,(sample(:,1))));
+if nargin < 4
+   i_obs   = find(~cellfun(@isempty,(sample(:,1))));
+end  
+
 muStd   = cell(size(sample(:,1)));
 covStd  = cell(size(sample(:,1)));
 M       = cell(size(sample(:,1)));
