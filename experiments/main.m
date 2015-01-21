@@ -14,7 +14,7 @@ if ~exist('preprocess.mat', 'file')
 
    %%strucutre from files
    data.path        = '/Users/iron/Desktop/iron/myTex/2015-01-rss/data';
-%    data.path        = '/home/pegua/Documents/Papers/2015-01-rss/data';
+%   data.path        = '/home/pegua/Documents/Papers/2015-01-rss/data';
    data.parts       = {'inertial'                                 , 'left_arm_accelerometers', 'left_foot_inertial'        , 'left_hand_inertial'                  , 'right_arm_accelerometers', 'right_foot_inertial'       , 'right_hand_inertial'                 , 'torso_accelerometers'                    , 'l_arm_ft_sensor:o', 'r_arm_ft_sensor:o', 'l_leg_ft_sensor:o', 'r_leg_ft_sensor:o', 'l_foot_ft_sensor:o'        , 'r_foot_ft_sensor:o'        , 'head'      , 'left_arm'  , 'right_arm' , 'left_leg'  , 'right_leg' , 'torso'     };
    data.labels      = {'imu'                                      , 'la_acc'                 , 'lf_acc'                    , 'lh_imu'                              , 'ra_acc'                  , 'rf_acc'                    , 'rh_imu'                              , 'to_acc'                                  , 'la_fts'           , 'ra_fts'           , 'll_fts'           , 'rl_fts'           , 'lf_fts'                    , 'rf_fts'                    , 'h'         , 'la'        , 'ra'        , 'll'        , 'rl'        , 'to'        };
    data.ndof        = {12                                         , 18                       , 3                           , 6                                     , 18                        , 3                           , 6                                     , 12                                        , 6                  , 6                  , 6                  , 6                  , 6                           , 6                           ,  6          , 16          , 16          , 6           , 6           , 3           };
@@ -124,9 +124,9 @@ for l = 1 : length(label_to_plot)
                    sens.transform{i} ' * ' 'data.ys_' data.labels{i}]);
          end
          % account for the wrong offset present in the input data
-         if( strcmp(data.labels{i}(end-2:end),'fts') )
-             eval(['data.ys_' data.labels{i} ' = ' ...
-                    'data.ys_' data.labels{i}]);
+         if( strcmp(data.labels{i}(end-4:end),'f_fts') )
+             eval(['data.ys_' data.labels{i} '(3,:) = ' ...
+                    'data.ys_' data.labels{i} '(3,:) - 3.9' ]);
          end
          if( strcmp(data.labels{i}(end-2:end),'fts') )
              eval(['data.ys_' data.labels{i} ' = ' ...
