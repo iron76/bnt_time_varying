@@ -124,16 +124,18 @@ X_root_1B8     = plux([0.147280  0.607326 -0.78068;        ...
                         [-0.101328  -0.3461  0.1582]);
 
 % r_mmsp this need to be checked !
+
 X_root_2B7      = plux([0.172319  0.985039 -0.0019222;      ...
                         -0.984998 0.172329 0.00907318;      ...
                         0.00926869 0.0003298 0.999957;],    ...
                         [-0.104839 0.457   0.177]);
 
 % l_mmsp this need to be checked ! 
+
 X_root_1B7      = plux([0.172319  -0.985039 -0.0019222;     ...
                         0.984998 0.172329 -0.00907318;      ...
                         0.00926869 -0.0003298 0.999957;],   ...
-                        [-0.104839 -0.457   0.177]);
+                        [-0.104839 -0.457   0.177]');
 
 
 % Re-extracted from CAD just to be sure
@@ -146,10 +148,10 @@ X_root_imu_mtx = plux([1.0  0.0 0.0;    ...
 X_chest_imu_mtx = aaXa{mapObj('chest+torso+neck_1+neck_2+head+imu_frame')}*X_root_imu_mtx;
 
 %%% Convert global coordinates to local coordinates
-X_chest_2B7   = aaXa{mapObj('chest+torso+neck_1+neck_2+head+imu_frame')}*X_root_2B7;
-X_chest_2B8   = aaXa{mapObj('chest+torso+neck_1+neck_2+head+imu_frame')}*X_root_2B8;
-X_chest_2B9   = aaXa{mapObj('chest+torso+neck_1+neck_2+head+imu_frame')}*X_root_2B9;
-X_chest_2B10  = aaXa{mapObj('chest+torso+neck_1+neck_2+head+imu_frame')}*X_root_2B10;
+X_chest_9B7   = aaXa{mapObj('chest+torso+neck_1+neck_2+head+imu_frame')}*X_root_0B7;
+X_chest_9B8   = aaXa{mapObj('chest+torso+neck_1+neck_2+head+imu_frame')}*X_root_0B8;
+X_chest_9B9   = aaXa{mapObj('chest+torso+neck_1+neck_2+head+imu_frame')}*X_root_0B9;
+X_chest_9B10  = aaXa{mapObj('chest+torso+neck_1+neck_2+head+imu_frame')}*X_root_0B10;
 
 X_r_arm_2B11  = aaXa{mapObj('r_upper_arm+r_arm')}*X_root_2B11;
 X_r_arm_2B10  = aaXa{mapObj('r_upper_arm+r_arm')}*X_root_2B10;
@@ -167,38 +169,99 @@ X_r_forearm_2B9 = aaXa{mapObj('r_forearm+r_wrist_1+r_hand+r_gripper')}*X_root_2B
 X_l_forearm_1B8 = aaXa{mapObj('l_forearm+l_wrist_1+l_hand+l_gripper')}*X_root_1B8;
 X_l_forearm_1B9 = aaXa{mapObj('l_forearm+l_wrist_1+l_hand+l_gripper')}*X_root_1B9;
 
+
 X_r_forearm_2B7 = aaXa{mapObj('r_forearm+r_wrist_1+r_hand+r_gripper')}*X_root_2B7;
+
+correction_1B7 = [ 0.0 1.0 0.0; ...
+                   0.0 0.0 1.0; ...
+                   1.0 0.0 0.0];
+% correction_1B7 = eye(3,3);
 X_l_forearm_1B7 = aaXa{mapObj('l_forearm+l_wrist_1+l_hand+l_gripper')}*X_root_1B7;
 
 % For the foot is easier to express the MTB directly in the local frame
 % (check orientation)
-X_r_foot_closer_to_base = plux([0.0     0.0 -1.0;             ...
+X_r_foot_closer_to_base = plux([0.0     0.0 1.0;             ...
                                 1.0     0.0  0.0;             ...
-                                0.0     -1.0 1.0;],           ...
-                               [-0.059  0.0118  0.07497]);
+                                0.0     1.0 0.0;],           ...
+                               [0.059  0.0118  -0.07497]);
 
 X_r_foot_far_from_base = plux([0.0     0.0 -1.0;            ...
                                 1.0     0.0  0.0;           ...
-                                0.0     -1.0 1.0;],         ...
-                               [-0.059  0.0008  -0.102]);
+                                0.0     -1.0 0.0;],         ...
+                               [0.059  0.0008  0.102]);
 
 X_l_foot_closer_to_base = plux([0.0     0.0 -1.0;           ...
-                                1.0     0.0  0.0;           ...
-                                0.0     -1.0 1.0;],         ...
-                               [-0.059  0.0118  0.077]);
+                                -1.0     0.0  0.0;           ...
+                                0.0     1.0 0.0;],         ...
+                               [-0.059  -0.0118  -0.077]);
 
 X_l_foot_far_from_base = plux([0.0     0.0 -1.0;          ...
-                                1.0     0.0  0.0;         ...
-                                0.0     -1.0 1.0;],       ...
-                               [-0.059  0.0008  0.102]);
+                                -1.0     0.0  0.0;         ...
+                                0.0     1.0 0.0;],       ...
+                               [-0.059  -0.0008  -0.102]);
 
 % This are manually extracted from urdf 
-X_left_arm_fts =  urdfpose2pluckertransform([-1.5708 0 0],[0.015 9.36797e-18 0.15228]);
-X_right_arm_fts  =  urdfpose2pluckertransform([1.5708 -0 3.14159],[0.015 -8.93429e-18 0.15228]);
-X_left_leg_fts  =  urdfpose2pluckertransform([3.14159 0 -1.5708],[0 0 0]);
-X_right_leg_fts =  urdfpose2pluckertransform([0 -0 1.5708],[0 0 0]);
-X_left_foot_fts  = urdfpose2pluckertransform([0 1.5708 0],[-0.0035 0 0.0685]);
-X_right_foot_fts = urdfpose2pluckertransform([0 1.5708 0],[-0.0035 4.28626e-19 0.0685]);
+X_la_fts_correction = [ -1.0 0.0 0.0; ...
+                        0.0 0.0 -1.0; ...
+                        0.0 1.0 0.0];
+X_left_arm_fts =  plux(X_la_fts_correction,[0.0 0.0 0.0])*urdfpose2spatialplucker([-1.5708 0 0],[0.015 9.36797e-18 0.15228]);
+X_ra_fts_correction = [ -1.0 0.0 0.0; ...
+                        0.0 0.0 -1.0; ...
+                        0.0 1.0 0.0];
+X_right_arm_fts  = plux(X_ra_fts_correction,[0.0 0.0 0.0])*urdfpose2spatialplucker([1.5708 -0 3.14159],[0.015 -8.93429e-18 0.15228]);
+X_ll_fts_correction = [ 0.0 1.0 0.0; ...
+                        -1.0 0.0  0.0; ...
+                        0.0 0.0 -1.0];
+X_left_leg_fts  =  plux(X_ll_fts_correction,[0.0 0.0 0.0])*urdfpose2spatialplucker([3.14159 0 -1.5708],[0 0 0]);
+X_rl_fts_correction = [ 0.0 1.0 0.0; ...
+                        -1.0 0.0  0.0; ...
+                        0.0 0.0 -1.0];
+X_right_leg_fts =  plux(X_rl_fts_correction,[0.0 0.0 0.0])*urdfpose2spatialplucker([0 -0 1.5708],[0 0 0]);
+X_lf_fts_correction = [ -1.0 0.0 0.0; ...
+                        0.0 -1.0  0.0; ...
+                        0.0 0.0 -1.0];
+X_left_foot_fts  = plux(X_lf_fts_correction,[0.0 0.0 0.0])*urdfpose2spatialplucker([0 1.5708 0],[-0.0035 0 0.0685]);
+X_rf_fts_correction = [ 1.0 0.0 0.0; ...
+                        0.0 -1.0  0.0; ...
+                        0.0 0.0 1.0];
+X_right_foot_fts = plux(X_rf_fts_correction,[0.0 0.0 0.0])*urdfpose2spatialplucker([0 1.5708 0],[-0.0035 4.28626e-19 0.0685]);
 
+%%% 
+% Get the sensor frame actually needed
+% by the main.m script
 
+% featherstone matrices are angular-linear
+% our data is linear-angular
+permutator = [zeros(3,3),eye(3,3); eye(3,3), zeros(3,3)];
 
+X_chest_imu = permutator*X_chest_imu_mtx*permutator;
+
+% 1B13 is 1:3
+X_l_upper_arm_la_acc = permutator*X_l_arm_1B13*permutator;
+
+% 9B3 is ??
+X_l_upper_foot_lf_acc = permutator*X_l_foot_closer_to_base*permutator;
+
+% 1B7 is hand mmsp
+X_l_forearm_lh_imu    = permutator*X_l_forearm_1B7*permutator; 
+
+% 9B7 is 1:3 
+X_chest_to_acc        = permutator*X_chest_9B7*permutator;
+
+% 2B13 is 1:3
+X_r_upper_arm_ra_acc = permutator*X_r_arm_2B13*permutator;
+
+% 9B12 is ??
+X_r_upper_foot_rf_acc = permutator*X_r_foot_closer_to_base*permutator;
+
+% 2B7 is hand mmsp
+X_r_forearm_rh_imu    = permutator*X_r_forearm_2B7*permutator;
+
+% for the fts, convert motion spatial transforms to motion force transforms
+% 
+X_l_upper_arm_la_fts_force  = permutator*inv(X_left_arm_fts)'*permutator;
+X_r_upper_arm_ra_fts_force  = permutator*inv(X_right_arm_fts)'*permutator;
+X_l_thigh_ll_fts_force      = permutator*inv(X_left_leg_fts)'*permutator;
+X_r_thigh_rl_fts_force      = permutator*inv(X_right_leg_fts)'*permutator;
+X_l_upper_foot_lf_fts_force = permutator*inv(X_left_foot_fts)'*permutator;
+X_r_upper_foot_rf_fts_force = permutator*inv(X_right_foot_fts)'*permutator;
