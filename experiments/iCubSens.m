@@ -88,8 +88,8 @@ end
 
 for i = 1 : dmodel.NB
    ymodel.ny = ymodel.ny + 1;
-   ymodel.sizes{ymodel.ny,1} = 6;
-   ymodel.labels{ymodel.ny,1} = ['fx'  num2str(i)];
+   ymodel.sizes{ymodel.ny,1} = 6; 
+   ymodel.labels{ymodel.ny,1} = [dmodel.linkname{i} '_ftx'];
    for j = 1 : dmodel.NB
       ymodel.Y{ymodel.ny,j}   = zeros(6,26);
       ymodel.Ys{ymodel.ny,j}  = sparse(zeros(6,26));
