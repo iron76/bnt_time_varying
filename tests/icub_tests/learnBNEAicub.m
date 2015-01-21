@@ -35,7 +35,7 @@ for i = 1 : n
    
    bnet{1,i}   = myBNEA.bnt.bnet;
    engine{1,i} = myBNEA.bnt.engine;
-   sample(:,i) = yc;
+   sample(:,i) = myBNEA.evd';
 end
 
 % This parameters should be kept small (1e-15)for
