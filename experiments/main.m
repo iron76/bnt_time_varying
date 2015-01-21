@@ -35,7 +35,7 @@ if ~exist('preprocess.mat', 'file')
    ymodel  = iCubSens(dmodel, sens);
    
    dmodel  = autoTreeStochastic(dmodel);
-   ymodel  = autoSensStochastic(ymodel);
+   ymodel  = iCubSensStochastic(ymodel);
    myModel = model(dmodel);
    mySens  = sensors(ymodel);
    myPNEA  = PNEA(myModel, mySens);
