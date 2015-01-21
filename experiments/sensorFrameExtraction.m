@@ -128,15 +128,16 @@ X_root_1B8     = pluckerFromSE3Transform([0.147280  0.607326 -0.78068;        ..
 X_root_2B7      = pluckerFromSE3Transform([0.172319  0.985039 -0.0019222;      ...
                         -0.984998 0.172329 0.00907318;      ...
                         0.00926869 0.0003298 0.999957;],    ...
-                        [-0.104839 0.457   0.177]);
+                        [0.0 0.0 0.0]'); %[-0.104839 0.457   0.177]');
 
 % l_mmsp this need to be checked ! 
 
 X_root_1B7      = pluckerFromSE3Transform([0.172319  -0.985039 -0.0019222;     ...
                         0.984998 0.172329 -0.00907318;      ...
                         0.00926869 -0.0003298 0.999957;],   ...
-                        [-0.104839 -0.457   0.177]');
+                        [0.0 0.0 0.0]'); %[-0.104839 -0.457   0.177]');
 
+                    
 
 % Re-extracted from CAD just to be sure
 X_root_imu_mtx = pluckerFromSE3Transform([1.0  0.0 0.0;    ...
@@ -169,14 +170,16 @@ X_r_forearm_2B9 = aaXa{mapObj('r_forearm+r_wrist_1+r_hand+r_gripper')}*X_root_2B
 X_l_forearm_1B8 = aaXa{mapObj('l_forearm+l_wrist_1+l_hand+l_gripper')}*X_root_1B8;
 X_l_forearm_1B9 = aaXa{mapObj('l_forearm+l_wrist_1+l_hand+l_gripper')}*X_root_1B9;
 
+correction_2B7 = [ 1.0 0.0 0.0; ...
+                   0.0 0.0 -1.0; ...
+                   0.0 1.0 0.0];
+X_r_forearm_2B7 = pluckerFromSE3Transform(correction_2B7,[0.0 0.0 0.0])*aaXa{mapObj('r_forearm+r_wrist_1+r_hand+r_gripper')}*X_root_2B7;
 
-X_r_forearm_2B7 = aaXa{mapObj('r_forearm+r_wrist_1+r_hand+r_gripper')}*X_root_2B7;
-
-correction_1B7 = [ 0.0 1.0 0.0; ...
+correction_1B7 = [ 1.0 0.0 0.0; ...
                    0.0 0.0 1.0; ...
-                   1.0 0.0 0.0];
+                   0.0 -1.0 0.0];
 % correction_1B7 = eye(3,3);
-X_l_forearm_1B7 = aaXa{mapObj('l_forearm+l_wrist_1+l_hand+l_gripper')}*X_root_1B7;
+X_l_forearm_1B7 = pluckerFromSE3Transform(correction_1B7,[0.0 0.0 0.0])*aaXa{mapObj('l_forearm+l_wrist_1+l_hand+l_gripper')}*X_root_1B7;
 
 % For the foot is easier to express the MTB directly in the local frame
 % (check orientation)
