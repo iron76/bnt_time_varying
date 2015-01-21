@@ -94,6 +94,7 @@ sens.transform   = {'X_chest_imu'                              , 'X_l_upper_arm_
 %label_to_plot = {'imu', 'la_acc', 'lf_acc', 'lh_imu', 'ra_acc', 'rf_acc', 'rh_imu', 'to_acc', 'la_fts', 'ra_fts', 'll_fts', 'rl_fts', 'lf_fts', 'rf_fts'};
 label_to_plot  = {'la_fts', 'ra_fts'};
 
+
 sensorFrameExtraction
 
 %% Process raw sensor data and bring it in the desired reference frames
@@ -109,29 +110,27 @@ for l = 1 : length(label_to_plot)
          if( strcmp(data.labels{i},'lh_imu') || ...
              strcmp(data.labels{i},'rh_imu') )
             eval(['data.ys_' data.labels{i} '(1:3,:) = ' ...
-                  'acc_gain*data.ys_' data.labels{i} '(1:3,:)']);
+                  'acc_gain*data.ys_' data.labels{i} '(1:3,:);']);
             eval(['data.ys_' data.labels{i} '(4:6,:) = ' ...
-                  'gyro_gain*data.ys_' data.labels{i} '(4:6,:)']);
+                  'gyro_gain*data.ys_' data.labels{i} '(4:6,:);']);
          end
           if( strcmp(data.labels{i}(end-2:end),'acc') )
              eval(['data.ys_' data.labels{i} '(1:3,:) = ' ...
-                   'acc_gain*data.ys_' data.labels{i} '(1:3,:)']);
+                   'acc_gain*data.ys_' data.labels{i} '(1:3,:);']);
              eval(['data.ys_' data.labels{i} ' = ' ...
-                    sens.transform{i} '(1:3,1:3) * ' 'data.ys_' data.labels{i}]);
+                    sens.transform{i} '(1:3,1:3) * ' 'data.ys_' data.labels{i} ';']);
           end
          if( strcmp(data.labels{i}(end-2:end),'imu') )
              eval(['data.ys_' data.labels{i} ' = ' ...
-                   sens.transform{i} ' * ' 'data.ys_' data.labels{i}]);
-         end
-         
-         % account for the wrong offset present in the input data
-         if( strcmp(data.labels{i}(end-4:end),'f_fts') )
+                   sens.transform{i} ' * ' 'data.ys_' data.labels{i} ';']);
+         % account for the wrong offset present in the input data                
+         elseif( strcmp(data.labels{i}(end-4:end),'f_fts') )
              eval(['data.ys_' data.labels{i} '(3,:) = ' ...
-                    'data.ys_' data.labels{i} '(3,:) - 3.9' ]);
+                    'data.ys_' data.labels{i} '(3,:) - 3.9;' ]);
          end
          if( strcmp(data.labels{i}(end-2:end),'fts') )
              eval(['data.ys_' data.labels{i} ' = ' ...
-                   sens.transform{i} ' * ' 'data.ys_' data.labels{i}]);
+                   sens.transform{i} ' * ' 'data.ys_' data.labels{i} ';']);
          end
       end
    end
@@ -161,6 +160,7 @@ for l = 1 : length(label_to_plot)
          J = myPNEA.IDsens.sensorsParams.sizes{k};
          for j = 1 : J/3
             subplot([num2str(J/3) '1' num2str(j)])
+            hold on;
             I = py(k)+1+(j-1)*3 : py(k)+3*j;
             plot(data.time, y(I,:))
             title(strrep(myPNEA.IDsens.sensorsParams.labels{k}, '_', '~'));
@@ -201,4 +201,3 @@ end
 %       end
 %    end
 % end
-% 
