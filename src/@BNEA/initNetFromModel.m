@@ -17,7 +17,7 @@ end
 for i = 1 : ymodel.ny
   nodes.index{i+NB}    = i+NB*6;
   nodes.sizes{i+NB,1}  = ymodel.sizes{i,1};
-  nodes.labels{nodes.index{i+NB}} = ymodel.labels{i,1};
+  nodes.labels{nodes.index{i+NB}} = ['y_' ymodel.labels{i,1}];
 end
 
 dag = zeros(N, N);
@@ -94,16 +94,17 @@ for i = 1 : ymodel.ny
   nodes.index{NB + i} = find(bnet.order == nodes.index{NB + i});
 end
 
-identity = eye(N);
-new_dag = dag*identity(:,bnet.order);
-new_dag = identity(bnet.order, :)*new_dag;
-new_ns = ns(bnet.order);
-bnet = mk_bnet(new_dag, new_ns, 'discrete', dnodes);
+identity   = eye(N);
+new_dag    = dag*identity(:,bnet.order);
+new_dag    = identity(bnet.order, :)*new_dag;
+new_ns     = ns(bnet.order);
+new_labels = nodes.labels(bnet.order);
+bnet       = mk_bnet(new_dag, new_ns, 'discrete', dnodes);
 
-
-IDnet.bnet   = bnet;
-IDnet.nodes  = nodes;
-IDnet.link   = link;
-IDnet.engine = [];
+IDnet.nodes         = nodes;
+IDnet.nodes.labels  = new_labels;
+IDnet.bnet          = bnet;
+IDnet.link          = link;
+IDnet.engine        = [];
 end
 
