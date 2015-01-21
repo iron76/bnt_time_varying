@@ -9,6 +9,8 @@ if ~exist('preprocess.mat', 'file')
    data.ini       = 0;    %seconds to be skipped at the start
    data.end       = 195;  %seconds to reach the end of the movement
    data.diff_imu  = 1;    %derivate the angular velocity of the IMUs
+   data.diff_q    = 1;    %derivate the angular velocity of the IMUs
+
 
    %%strucutre from files
    data.path        = '/Users/iron/Desktop/iron/myTex/2015-01-rss/data';

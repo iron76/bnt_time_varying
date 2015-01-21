@@ -3,7 +3,7 @@ function [ data ] = loadData( data )
 %   Detailed explanation goes here
 
 sgolay_K = num2str(3);
-sgolay_F = num2str(207);
+sgolay_F = num2str(57);
 
 for i = 1 : length(data.parts)
    file = [data.path '/icub/' data.parts{i} '/' data.type{i} '/data.log'];
@@ -16,6 +16,12 @@ for i = 1 : length(data.parts)
       eval(['data.'  q  '= data.'   q '(' data.index{i} ',:);']);
       eval(['data.' dq  '= data.'  dq '(' data.index{i} ',:);']);
       eval(['data.' d2q '= data.' d2q '(' data.index{i} ',:);']);
+      
+      if data.diff_q
+         eval(['data.'   q '(:, :   )= sgolayfilt(data.'   q ''',' sgolay_K ',' sgolay_F ')'' ;'])
+         eval(['data.'  dq '(:,2:end)= 1/mean(diff(data.' t ')).*diff(data.'  q ''')'' ;'])
+         eval(['data.' d2q '(:,2:end)= 1/mean(diff(data.' t ')).*diff(data.' dq ''')'' ;'])
+      end
    else
       y    = ['y_' data.labels{i}];
       t    = ['time_' data.labels{i}];
