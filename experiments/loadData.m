@@ -20,6 +20,7 @@ for i = 1 : length(data.parts)
       if data.diff_q
          eval(['data.'   q '(:, :   )= sgolayfilt(data.'   q ''',' sgolay_K ',' sgolay_F ')'' ;'])
          eval(['data.'  dq '(:,2:end)= 1/mean(diff(data.' t ')).*diff(data.'  q ''')'' ;'])
+         eval(['data.'   dq '(:, :   )= sgolayfilt(data.'   dq ''',' sgolay_K ',' sgolay_F ')'' ;'])
          eval(['data.' d2q '(:,2:end)= 1/mean(diff(data.' t ')).*diff(data.' dq ''')'' ;'])
       end
    else
