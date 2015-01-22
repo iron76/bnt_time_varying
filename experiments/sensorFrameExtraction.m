@@ -246,7 +246,7 @@ X_l_upper_arm_la_acc = permutator*X_l_arm_1B13*permutator;
 X_l_upper_foot_lf_acc = permutator*X_l_foot_closer_to_base*permutator;
 
 % 1B7 is hand mmsp
-X_l_forearm_lh_imu    = permutator*X_l_forearm_1B7*permutator; 
+X_l_forearm_lh_imu    = permutator*X_l_forearm_1B7*permutator*diag([1,1,1,-1,-1,1]); 
 
 % 9B7 is 1:3 
 X_chest_to_acc        = permutator*X_chest_9B7*permutator;
@@ -258,7 +258,7 @@ X_r_upper_arm_ra_acc = permutator*X_r_arm_2B13*permutator;
 X_r_upper_foot_rf_acc = permutator*X_r_foot_closer_to_base*permutator;
 
 % 2B7 is hand mmsp
-X_r_forearm_rh_imu    = permutator*X_r_forearm_2B7*permutator;
+X_r_forearm_rh_imu    = permutator*X_r_forearm_2B7*permutator*diag([1,1,1,-1,-1,1]);
 
 % for the fts, convert motion spatial transforms to motion force transforms
 % 
