@@ -34,7 +34,7 @@ end
 % of a regularization factor and should be tuned so
 % as to have non-decresing EM steps.
 cov_prior_weight = 1e-3;
-bnetHat = EM_bnet_learn(bnet, sample, cov_prior_weight, i_learn);
+[bnetHat, ll] = EM_bnet_learn(bnet, sample, cov_prior_weight, i_learn);
 
 dir_ind = cell2mat(myBNEA.bnt.nodes.index);
 inv_ind(dir_ind) = 1:length(dir_ind);
@@ -57,5 +57,5 @@ for i = length(dir_ind(1:NB*6))+1 : length(dir_ind)
    cov_ini = get_field(myBNEA.bnt.bnet.CPD{dir_ind(i)}, 'cov');
    cov_est = get_field(bnetHat.CPD{dir_ind(i)},         'cov');
    cov_upd = cov_est - cov_ini;
-   fprintf('[INFO] %s was updated by %f \n', myBNEA.bnt.nodes.labels{i}, norm(cov_upd)./norm(cov_ini));
+   fprintf('[INFO] %s was updated by %f \n', myBNEA.bnt.nodes.labels{dir_ind(i)}, norm(cov_upd)./norm(cov_ini));
 end
