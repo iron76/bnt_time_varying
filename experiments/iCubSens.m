@@ -98,6 +98,18 @@ for i = 1 : dmodel.NB
    ymodel.Ys{ymodel.ny,i} = sparse(1:6,20:25,ones(6,1), 6, 26);
 end
 
+for i = 1 : dmodel.NB
+   ymodel.ny = ymodel.ny + 1;
+   ymodel.sizes{ymodel.ny,1} = 1; 
+   ymodel.labels{ymodel.ny,1} = [dmodel.linkname{i} '_d2q'];
+   for j = 1 : dmodel.NB
+      ymodel.Y{ymodel.ny,j}   = zeros(1,26);
+      ymodel.Ys{ymodel.ny,j}  = sparse(zeros(1,26));
+   end
+   ymodel.Y{ymodel.ny,i}  = [zeros(1,6) zeros(1,6) zeros(1, 6) eye(1,1) zeros(1,6) zeros(1, 1)];
+   ymodel.Ys{ymodel.ny,i} = sparse(1,19,ones(1,1), 1, 26);
+end
+
 ymodel.m  = sum(cell2mat(ymodel.sizes));
 
 for i = 1 : ymodel.ny

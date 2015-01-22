@@ -19,11 +19,13 @@ so       = 0.7805;
 sa       = 0.05;
 sf       = 10;
 su       = 0.031;
+sd       = 0.2;
 
 imuS = [sa*eye(3) zeros(3,3); zeros(3,3) so*eye(3)];
 ftsS = [sf*eye(3) zeros(3,3); zeros(3,3) su*eye(3)];
 accS = imuS(1:3, 1:3);
 ftxS = ftsS.*1e-4;
+d2qS = sd;
 
 for i = 1 : model.ny
    dy = model.sizes{i,1};
@@ -35,6 +37,8 @@ for i = 1 : model.ny
       model.Sy{i,1} = accS;
    elseif strcmp(model.labels{i}(end-2:end), 'ftx')
       model.Sy{i,1} = ftxS;
+   elseif strcmp(model.labels{i}(end-2:end), 'd2q')
+      model.Sy{i,1} = d2qS;      
    end
       
       

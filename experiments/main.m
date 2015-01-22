@@ -140,6 +140,8 @@ end
 data.Sy = repmat(data.Sy, 1, data.nsamples);
 % Add the null external forces fx = 0
 data.y  = [data.y; zeros(6*dmodel.NB, length(data.time))];
+% Add the d2q measurements
+data.y  = [data.y; data.d2q];
 
 %% Plot overlapped plots
 py = [0; cumsum(cell2mat(myPNEA.IDsens.sensorsParams.sizes))];
