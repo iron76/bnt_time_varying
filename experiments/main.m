@@ -146,31 +146,17 @@ for l = 1 : length(label_to_plot)
             subplot([num2str(J/3) '1' num2str(j)])
             hold on;
             I = py(k)+1+(j-1)*3 : py(k)+3*j;
-            shadedErrorBar(data.time, y(I(1),:), sqrt(data.Sy(I(1), :)), {'--r' , 'LineWidth', 1}, 0);
-            shadedErrorBar(data.time, y(I(2),:), sqrt(data.Sy(I(2), :)), {'--g' , 'LineWidth', 1}, 0);
-            shadedErrorBar(data.time, y(I(3),:), sqrt(data.Sy(I(3), :)), {'--b' , 'LineWidth', 1}, 0);
+            shadedErrorBar(data.time, data.y(I(1),:), sqrt(data.Sy(I(1), :)), {'--r' , 'LineWidth', 1}, 0);
+            shadedErrorBar(data.time, data.y(I(2),:), sqrt(data.Sy(I(2), :)), {'--g' , 'LineWidth', 1}, 0);
+            shadedErrorBar(data.time, data.y(I(3),:), sqrt(data.Sy(I(3), :)), {'--b' , 'LineWidth', 1}, 0);
+            
+            plot(data.time, y(I(1),:), 'r' , 'LineWidth', 1);
+            plot(data.time, y(I(2),:), 'g' , 'LineWidth', 1);
+            plot(data.time, y(I(3),:), 'b' , 'LineWidth', 1);
             title(strrep(myPNEA.IDsens.sensorsParams.labels{k}, '_', '~'));
          end
       end
    end
-   for i = 1 : length(data.parts)
-      if strcmp(data.labels{i}, label_to_plot{l})
-         t    = ['time_' data.labels{i}];
-         ys   = ['ys_' data.labels{i}];
-
-         J = length(eval(data.index{i}));
-         for j = 1 : J/3
-            subplot([num2str(J/3) '1' num2str(j)])
-            hold on
-            I = 1+(j-1)*3 : 3*j;
-            eval(['plot(data.time,data.' ys '(I(1),:), ''r'' )' ]);
-            eval(['plot(data.time,data.' ys '(I(2),:), ''g'' )' ]);
-            eval(['plot(data.time,data.' ys '(I(3),:), ''b'' )' ]);
-            hold on;
-            title(strrep(['y_{' data.labels{i} '}'], '_', '~'))
-         end
-      end
-   end   
 end
 
 %% Plot separated graphs
