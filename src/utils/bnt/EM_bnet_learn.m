@@ -1,4 +1,4 @@
-function bnetHat = EM_bnet_learn(bnet, sample, cov_prior_weight, i_obs)
+function [bnetHat, ll] = EM_bnet_learn(bnet, sample, cov_prior_weight, i_obs)
 
 [~,n] = size(sample);
 
@@ -37,5 +37,5 @@ for i=1:n
     % [~, ll] = enter_evidence(engineStd{i}, samStd(:, i));
 end
 
-bnetHat = learn_params_em_modified(engineStd, samStd, 10, 1e-4);
-bnetHat = removeStandardization(bnetHat{n}, M, S, i_obs, cov_prior_weight);
+[bnetHat, ll] = learn_params_em_modified(engineStd, samStd, 10, 1e-4);
+bnetHat       = removeStandardization(bnetHat{n}, M, S, i_obs, cov_prior_weight);
