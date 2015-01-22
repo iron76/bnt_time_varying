@@ -29,7 +29,7 @@ for i = 1 : length(data.parts)
       eval(['data.' y '= data.' y '(:,' data.index{i} ');']);
 
       if(strcmp(y(end-2:end), 'imu') && data.diff_imu)
-         eval(['data.' y '(2:end,4:6)= 1/mean(diff(data.' t ')).*diff(sgolayfilt(data.' y '(:,4:6),' sgolay_K ',' sgolay_F '))./0.01;'])
+         eval(['data.' y '(2:end,4:6)= 1/mean(diff(data.' t ')).*diff(sgolayfilt(data.' y '(:,4:6),' sgolay_K ',' sgolay_F '));'])
       end
       eval(['data.' t '=data.' t ''';']);
       eval(['data.' y '=data.' y ''';']);
