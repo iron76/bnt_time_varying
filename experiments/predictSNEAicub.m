@@ -15,9 +15,13 @@ for i = 1 : n
    myPNEA = myPNEA.setY(data.y(:,i));
    myPNEA = myPNEA.solveID();
    
+   Y = cell2mat(myPNEA.IDsens.sensorsParams.Y);
+   
    res.d(:,i)    = myPNEA.d;
-   res.y(:,i)    = myPNEA.simY(res.d(:,i));
    res.Sd(:,:,i) = myPNEA.Sd;
+   
+   res.y(:,i)    = Y * res.d(:,i);
+   res.Sy(:,:,i) = Y * res.Sd(:,:,i) * Y';
    if mod(i-1,100) == 0
       fprintf('Processing %d %% of the dataset\n', round(i/n*100));
    end
@@ -72,7 +76,9 @@ for l = 1 : length(label_to_plot)
          for j = 1 : J/3
             subplot([num2str(J/3) '1' num2str(j)])
             I = 1+(j-1)*3 : 3*j;
-            eval(['plot(data.time,data.' ys '(I,:), ''--'' )' ]);
+            eval(['plot(data.time,data.' ys '(I(1),:), ''r'' )' ]);
+            eval(['plot(data.time,data.' ys '(I(2),:), ''g'' )' ]);
+            eval(['plot(data.time,data.' ys '(I(3),:), ''b'' )' ]);
             hold on;
             title(strrep(['y_{' data.labels{i} '}'], '_', '~'))
          end
@@ -86,7 +92,9 @@ for l = 1 : length(label_to_plot)
             subplot([num2str(J/3) '1' num2str(j)])
             hold on;
             I = py(k)+1+(j-1)*3 : py(k)+3*j;
-            plot(data.time, res.y(I,:))
+            shadedErrorBar(data.time, res.y(I(1),:), sqrt(reshape(res.Sy(I(1), I(1), :), 1, n)), {'--r' , 'LineWidth', 1}, 0);
+            shadedErrorBar(data.time, res.y(I(2),:), sqrt(reshape(res.Sy(I(2), I(2), :), 1, n)), {'--g' , 'LineWidth', 1}, 0);
+            shadedErrorBar(data.time, res.y(I(3),:), sqrt(reshape(res.Sy(I(3), I(3), :), 1, n)), {'--b' , 'LineWidth', 1}, 0);
             title(strrep(myPNEA.IDsens.sensorsParams.labels{k}, '_', '~'));
          end
       end
