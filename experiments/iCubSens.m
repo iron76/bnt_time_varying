@@ -106,8 +106,8 @@ for i = 1 : dmodel.NB
       ymodel.Y{ymodel.ny,j}   = zeros(1,26);
       ymodel.Ys{ymodel.ny,j}  = sparse(zeros(1,26));
    end
-   ymodel.Y{ymodel.ny,i}  = [zeros(1,6) zeros(1,6) zeros(1, 6) eye(1,1) zeros(1,6) zeros(1, 1)];
-   ymodel.Ys{ymodel.ny,i} = sparse(1,19,ones(1,1), 1, 26);
+   ymodel.Y{ymodel.ny,i}  = [zeros(1,6) zeros(1,6) zeros(1, 6) zeros(1, 1) zeros(1,6) eye(1,1)];
+   ymodel.Ys{ymodel.ny,i} = sparse(1,26,ones(1,1), 1, 26);
 end
 
 ymodel.m  = sum(cell2mat(ymodel.sizes));

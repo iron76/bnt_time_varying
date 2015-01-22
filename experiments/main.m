@@ -132,12 +132,16 @@ end
 
 %% Build data.y anda data.Sy from adjusted ys_label
 data.y  = [];
-data.Sy = [];
 for i = 1 : length(sens.labels)
    eval(['data.y  = [data.y ; data.ys_' sens.labels{i} '];']);
+end
+
+data.Sy = [];
+for i = 1 : length(myPNEA.IDsens.sensorsParams.labels)
    data.Sy = [data.Sy; diag(myPNEA.IDsens.sensorsParams.Sy{i})];
 end
 data.Sy = repmat(data.Sy, 1, data.nsamples);
+
 % Add the null external forces fx = 0
 data.y  = [data.y; zeros(6*dmodel.NB, length(data.time))];
 % Add the d2q measurements
@@ -146,7 +150,7 @@ data.y  = [data.y; data.d2q];
 %% Plot overlapped plots
 py = [0; cumsum(cell2mat(myPNEA.IDsens.sensorsParams.sizes))];
 for l = 1 : length(label_to_plot)
-   for k = 1 : myPNEA.IDsens.sensorsParams.ny - dmodel.NB
+   for k = 1 : myPNEA.IDsens.sensorsParams.ny
       if strcmp(myPNEA.IDsens.sensorsParams.labels{k}, label_to_plot{l})
          figure
          J = myPNEA.IDsens.sensorsParams.sizes{k};
@@ -155,7 +159,7 @@ for l = 1 : length(label_to_plot)
          for j = 1 : J
             subplot(2, ceil(J/2), j)
             hold on;
-            shadedErrorBar(data.time, data.y(I(j),:), sqrt(data.Sy(I(j), :)), {colors(mod(j,3)+1) , 'LineWidth', 1}, 0);
+            shadedErrorBar(data.time, data.y(I(j),:), sqrt(data.Sy(I(j), :)), {[colors(mod(j,3)+1) '--'] , 'LineWidth', 1}, 0);
             plot(data.time, y(I(j),:), colors(mod(j,3)+1) , 'LineWidth', 1);
 
             title(strrep(myPNEA.IDsens.sensorsParams.labels{k}, '_', '~'));
