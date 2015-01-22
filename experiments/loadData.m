@@ -27,12 +27,17 @@ for i = 1 : length(data.parts)
       t    = ['time_' data.labels{i}];
       eval(['[data.' y ',data.' t '] = readDataDumper(''' file ''');']);
       eval(['data.' y '= data.' y '(:,' data.index{i} ');']);
+      
 
       if(strcmp(y(end-2:end), 'imu') && data.diff_imu)
          eval(['data.' y '(2:end,4:6)= 1/mean(diff(data.' t ')).*diff(sgolayfilt(data.' y '(:,4:6),' sgolay_K ',' sgolay_F '));'])
       end
       eval(['data.' t '=data.' t ''';']);
       eval(['data.' y '=data.' y ''';']);
+      
+      % add filtering
+      eval(['data.' y '=sgolayfilt(data.' y ''',' sgolay_K ',' sgolay_F ')'';']); 
+      
    end
 end
 
