@@ -70,17 +70,14 @@ for l = 1 : length(label_to_plot)
       if strcmp(myPNEA.IDsens.sensorsParams.labels{k}, label_to_plot{l})
          figure
          J = myPNEA.IDsens.sensorsParams.sizes{k};
-         for j = 1 : J/3
-            subplot([num2str(J/3) '1' num2str(j)])
+         I = py(k)+1 : py(k)+J;
+         colors = ['r', 'g', 'b'];
+         for j = 1 : J
+            subplot(2, ceil(J/2), j)
             hold on;
-            I = py(k)+1+(j-1)*3 : py(k)+3*j;
-            shadedErrorBar(data.time, data.y(I(1),:), sqrt(data.Sy(I(1), :)), {'--r' , 'LineWidth', 1}, 0);
-            shadedErrorBar(data.time, data.y(I(2),:), sqrt(data.Sy(I(2), :)), {'--g' , 'LineWidth', 1}, 0);
-            shadedErrorBar(data.time, data.y(I(3),:), sqrt(data.Sy(I(3), :)), {'--b' , 'LineWidth', 1}, 0);
+            shadedErrorBar(data.time, data.y(I(j),:), sqrt(data.Sy(I(j), :)), {[colors(mod(j,3)+1) '--'] , 'LineWidth', 1}, 0);            
+            shadedErrorBar(data.time,  res.y(I(j),:), sqrt(reshape(res.Sy(I(j), I(j), :), 1, n)), {colors(mod(j,3)+1) , 'LineWidth', 2}, 0);
             
-            shadedErrorBar(data.time,  res.y(I(1),:), sqrt(reshape(res.Sy(I(1), I(1), :), 1, n)), {'r' , 'LineWidth', 1}, 0);
-            shadedErrorBar(data.time,  res.y(I(2),:), sqrt(reshape(res.Sy(I(1), I(1), :), 1, n)), {'g' , 'LineWidth', 1}, 0);
-            shadedErrorBar(data.time,  res.y(I(3),:), sqrt(reshape(res.Sy(I(1), I(1), :), 1, n)), {'b' , 'LineWidth', 1}, 0);
             title(strrep(myPNEA.IDsens.sensorsParams.labels{k}, '_', '~'));
          end
       end

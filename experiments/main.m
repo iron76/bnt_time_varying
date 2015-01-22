@@ -4,10 +4,10 @@ clc
 
 if ~exist('preprocess.mat', 'file')
    
-   data.nsamples  = 1000; %number of samples
+   data.nsamples  = 100; %number of samples
    data.plot      = 0;
-   data.ini       = 0;    %seconds to be skipped at the start
-   data.end       = 195;  %seconds to reach the end of the movement
+   data.ini       = 50;   %seconds to be skipped at the start
+   data.end       = 100;  %seconds to reach the end of the movement
    data.diff_imu  = 1;    %derivate the angular velocity of the IMUs
    data.diff_q    = 1;    %derivate the angular velocity of the IMUs
 
@@ -148,17 +148,14 @@ for l = 1 : length(label_to_plot)
       if strcmp(myPNEA.IDsens.sensorsParams.labels{k}, label_to_plot{l})
          figure
          J = myPNEA.IDsens.sensorsParams.sizes{k};
-         for j = 1 : J/3
-            subplot([num2str(J/3) '1' num2str(j)])
+         I = py(k)+1 : py(k)+J;
+         colors = ['r', 'g', 'b'];
+         for j = 1 : J
+            subplot(2, ceil(J/2), j)
             hold on;
-            I = py(k)+1+(j-1)*3 : py(k)+3*j;
-            shadedErrorBar(data.time, data.y(I(1),:), sqrt(data.Sy(I(1), :)), {'--r' , 'LineWidth', 1}, 0);
-            shadedErrorBar(data.time, data.y(I(2),:), sqrt(data.Sy(I(2), :)), {'--g' , 'LineWidth', 1}, 0);
-            shadedErrorBar(data.time, data.y(I(3),:), sqrt(data.Sy(I(3), :)), {'--b' , 'LineWidth', 1}, 0);
-            
-            plot(data.time, y(I(1),:), 'r' , 'LineWidth', 1);
-            plot(data.time, y(I(2),:), 'g' , 'LineWidth', 1);
-            plot(data.time, y(I(3),:), 'b' , 'LineWidth', 1);
+            shadedErrorBar(data.time, data.y(I(j),:), sqrt(data.Sy(I(j), :)), {colors(mod(j,3)+1) , 'LineWidth', 1}, 0);
+            plot(data.time, y(I(j),:), colors(mod(j,3)+1) , 'LineWidth', 1);
+
             title(strrep(myPNEA.IDsens.sensorsParams.labels{k}, '_', '~'));
          end
       end
