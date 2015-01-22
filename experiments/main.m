@@ -79,23 +79,11 @@ end
 %% plot results
 load preprocess.mat
 close all
-py = [0; cumsum(cell2mat(myPNEA.IDsens.sensorsParams.sizes))];
-% for i = 1 : myPNEA.IDsens.sensorsParams.ny - dmodel.NB
-%    figure
-%    J = myPNEA.IDsens.sensorsParams.sizes{i};
-%    for j = 1 : J/3
-%       subplot([num2str(J/3) '1' num2str(j)])
-%       I = py(i)+1+(j-1)*3 : py(i)+3*j;
-%       plot(data.time, y(I,:))
-%       title(strrep(myPNEA.IDsens.sensorsParams.labels{i}, '_', '~'));
-%    end
-% end
 sens.transform   = {'X_chest_imu'                              , 'X_l_upper_arm_la_acc'   , 'X_l_upper_foot_lf_acc'     , 'X_l_forearm_lh_imu'                  , 'X_r_upper_arm_ra_acc'    , 'X_r_upper_foot_rf_acc'     , 'X_r_forearm_rh_imu'                  , 'X_chest_to_acc'                          , 'X_l_upper_arm_la_fts_force','X_r_upper_arm_ra_fts_force','X_l_thigh_ll_fts_force','X_r_thigh_rl_fts_force','X_l_upper_foot_lf_fts_force'     , 'X_r_upper_foot_rf_fts_force'     }; 
+sensorFrameExtraction
+
 label_to_plot = {'imu', 'la_acc', 'lf_acc', 'lh_imu', 'ra_acc', 'rf_acc', 'rh_imu', 'to_acc', 'la_fts', 'ra_fts', 'll_fts', 'rl_fts', 'lf_fts', 'rf_fts'};
 %label_to_plot  = {'la_fts', 'ra_fts'};
-
-
-sensorFrameExtraction
 
 %% Process raw sensor data and bring it in the desired reference frames
 acc_gain = 5.9855e-04;
@@ -136,47 +124,53 @@ for l = 1 : length(label_to_plot)
    end
 end
 
-%% Build data.y from adjusted ys_label
-data.y = [];
+%% Build data.y anda data.Sy from adjusted ys_label
+data.y  = [];
+data.Sy = [];
 for i = 1 : length(sens.labels)
-   eval(['data.y = [data.y; data.ys_' sens.labels{i} '];']);
+   eval(['data.y  = [data.y ; data.ys_' sens.labels{i} '];']);
+   data.Sy = [data.Sy; diag(myPNEA.IDsens.sensorsParams.Sy{i})];
 end
+data.Sy = repmat(data.Sy, 1, data.nsamples);
 % Add the null external forces fx = 0
-data.y = [data.y; zeros(6*dmodel.NB, length(data.time))];
-save('preprocess.mat', 'data', '-append');
+data.y  = [data.y; zeros(6*dmodel.NB, length(data.time))];
 
 %% Plot overlapped plots
+py = [0; cumsum(cell2mat(myPNEA.IDsens.sensorsParams.sizes))];
 for l = 1 : length(label_to_plot)
-   for i = 1 : length(data.parts)
-      if strcmp(data.labels{i}, label_to_plot{l})
-         t    = ['time_' data.labels{i}];
-         ys   = ['ys_' data.labels{i}];
-         
-         figure
-         J = length(eval(data.index{i}));
-         for j = 1 : J/3
-            subplot([num2str(J/3) '1' num2str(j)])
-            I = 1+(j-1)*3 : 3*j;
-            eval(['plot(data.time,data.' ys '(I,:), ''--'' )' ]);
-            hold on;
-            title(strrep(['y_{' data.labels{i} '}'], '_', '~'))
-         end
-      end
-   end
    for k = 1 : myPNEA.IDsens.sensorsParams.ny - dmodel.NB
       if strcmp(myPNEA.IDsens.sensorsParams.labels{k}, label_to_plot{l})
-         %figure
+         figure
          J = myPNEA.IDsens.sensorsParams.sizes{k};
          for j = 1 : J/3
             subplot([num2str(J/3) '1' num2str(j)])
             hold on;
             I = py(k)+1+(j-1)*3 : py(k)+3*j;
-            plot(data.time, y(I,:))
+            shadedErrorBar(data.time, y(I(1),:), sqrt(data.Sy(I(1), :)), {'--r' , 'LineWidth', 1}, 0);
+            shadedErrorBar(data.time, y(I(2),:), sqrt(data.Sy(I(2), :)), {'--g' , 'LineWidth', 1}, 0);
+            shadedErrorBar(data.time, y(I(3),:), sqrt(data.Sy(I(3), :)), {'--b' , 'LineWidth', 1}, 0);
             title(strrep(myPNEA.IDsens.sensorsParams.labels{k}, '_', '~'));
          end
       end
    end
-   
+   for i = 1 : length(data.parts)
+      if strcmp(data.labels{i}, label_to_plot{l})
+         t    = ['time_' data.labels{i}];
+         ys   = ['ys_' data.labels{i}];
+
+         J = length(eval(data.index{i}));
+         for j = 1 : J/3
+            subplot([num2str(J/3) '1' num2str(j)])
+            hold on
+            I = 1+(j-1)*3 : 3*j;
+            eval(['plot(data.time,data.' ys '(I(1),:), ''r'' )' ]);
+            eval(['plot(data.time,data.' ys '(I(2),:), ''g'' )' ]);
+            eval(['plot(data.time,data.' ys '(I(3),:), ''b'' )' ]);
+            hold on;
+            title(strrep(['y_{' data.labels{i} '}'], '_', '~'))
+         end
+      end
+   end   
 end
 
 %% Plot separated graphs
@@ -210,3 +204,5 @@ end
 %       end
 %    end
 % end
+
+save preprocess2.mat
