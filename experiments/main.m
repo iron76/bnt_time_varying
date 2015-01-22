@@ -136,6 +136,15 @@ for l = 1 : length(label_to_plot)
    end
 end
 
+%% Build data.y from adjusted ys_label
+data.y = [];
+for i = 1 : length(sens.labels)
+   eval(['data.y = [data.y; data.ys_' sens.labels{i} '];']);
+end
+% Add the null external forces fx = 0
+data.y = [data.y; zeros(6*dmodel.NB, length(data.time))];
+save('preprocess.mat', 'data', '-append');
+
 %% Plot overlapped plots
 for l = 1 : length(label_to_plot)
    for i = 1 : length(data.parts)
