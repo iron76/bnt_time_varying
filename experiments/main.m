@@ -40,7 +40,7 @@ if ~exist('preprocess.mat', 'file')
    dmodel  = iCub_dmodel;
    ymodel  = iCubSens(dmodel, sens);
    
-   dmodel  = autoTreeStochastic(dmodel);
+   dmodel  = autoTreeStochastic(dmodel, 1e-5, 1e4);
    ymodel  = iCubSensStochastic(ymodel);
    myModel = model(dmodel);
    mySens  = sensors(ymodel);
@@ -91,8 +91,8 @@ py = [0; cumsum(cell2mat(myPNEA.IDsens.sensorsParams.sizes))];
 %    end
 % end
 sens.transform   = {'X_chest_imu'                              , 'X_l_upper_arm_la_acc'   , 'X_l_upper_foot_lf_acc'     , 'X_l_forearm_lh_imu'                  , 'X_r_upper_arm_ra_acc'    , 'X_r_upper_foot_rf_acc'     , 'X_r_forearm_rh_imu'                  , 'X_chest_to_acc'                          , 'X_l_upper_arm_la_fts_force','X_r_upper_arm_ra_fts_force','X_l_thigh_ll_fts_force','X_r_thigh_rl_fts_force','X_l_upper_foot_lf_fts_force'     , 'X_r_upper_foot_rf_fts_force'     }; 
-%label_to_plot = {'imu', 'la_acc', 'lf_acc', 'lh_imu', 'ra_acc', 'rf_acc', 'rh_imu', 'to_acc', 'la_fts', 'ra_fts', 'll_fts', 'rl_fts', 'lf_fts', 'rf_fts'};
-label_to_plot  = {'la_fts', 'ra_fts'};
+label_to_plot = {'imu', 'la_acc', 'lf_acc', 'lh_imu', 'ra_acc', 'rf_acc', 'rh_imu', 'to_acc', 'la_fts', 'ra_fts', 'll_fts', 'rl_fts', 'lf_fts', 'rf_fts'};
+%label_to_plot  = {'la_fts', 'ra_fts'};
 
 
 sensorFrameExtraction
