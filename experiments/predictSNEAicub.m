@@ -1,6 +1,6 @@
 clear all
 close all
-load preprocess.mat
+load preprocess2.mat
 
 [~, n]  = size(y);
 NB      = myModel.modelParams.NB;
