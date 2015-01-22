@@ -104,6 +104,10 @@ for l = 1 : length(label_to_plot)
             eval(['data.ys_' data.labels{i} '(4:6,:) = ' ...
                   'gyro_gain*data.ys_' data.labels{i} '(4:6,:);']);
          end
+         if( strcmp(data.labels{i},'imu') )
+            eval(['data.ys_' data.labels{i} '(4:6,:) = ' ...
+                  'deg_to_rad*data.ys_' data.labels{i} '(4:6,:);']);
+         end
           if( strcmp(data.labels{i}(end-2:end),'acc') )
              eval(['data.ys_' data.labels{i} '(1:3,:) = ' ...
                    'acc_gain*data.ys_' data.labels{i} '(1:3,:);']);
