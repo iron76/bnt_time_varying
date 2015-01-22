@@ -15,10 +15,10 @@ idSy_inv = []; jdSy_inv = []; dSy_inv=[];
 my = 1;
 
 %uncertainties
-so      = 0.7805; 
-sa       = 0.01;
+so       = 0.7805; 
+sa       = 0.05;
 sf       = 10;
-su       = 0.0031;
+su       = 0.031;
 
 imuS = [sa*eye(3) zeros(3,3); zeros(3,3) so*eye(3)];
 ftsS = [sf*eye(3) zeros(3,3); zeros(3,3) su*eye(3)];
