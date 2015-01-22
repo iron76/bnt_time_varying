@@ -78,9 +78,9 @@ for l = 1 : length(label_to_plot)
             shadedErrorBar(data.time, data.y(I(2),:), sqrt(data.Sy(I(2), :)), {'--g' , 'LineWidth', 1}, 0);
             shadedErrorBar(data.time, data.y(I(3),:), sqrt(data.Sy(I(3), :)), {'--b' , 'LineWidth', 1}, 0);
             
-            shadedErrorBar(data.time,  res.y(I(1),:), sqrt(res.Sy(I(1), :)), {'r' , 'LineWidth', 1}, 0);
-            shadedErrorBar(data.time,  res.y(I(2),:), sqrt(res.Sy(I(2), :)), {'g' , 'LineWidth', 1}, 0);
-            shadedErrorBar(data.time,  res.y(I(3),:), sqrt(res.Sy(I(3), :)), {'b' , 'LineWidth', 1}, 0);
+            shadedErrorBar(data.time,  res.y(I(1),:), sqrt(reshape(res.Sy(I(1), I(1), :), 1, n)), {'r' , 'LineWidth', 1}, 0);
+            shadedErrorBar(data.time,  res.y(I(2),:), sqrt(reshape(res.Sy(I(1), I(1), :), 1, n)), {'g' , 'LineWidth', 1}, 0);
+            shadedErrorBar(data.time,  res.y(I(3),:), sqrt(reshape(res.Sy(I(1), I(1), :), 1, n)), {'b' , 'LineWidth', 1}, 0);
             title(strrep(myPNEA.IDsens.sensorsParams.labels{k}, '_', '~'));
          end
       end
