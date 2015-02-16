@@ -37,5 +37,5 @@ for i=1:n
     % [~, ll] = enter_evidence(engineStd{i}, samStd(:, i));
 end
 
-[bnetHat, ll] = learn_params_em_modified(engineStd, samStd, 10, 1e-4);
+[bnetHat, ll] = learn_params_em_modified(engineStd, samStd, 30, 1e-4);
 bnetHat       = removeStandardization(bnetHat{n}, M, S, i_obs, cov_prior_weight);

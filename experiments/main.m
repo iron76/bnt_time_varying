@@ -143,7 +143,7 @@ end
 data.Sy = repmat(data.Sy, 1, data.nsamples);
 
 % Add the null external forces fx = 0
-data.y  = [data.y; zeros(6*dmodel.NB, length(data.time))];
+data.y  = [data.y; zeros(6*(dmodel.NB-1), length(data.time))];
 % Add the d2q measurements
 data.y  = [data.y; data.d2q];
 

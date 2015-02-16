@@ -201,7 +201,7 @@ classdef deterministicIDsolver
       function obj = setY(obj,y)
          [m,n] = size(y);
          if (m ~= obj.IDmeas.m) || (n ~= 1)
-            error('[ERROR] The input y should be provided as a column vector with model.NB rows');
+            error('[ERROR] The input y should be provided as a column vector with model.m rows');
          end
          obj.IDmeas.y = y;
       end 

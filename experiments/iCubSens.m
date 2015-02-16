@@ -87,15 +87,17 @@ if ymodel.ny ~= ny || ymodel.m ~= m
 end
 
 for i = 1 : dmodel.NB
-   ymodel.ny = ymodel.ny + 1;
-   ymodel.sizes{ymodel.ny,1} = 6; 
-   ymodel.labels{ymodel.ny,1} = [dmodel.linkname{i} '_ftx'];
-   for j = 1 : dmodel.NB
-      ymodel.Y{ymodel.ny,j}   = zeros(6,26);
-      ymodel.Ys{ymodel.ny,j}  = sparse(zeros(6,26));
+   if i ~= 25
+      ymodel.ny = ymodel.ny + 1;
+      ymodel.sizes{ymodel.ny,1} = 6;
+      ymodel.labels{ymodel.ny,1} = [dmodel.linkname{i} '_ftx'];
+      for j = 1 : dmodel.NB
+         ymodel.Y{ymodel.ny,j}   = zeros(6,26);
+         ymodel.Ys{ymodel.ny,j}  = sparse(zeros(6,26));
+      end
+      ymodel.Y{ymodel.ny,i}  = [zeros(6,6) zeros(6,6) zeros(6, 6) zeros(6,1) eye(6) zeros(6, 1)];
+      ymodel.Ys{ymodel.ny,i} = sparse(1:6,20:25,ones(6,1), 6, 26);
    end
-   ymodel.Y{ymodel.ny,i}  = [zeros(6,6) zeros(6,6) zeros(6, 6) zeros(6,1) eye(6) zeros(6, 1)];
-   ymodel.Ys{ymodel.ny,i} = sparse(1:6,20:25,ones(6,1), 6, 26);
 end
 
 for i = 1 : dmodel.NB

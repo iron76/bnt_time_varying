@@ -6,7 +6,9 @@ load preprocess2.mat
 NB      = myModel.modelParams.NB;
 
 %% Compute solution
-myPNEA    = PNEA(myModel, mySens);
+ymodel  = iCubSensStochastic(ymodel);
+mySens  = sensors(ymodel);
+myPNEA  = PNEA(myModel, mySens);
 
 d  = zeros(26*NB, n);
 Sd = zeros(26*NB, 26*NB, n);
@@ -53,7 +55,7 @@ for i = 1 : NB
       %fx
       ind  = '20 + 26*(i-1) : 26*(i-1) + 25';
       eval(['res.fx_'   link '(:,j)   =  res.d(' ind '        ,j);'])
-      eval(['res.Sfx_'  link '(:,:,j) = res.Sd(' ind ',' ind ',j);'])
+      eval(['res.Sfx_'  link '(:,:,j) = diag(res.Sd(' ind ',' ind ',j));'])
       %d2q
       ind  = '26 + 26*(i-1) : 26*(i-1) + 26';
       eval(['res.d2q_'  link '(:,j)   =  res.d(' ind '        ,j);'])
@@ -83,3 +85,6 @@ for l = 1 : length(label_to_plot)
       end
    end
 end
+
+save predict.mat
+
