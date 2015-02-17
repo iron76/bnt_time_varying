@@ -84,7 +84,9 @@ classdef deterministicIDsolver
             a   = initSubMatrix(a);
             
             a   = initSparseMatrixIndices(a);
-            a   = initSparseMatrix(a);               
+            a   = initSparseMatrix(a);
+            
+            % a   = initStateDerivativeSubMatrix(a);
          else
             error(['You should provide a featherstone-like ' ...
                'model to instantiate deterministicIDsolver'] )
@@ -192,6 +194,7 @@ classdef deterministicIDsolver
          
          %% Compute \frac{\partial (Dd+b)}{\partial x} matrix
          %  as defined in the IJRR Paper
+         % obj = updateStateDerivativeSubMatrix(obj);
          
          %% Update the sparse representation of the matrix D
          obj = updateSparseMatrix(obj);
@@ -219,8 +222,13 @@ classdef deterministicIDsolver
       obj = initSubMatrixIndices(obj);
       obj = initSubMatrix(obj);
       obj = initSparseMatrix(obj);
+      % obj = initStateDerivativeSubMatrix(obj);
+
+      
       obj = updateSubMatrix(obj);
       obj = updateSparseMatrix(obj);
+      % obj = updateStateDerivativeSubMatrix(obj);
+      
    end
 end % classdef
 
