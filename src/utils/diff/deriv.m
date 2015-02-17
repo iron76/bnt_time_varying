@@ -8,14 +8,39 @@ function  df  = deriv( f, q )
 %   f  = @(x) sin(x);
 %   df = deriv(f,0); 
 
-q1 = q;
-h  = sqrt(eps)*max([abs(q1), 1]);
-q2 = q1 + h;
-
-f1 = f( q1 );
-f2 = f( q2 );
-
-df = (f2 - f1) ./ (q2 - q1);
-
+[m , n] = size(q);
+if n ~= 1
+   error('In computing df(x), x should be a column vector')
 end
+
+[h , k] = size(f(q));
+if k ~= 1 && m ~= 1
+   error('In computing df(x), f should be a column vector or (if not) x should be scalar')
+end
+
+if m == 1
+   q1 = q;
+   h  = sqrt(eps)*max([abs(q1), 1]);
+   q2 = q1 + h;
+   
+   f1 = f( q1 );
+   f2 = f( q2 );
+   
+   df = (f2 - f1) ./ (q2 - q1);
+   
+else
+   df = zeros(h,m);   
+   for i = 1 : m
+      q1 =  q;
+      q2 =  q;
+      h  = sqrt(eps)*max([abs(q1(i,1)), 1]);
+      q2(i,1) = q1(i,1) + h;
+      
+      f1 = f( q1 );
+      f2 = f( q2 );
+      
+      df(:,i) = (f2 - f1) ./ (q2(i,1) - q1(i,1));
+   end
+end
+
 
