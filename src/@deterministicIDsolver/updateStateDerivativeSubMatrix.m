@@ -54,8 +54,8 @@ for h = 1 : obj.IDstate.n
        end
     end
     
-    % Only b actually depends on \dot{q}, so we don't have to consider D
-    %% Compute the derivatives of D_{i,i}d_i+b_i subvector of Dd + b 
+    %% Only b actually depends on \dot{q}, so we don't have to consider D
+    % Compute the derivatives of D_{i,i}d_i+b_i subvector of Dd + b 
     %  with respect to \dot{q}_h (x_{n+h})
     for i = 1 : obj.IDstate.n
 
