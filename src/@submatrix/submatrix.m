@@ -38,12 +38,13 @@
 
 classdef submatrix
    properties
-      A, m, n, cm, cn
+      matrix, m, n, cm, cn
    end
+   
    methods
       function b = submatrix(m, n, A)
          if nargin == 3
-            b.A  = A;
+            b.matrix  = A;
             b.m  = m(:)';
             b.n  = n(:)';
             b.cm = [0, cumsum(b.m)];
@@ -62,17 +63,19 @@ classdef submatrix
             
             b.cm = [0, cumsum(b.m)];
             b.cn = [0, cumsum(b.n)];
-            b.A = zeros(b.cm(end), b.cn(end));
+            b.matrix = zeros(b.cm(end), b.cn(end));
          end
       end
       
       function B = subsref(obj,S)
          if strcmp(S.type, '()') && length(S.subs) == 2
             [I, J] = obj.indeces(S.subs{1}, S.subs{2});
-            B = obj.A(I, J);
+            B = obj.matrix(I, J);
             % B = submatrix(obj.A(I, J), obj.m(S.subs{1}), obj.n(S.subs{2}));
             % elseif strcmp(S.type, '.') && strcmp(S.subs, 'toDouble')
             % B = obj.A;
+         elseif strcmp(S.type, '.')
+            eval(['B = obj.' S.subs ';']);
          else
             error('The sumatrix class can be accessed only as A(i,j).')
          end
@@ -107,7 +110,7 @@ classdef submatrix
                for j = 1 : length(b.n)
                   [I,J] = b.indeces(i, j);
                   for h = 1 : length(J)
-                     fprintf('%s ', num2str(b.A(I(k),J(h)), '%1.4f  '))
+                     fprintf('%s ', num2str(b.matrix(I(k),J(h)), '%1.4f  '))
                   end
                   fprintf(' | ')
                end
@@ -123,7 +126,7 @@ classdef submatrix
          if length(I)~=mAij || length(J)~=nAij
             error('when setting Aij on As its dimension should match the dimensions of I and J in [I, J] = indeces(As, i, j)')
          else
-            obj.A(I,J) = Aij;
+            obj.matrix(I,J) = Aij;
          end
       end
       
