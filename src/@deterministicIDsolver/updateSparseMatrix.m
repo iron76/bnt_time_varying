@@ -48,12 +48,15 @@ for i = 1:obj.IDmodel.modelParams.NB
   pD = pD + 6;
   
   % f{i} = fB{i} - obj.Xa{i}' \ f_ext{i};
+  % or
+  % f{i} = fB{i} - f_ext{i};
   % f{obj.IDmodel.modelParams.parent(j)} = f{obj.IDmodel.modelParams.parent(j)} + obj.Xup{j}'*f{j};
   % D3 = [zeros(6,6) eye(6) -eye(6) zeros(6, obj.jn(i)) -inv(obj.Xa{i}') zeros(6, obj.jn(i))];
   % b3 = zeros(6,1);
   
-  A  = -inv(obj.Xa{i}');
-
+  % A  = -inv(obj.Xa{i}');
+  A  = -eye(6);
+  
   % obj.Ds(pD : pD+5, 1) = 1*ones(6,1);
   pD = pD + 6;
 
