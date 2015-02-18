@@ -71,6 +71,7 @@ classdef deterministicIDsolver
             a.fx      = zeros(6, mdl.n);
             a.tau     = zeros(mdl.n, 1);
             a.d2q     = zeros(mdl.n, 1);
+            a.Ddbx    = zeros(26*mdl.n, 2*mdl.n);
             for i = 1 : mdl.n
                a.Xup{i}  = zeros(6,6);
                a.Xa{i}   = zeros(6,6);
