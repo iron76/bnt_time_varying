@@ -6,14 +6,7 @@ function [ obj ] = updateStateDerivativeSubMatrix( obj , d )
 %   of the input obj.
 %
 
-% [a, f_B, f, tau, f_x, d2q] = extractVectors(d);
-
-a   = ones(6, obj.IDstate.n);
-f_B = ones(6, obj.IDstate.n);
-f   = ones(6, obj.IDstate.n);
-tau = ones(1, obj.IDstate.n);
-f_x = ones(6, obj.IDstate.n);
-d2q = ones(6, obj.IDstate.n);
+[a, ~, f, ~, ~, ~] = extractDynVar(obj.IDmodel.n, d);
 
 obj.Ddbx    = zeros(19*obj.IDmodel.n, 2*obj.IDmodel.n);
 
@@ -23,7 +16,7 @@ for h = 1 : obj.IDstate.n
    for i = 1 : obj.IDstate.n
       for j = obj.IDmodel.sparseParams.ind_j{i}
          if( h == j )
-            obj.Ddbx((i-1)*19+13:(i-1)*19+18,h) = (obj.dXupdq{j}')*f(:,j);
+            obj.Ddbx((i-1)*19+13:(i-1)*19+18,h) = (obj.dXupdq{j}')*f{j};
          end
       end
    end
@@ -34,7 +27,7 @@ for h = 1 : obj.IDstate.n
       parenti = obj.IDmodel.modelParams.parent(i);
       if obj.IDmodel.modelParams.parent(i) ~= 0;
          if( h == i )
-            obj.Ddbx((i-1)*19+1:(i-1)*19+6,h) = obj.dXupdq{i} * a(:,parenti);
+            obj.Ddbx((i-1)*19+1:(i-1)*19+6,h) = obj.dXupdq{i} * a{parenti};
          end
       end
    end

@@ -50,7 +50,7 @@ end
 for i = 1 : num_of_tests
    q  = rand(dmodel.NB     ,1);
    dq = rand(dmodel.NB     ,1);
-   d  = ones(dmodel.NB * 26,1);
+   d  = rand(dmodel.NB * 26,1);
    f  = @(x) computeDb(mySNEA , d , x);
    dD = deriv(f, [q; dq]);
    
