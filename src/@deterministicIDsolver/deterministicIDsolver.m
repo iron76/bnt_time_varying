@@ -36,7 +36,7 @@ classdef deterministicIDsolver
    
    properties (SetAccess = protected)
       Xup %% Cell array of mdl.n elements. Xup{i} contains {}^{i}X_{\lambda(i)}
-      Xa  %% Cell array of mdl.n elements. Xup{i} contains {}^{i}X_{0}
+      Xa  %% Cell array of mdl.n elements. Xa{i}  contains {}^{i}X_{0}
       dvdx %% Bidimensional cell array of mdl.n \times 2*mdl.n elements
            % dvdx{i,h} contains \frac{\partial v_i}{\partial q_h} if h <= n
            % otherwise it contains \frac{\partial v_1}{\partial \dot{q}_{h-n}}
@@ -71,6 +71,7 @@ classdef deterministicIDsolver
             a.fx      = zeros(6, mdl.n);
             a.tau     = zeros(mdl.n, 1);
             a.d2q     = zeros(mdl.n, 1);
+            a.Ddbx    = zeros(19*mdl.n, 2*mdl.n);
             for i = 1 : mdl.n
                a.Xup{i}  = zeros(6,6);
                a.Xa{i}   = zeros(6,6);
@@ -84,7 +85,7 @@ classdef deterministicIDsolver
             a   = initSubMatrix(a);
             
             a   = initSparseMatrixIndices(a);
-            a   = initSparseMatrix(a);               
+            a   = initSparseMatrix(a);
          else
             error(['You should provide a featherstone-like ' ...
                'model to instantiate deterministicIDsolver'] )
@@ -132,8 +133,10 @@ classdef deterministicIDsolver
          % obj.Xa{i} contains {}^{i}X_{0}
          for i = 1:length(obj.IDmodel.modelParams.parent)
             if obj.IDmodel.modelParams.parent(i) == 0
+               % if i == 1 {}^{i}X_{0} = {}^{i}X_{\lambda(i)}
                obj.Xa{i} = obj.Xup{i};
             else
+               % {}^{i}X_{0} = {}^{i}X_{\lambda(i)} * {}^{\lambda(i)}X_{0}
                obj.Xa{i} = obj.Xup{i} * obj.Xa{obj.IDmodel.modelParams.parent(i)};
             end
          end
@@ -162,7 +165,7 @@ classdef deterministicIDsolver
              % derivatives are 0
              h = i;
              % X_i_h is {}^iX_h
-             X_i_h = eye(6,6);
+             X_i_h = eye(6);
              while( h ~= 0 )
                  % Position derivative
                  parenth = obj.IDmodel.modelParams.parent(h);
@@ -171,18 +174,23 @@ classdef deterministicIDsolver
                  % the parent of h, so if the parent of h is the base the
                  % derivative is 0
                  if( parenth ~= 0 )
-                     obj.dvdx{i,h+obj.IDstate.n} = X_i_h*obj.dXupdq{h}*obj.v(:,parenth);
+                     obj.dvdx{i,h} = X_i_h*obj.dXupdq{h}*obj.v(:,parenth);
                  end
                  
                  % Velocity derivative
                  % \frac{\partial v_i}{\partial \dot{q}_h} is equal to
                  % {}^iX_h S_h
-                 obj.dvdx{i,h+obj.IDstate.n} = X_i_h*obj.IDmodel.S{i};
+                 obj.dvdx{i,h+obj.IDstate.n} = X_i_h*obj.IDmodel.S{h};
 
                  % Now ompute the derivative with respect to the parent
                  % Update consequently X_i_h
-                 h = parenth;
-                 X_i_h = X_i_h*obj.Xup{i};
+                 h = parenth;                 
+                 % Xa{i} = {}^{i}X_{0} => Xa{i}*inv(Xa{h}) = {}^{i}X_{h}
+                 if  h ~= 0
+                    X_i_h = obj.Xa{i}/(obj.Xa{h});
+                 else
+                    X_i_h = obj.Xa{i};
+                 end
              end
          end
          
@@ -190,13 +198,20 @@ classdef deterministicIDsolver
          % 
          obj = updateSubMatrix(obj);
          
-         %% Compute \frac{\partial (Dd+b)}{\partial x} matrix
-         %  as defined in the IJRR Paper
-         
          %% Update the sparse representation of the matrix D
          obj = updateSparseMatrix(obj);
 
       end % setState
+
+      function obj = setD(obj,d)
+         %% Compute \frac{\partial (Dd+b)}{\partial x} matrix
+         [m,n] = size(d);
+         if (m ~= obj.IDmodel.modelParams.NB * 26) || (n ~= 1)
+            error('[ERROR] The input d should be provided as a column vector with 26*model.NB rows');
+         end
+         %  as defined in the IJRR Paper         
+         obj = updateStateDerivativeSubMatrix(obj, d);
+      end       
       
       function obj = setY(obj,y)
          [m,n] = size(y);
@@ -219,8 +234,9 @@ classdef deterministicIDsolver
       obj = initSubMatrixIndices(obj);
       obj = initSubMatrix(obj);
       obj = initSparseMatrix(obj);
+      
       obj = updateSubMatrix(obj);
-      obj = updateSparseMatrix(obj);
+      obj = updateSparseMatrix(obj);      
    end
 end % classdef
 

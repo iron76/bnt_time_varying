@@ -33,7 +33,8 @@ if length(f_ext) > 0
       Xa{i} = Xup{i} * Xa{parent(i)};
     end
     if length(f_ext{i}) > 0
-      f_out{i} = f_out{i} - Xa{i}' \ f_ext{i};
+      % f_out{i} = f_out{i} - Xa{i}' \ f_ext{i};
+      f_out{i} = f_out{i} - f_ext{i};
     end
   end
 end

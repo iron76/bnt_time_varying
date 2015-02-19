@@ -53,6 +53,8 @@ end
 
 for i = obj.IDmodel.modelParams.NB:-1:1
    % f{i} = fB{i} - Xa{i}' \ f_ext{i};
+   % or
+   % f{i} = fB{i} - f_ext{i};
    % f{model.parent(j)} = f{model.parent(j)} + Xup{j}'*f{j};
    fBi = obj.bnt.nodes.index{i}(2);
    fi  = obj.bnt.nodes.index{i}(3);
@@ -64,7 +66,8 @@ for i = obj.IDmodel.modelParams.NB:-1:1
       if pars(j) == fBi
          Wa{1, j} = eye(nfi);
       elseif pars(j) == fxi
-         Wa{1, j} = -inv(obj.Xa{i}');
+         % Wa{1, j} = -inv(obj.Xa{i}');
+         Wa{1, j} = - eye(6);
       else
          Wa{1, j} = obj.Xup{obj.bnt.link(pars(j))}';
       end
