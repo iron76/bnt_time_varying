@@ -14,7 +14,8 @@ for i = 1 : obj.IDstate.n
       obj.b = set(obj.b, crm(obj.v(:,i))*obj.vJ(:,i), I+1, 1);
    end
    obj.b = set(obj.b, crf(obj.v(:,i))*obj.IDmodel.modelParams.I{i}*obj.v(:,i), I+2, 1);
-   obj.D = set(obj.D, -inv(obj.Xa{i}'), I+3, J+5);
+   % obj.D = set(obj.D, -inv(obj.Xa{i}'), I+3, J+5);
+   obj.D = set(obj.D, -eye(6), I+3, J+5);
 end
 
 %% Compute D_{i,j} submatrices of D matrix 
