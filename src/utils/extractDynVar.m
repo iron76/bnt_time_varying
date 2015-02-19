@@ -26,7 +26,7 @@ for i = 1 : NB
     f{1,i} =  d(((i-1)*26)+13 : ((i-1)*26)+18 ,1);
 end
 
-tau_ = zeros(NB,1);
+tau = zeros(NB,1);
 for i = 1 : NB
     tau(i,1) = d(((i-1)*26)+19);
 end
