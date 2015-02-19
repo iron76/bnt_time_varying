@@ -24,25 +24,25 @@ end
 
 run('iCub.m')
 dmodel  = iCub_dmodel;
-ymodel  = autoSensRNEA(dmodel);
+ymodel  = autoSensSNEA(dmodel);
 
 dmodel  = autoTreeStochastic(dmodel, 1e-3);
 ymodel  = autoSensStochastic(ymodel, 1e-2);
 
 myModel = model(dmodel);
 mySens  = sensors(ymodel);
-mySNEA  = SNEA(myModel, mySens);
+myDNEA  = DNEA(myModel, mySens);
 
 for i = 1 : num_of_tests
    for j = 1 : dmodel.NB
       q  = rand(dmodel.NB     ,1);
       dq = rand(dmodel.NB     ,1);
-      f  = @(x) computeV(mySNEA, x, j);
+      f  = @(x) computeV(myDNEA, x, j);
       dv = deriv(f, [q; dq]);
       
-      mySNEA = mySNEA.setState(q,dq);
-      if norm(cell2mat(mySNEA.dvdx(j,:)) - dv) > 1e-5
-         disp(['dv numerical derivative is quite different: ' num2str(norm(cell2mat(mySNEA.dvdx(j,:)) - dv))])
+      myDNEA = myDNEA.setState(q,dq);
+      if norm(cell2mat(myDNEA.dvdx(j,:)) - dv) > 1e-5
+         disp(['dv numerical derivative is quite different: ' num2str(norm(cell2mat(myDNEA.dvdx(j,:)) - dv))])
       end
    end
 end
@@ -51,13 +51,13 @@ for i = 1 : num_of_tests
    q  = rand(dmodel.NB     ,1);
    dq = rand(dmodel.NB     ,1);
    d  = rand(dmodel.NB * 26,1);
-   f  = @(x) computeDb(mySNEA , d , x);
+   f  = @(x) computeDb(myDNEA , d , x);
    dD = deriv(f, [q; dq]);
    
-   mySNEA = mySNEA.setState(q,dq);
-   mySNEA = mySNEA.setD(d);
-   if norm(mySNEA.Ddbx - dD) > 1e-5
-      disp(['dD numerical derivative is quite different: ' num2str(norm(mySNEA.Ddbx - dD))])
+   myDNEA = myDNEA.setState(q,dq);
+   myDNEA = myDNEA.setD(d);
+   if norm(myDNEA.Ddbx - dD) > 1e-5
+      disp(['dD numerical derivative is quite different: ' num2str(norm(myDNEA.Ddbx - dD))])
    end
    
 end

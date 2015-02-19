@@ -37,12 +37,6 @@ classdef deterministicIDsolver
    properties (SetAccess = protected)
       Xup %% Cell array of mdl.n elements. Xup{i} contains {}^{i}X_{\lambda(i)}
       Xa  %% Cell array of mdl.n elements. Xa{i}  contains {}^{i}X_{0}
-      dvdx %% Bidimensional cell array of mdl.n \times 2*mdl.n elements
-           % dvdx{i,h} contains \frac{\partial v_i}{\partial q_h} if h <= n
-           % otherwise it contains \frac{\partial v_1}{\partial \dot{q}_{h-n}}
-           % 
-      dXupdq %% Cell array of mdl.n elements.  dXupdq{i} contains 
-             %  \frac{\partial {}^{i}X_{\lambda(i)}}{\partial q_i}
       vJ, v, a, fB, f, fx, d2q, tau, iD, jD, iDs, jDs, ibs
    end
    
@@ -60,8 +54,6 @@ classdef deterministicIDsolver
             a.IDmeas  = meas(sns.m);
             a.Xup     = cell(mdl.n, 1);
             a.Xa      = cell(mdl.n, 1);
-            a.dXupdq  = cell(mdl.n, 1);
-            a.dvdx    = cell(mdl.n, 2*mdl.n);
             a.vJ      = zeros(6, mdl.n);
             a.d       = zeros(26*mdl.n,1);
             a.v       = zeros(6, mdl.n);
@@ -75,11 +67,6 @@ classdef deterministicIDsolver
             for i = 1 : mdl.n
                a.Xup{i}  = zeros(6,6);
                a.Xa{i}   = zeros(6,6);
-               a.dXupdq{i} = zeros(6,6);
-               for j = 1 : mdl.n
-                   a.dvdx{i,j} = zeros(6,1);
-                   a.dvdx{i,j+mdl.n} = zeros(6,1);
-               end
             end
             a   = initSubMatrixIndices(a);
             a   = initSubMatrix(a);
@@ -121,14 +108,7 @@ classdef deterministicIDsolver
             [ XJ, ~ ] = jcalc( obj.IDmodel.modelParams.jtype{i}, q(i) );
             obj.Xup{i} = XJ * obj.IDmodel.modelParams.Xtree{i};
          end
-         
-         %% Compute derivative of the transforms with respect to the parent for all links
-         % obj.Xup{i} contains {}^{i}X_{\lambda(i)}
-         for i = 1 : obj.IDstate.n
-            [ ~, ~, XJderiv ] = jcalcderiv( obj.IDmodel.modelParams.jtype{i}, q(i) );
-            obj.dXupdq{i} = XJderiv * obj.IDmodel.modelParams.Xtree{i};
-         end
-         
+                  
          %% Compute transforms with respect to the base for all links
          % obj.Xa{i} contains {}^{i}X_{0}
          for i = 1:length(obj.IDmodel.modelParams.parent)
@@ -156,44 +136,7 @@ classdef deterministicIDsolver
             else
                obj.v(:,i) = obj.Xup{i}*obj.v(:,obj.IDmodel.modelParams.parent(i)) + obj.vJ(:,i);
             end
-         end
-         
-         %% Compute derivative of the twist in local frame
-         for i = 1 : obj.IDstate.n
-             % For each link, compute the derivative against q_h and
-             % \dot{q}_h only if and only if h is ancestor of i, all other
-             % derivatives are 0
-             h = i;
-             % X_i_h is {}^iX_h
-             X_i_h = eye(6);
-             while( h ~= 0 )
-                 % Position derivative
-                 parenth = obj.IDmodel.modelParams.parent(h);
-                 
-                 % The derivative of the position depend on the velocity of
-                 % the parent of h, so if the parent of h is the base the
-                 % derivative is 0
-                 if( parenth ~= 0 )
-                     obj.dvdx{i,h} = X_i_h*obj.dXupdq{h}*obj.v(:,parenth);
-                 end
-                 
-                 % Velocity derivative
-                 % \frac{\partial v_i}{\partial \dot{q}_h} is equal to
-                 % {}^iX_h S_h
-                 obj.dvdx{i,h+obj.IDstate.n} = X_i_h*obj.IDmodel.S{h};
-
-                 % Now ompute the derivative with respect to the parent
-                 % Update consequently X_i_h
-                 h = parenth;                 
-                 % Xa{i} = {}^{i}X_{0} => Xa{i}*inv(Xa{h}) = {}^{i}X_{h}
-                 if  h ~= 0
-                    X_i_h = obj.Xa{i}/(obj.Xa{h});
-                 else
-                    X_i_h = obj.Xa{i};
-                 end
-             end
-         end
-         
+         end         
          %% Compute D matrix and b vector, as defined in the IJRR Paper
          % 
          obj = updateSubMatrix(obj);
@@ -202,16 +145,6 @@ classdef deterministicIDsolver
          obj = updateSparseMatrix(obj);
 
       end % setState
-
-      function obj = setD(obj,d)
-         %% Compute \frac{\partial (Dd+b)}{\partial x} matrix
-         [m,n] = size(d);
-         if (m ~= obj.IDmodel.modelParams.NB * 26) || (n ~= 1)
-            error('[ERROR] The input d should be provided as a column vector with 26*model.NB rows');
-         end
-         %  as defined in the IJRR Paper         
-         obj = updateStateDerivativeSubMatrix(obj, d);
-      end       
       
       function obj = setY(obj,y)
          [m,n] = size(y);

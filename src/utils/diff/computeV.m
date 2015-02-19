@@ -1,4 +1,4 @@
-function [ v ] = computeV( mySNEA , x , j)
+function [ v ] = computeV( myNEA , x , j)
 
 [m,n] = size(x);
 if n ~= 1
@@ -7,7 +7,7 @@ end
 
 q  = x(1:m/2,1);
 dq = x(m/2+1:m,1);
-mySNEA  = mySNEA.setState(q, dq);
-V = mySNEA.v;
+myNEA  = myNEA.setState(q, dq);
+V = myNEA.v;
 v = V(:,j);
 end

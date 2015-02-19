@@ -1,4 +1,4 @@
-function [ Db ] = computeDb( mySNEA , d , x )
+function [ Db ] = computeDb( myNEA , d , x )
 
 [m,n] = size(x);
 if n ~= 1
@@ -7,9 +7,9 @@ end
 
 q  = x(1:m/2,1);
 dq = x(m/2+1:m,1);
-mySNEA  = mySNEA.setState(q, dq);
-D = mySNEA.D.matrix;
-b = mySNEA.b.matrix;
+myNEA  = myNEA.setState(q, dq);
+D = myNEA.D.matrix;
+b = myNEA.b.matrix;
 Db = D * d + b;
 end
 
