@@ -1,6 +1,6 @@
-% derivaticeIDsolver is a class for wrapping differential inverse dynamics solvers
+% derivativeIDsolver is a class for wrapping differential inverse dynamics solvers
 %
-% derivaticeIDsolver is a class that is used to wrap mutiple solvers for
+% derivativeIDsolver is a class that is used to wrap mutiple solvers for
 % computing differential inverse dynamics. Differential inverse dynamic
 % solvers compute an estimation of the dynamic (d: forces, torques,
 % accelerations, etc.) and kinematic (x: joint position and velocities)

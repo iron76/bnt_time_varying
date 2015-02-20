@@ -268,11 +268,11 @@ bnet = mk_bnet(dag, ns, 'discrete', dnodes);
 %  I dx + Dy dy         = v
 %  I dz - Yx dx - Yy dy = w
 %
-%    dy ~ N(         my , Sy)
+%       dy ~ N(         my , Sy)
 %
-% dx|dy ~ N( mx + Dy dy , Sv)
+%    dx|dy ~ N( mx + Dy dy , Sv)
 %
-% dz|dy ~ N( [Yy Yx] [dy; dx] , Sw)
+% dz|dx,dy ~ N( [Yy Yx] [dy; dx] , Sw)
 
 mx  = [ 1 2 ]';
 mz  = [ 3 4 ]';

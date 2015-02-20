@@ -1,6 +1,6 @@
 function obj = solveID(obj)
-%solveID Inverse Dynamics with sparse Newton-Euler Algorithm (SNEA)
-%   This function solves the inverse dynamics problem with the sparse
+%solveID Differential Inverse Dynamics with Newton-Euler Algorithm (DNEA)
+%   This function solves the differential inverse dynamics problem with the
 %   Newton-Euler algorithm, as described in the paper "BERDY: Bayesian 
 %   Estimation for Robot Dynamics. A Probabilistic Estimation of Whole-Body
 %   Dynamics with Redundant Measurements." The output 'd' is structured as
@@ -15,15 +15,28 @@ function obj = solveID(obj)
 %   and a_i is the link-i spatial accelration, fB_i is the net spatial
 %   force on the link-i, f_i is spatial wrench transmitted to link-i from
 %   its parent, tau_i is torque on joint-i, fx_i is the external force on
-%   link-i and d2q_i is acceleration of joint-i. The input to the algorithm
-%   is in obj.IDmeas.y organized as follows:
+%   link-i and d2q_i is acceleration of joint-i. The output x is structured
+%   as follows:
+%
+%   x   = [q, dq]
+%
+%   where q are joint positions and dq joint accelerations. The input to 
+%   the algorithm is in obj.IDmeas.y organized as follows:
 %
 %   obj.IDmeas.y = [y_1, y_2, ... , y_obj.IDsens.m]
 %
-%   The relationship between d and y is given by Y(q, dq) d = y where the
-%   matrix Y(q, dq), is represented as a sparse matrix. Moreover, the
+%   The relationship between d and y is given by Y d = y where the
+%   matrix Y is assumed constant with respect to q and dq. Moreover, the
 %   variables d should satisfy the Newton-Euler equations represented as
-%   D(q,dq) d + b(q, dq) = 0, again represented as a sparse matrix. 
+%   D(x) d + b(x) = 0. The estimation of d and x is obtained by
+%   a minimum variance estimation given the following definitions:
+%
+%   D(x_bar) d + dDb(x_bar, d_bar) x = 0
+%
+%          Y d - y                   = 0
+%
+%   where x_bar and d_bar is the value around which we linearize the
+%   non-linear equations. 
 %
 % Author: Francesco Nori
 % Genova, Dec 2014
@@ -37,26 +50,28 @@ Dy = D(1:19*NB, 19*NB+1:26*NB);
 
 % We write the estimation problem as:
 %
-%     [Dx Dy]*[dx; dy] = v
+%     [Dx Dy dDb] * [dx; dy; x] = v
 %
-% z - [Yx Yy]*[dx; dy] = w
+% z - [Yx Yy   0] * [dx; dy; x] = w
 %
-%    dy   ~ N(             muy, Sy);
-%     v   ~ N(               0, Sv);
-% z|dx,dy ~ N([Yx Yy]*[dx; dy], Sw);
+%     x     ~ N(             mux, Sx);
+%    dy     ~ N(             muy, Sy);
+%     v     ~ N(               0, Sv);
+% z|dx,dy,x ~ N([Yx Yy]*[dx; dy], Sw);
 %
 % With easy substitutions:
 %
-%     dx + Dx^(-1)*Dy*dy] = Dx^(-1)v
+%     dx + Dx^(-1)*[Dy*dy + dDb*x] = Dx^(-1)v
 %
-%    z - [Yx Yy]*[dx; dy] = w
+%             z - [Yx Yy]*[dx; dy] = w
 %
-%   dy    ~ N(             muy, Sy);
-%dx|dy    ~ N(               0, Dx^(-1)*Sv*Dx^(-1)');
-% z|dx,dy ~ N([Yx Yy]*[dx; dy], Sw);
+%         x ~ N(                     mux, Sx);
+%        dy ~ N(                     muy, Sy);
+%   dx|dy,x ~ N( Dx^(-1) [Dy dy + dDb x], Dx^(-1) Sv Dx^(-1)');
+% z|dx,dy,x ~ N(        [Yx Yy]*[dx; dy], Sw);
 %
 % which is totally equivalent to 'SIXTH  EXAMPLE'
-% in gaussSumImplicit.m Some simplifications using`
+% in gaussSumImplicit.m Some simplifications using
 % the Shur complement inversion have been used to
 % reduce the computational cost.
 %
