@@ -1,4 +1,4 @@
-function a = initVarMatrixIndices(a)
+function a = initSsubmatrixIndices(a)
 
 a.iSd = zeros(6*a.IDmodel.n,1);
 a.jSd = zeros(6*a.IDmodel.n,1);

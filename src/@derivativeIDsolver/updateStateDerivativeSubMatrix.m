@@ -2,13 +2,13 @@ function [ obj ] = updateStateDerivativeSubMatrix( obj , d )
 %UPDATESTATEDERIVATIVESUBMATRIX Compute \frac{\partial (Dd + b)}{\partial x}
 %   Compute the derivative of D(q)d + b(q,\dot{q}) with respect to x
 %   (x is defined as (q,\dot{q}).
-%   The output is saved in the Ddbx (please suggest a better name) attribute
+%   The output is saved in the dDb (please suggest a better name) attribute
 %   of the input obj.
 %
 
 [a, ~, f, ~, ~, ~] = extractDynVar(obj.IDmodel.n, d);
 
-obj.Ddbx    = zeros(19*obj.IDmodel.n, 2*obj.IDmodel.n);
+obj.dDb.matrix = zeros(19*obj.IDstate.n, 2*obj.IDstate.n);
 
 for h = 1 : obj.IDstate.n
    %% Compute the derivatives of D_{i,j}d_j subvector of Dd + b
@@ -16,7 +16,7 @@ for h = 1 : obj.IDstate.n
    for i = 1 : obj.IDstate.n
       for j = obj.IDmodel.sparseParams.ind_j{i}
          if( h == j )
-            obj.Ddbx((i-1)*19+13:(i-1)*19+18,h) = (obj.dXupdq{j}')*f{j};
+            obj.dDb = set(obj.dDb, (obj.dXupdq{j}')*f{j}, (i-1)*4+3,h);
          end
       end
    end
@@ -27,7 +27,7 @@ for h = 1 : obj.IDstate.n
       parenti = obj.IDmodel.modelParams.parent(i);
       if obj.IDmodel.modelParams.parent(i) ~= 0;
          if( h == i )
-            obj.Ddbx((i-1)*19+1:(i-1)*19+6,h) = obj.dXupdq{i} * a{parenti};
+            obj.dDb = set(obj.dDb, obj.dXupdq{i} * a{parenti}, (i-1)*4+1,h);
          end
       end
    end
@@ -40,45 +40,42 @@ for h = 1 : obj.IDstate.n
       % b vector
       % If i == 1 and we have only the term of gravitational acceleration
       if (i == 1) && (h == 1)
-         obj.Ddbx((i-1)*19+1:(i-1)*19+6,h) = ...
-            obj.Ddbx((i-1)*19+1:(i-1)*19+6,h) + ...
-            obj.dXupdq{1}*(-obj.IDmodel.g);
+         obj.dDb = set(obj.dDb, obj.dDb((i-1)*4+1,h) + ...
+            obj.dXupdq{1}*(-obj.IDmodel.g), (i-1)*4+1, h);
       elseif i ~= 1
-         obj.Ddbx((i-1)*19+1:(i-1)*19+6,h) = ...
-            obj.Ddbx((i-1)*19+1:(i-1)*19+6,h) + ...
-            crm(obj.dvdx{i,h})*obj.vJ(:,i);
+         obj.dDb = set(obj.dDb, obj.dDb((i-1)*4+1,h) + ...
+            crm(obj.dvdx{i,h})*obj.vJ(:,i), (i-1)*4+1,h);
       end
       
       % \frac{\partial v_i \times^{*} I_i v_i }{\partial q_j} =
       % \frac{\partial v_i}{\partial q_j} \times^{*} I_i v_i +
       % v_i \times^{*} I_i \frac{\partial v_i}{\partial q_j} +
-      obj.Ddbx((i-1)*19+7:(i-1)*19+12,h) = ...
-         obj.Ddbx((i-1)*19+7:(i-1)*19+12,h) + ...
+      obj.dDb = set(obj.dDb, obj.dDb((i-1)*4+2,h) + ...
          crf(obj.dvdx{i,h})*obj.IDmodel.modelParams.I{i}*obj.v(:,i) + ...
-         crf(obj.v(:,i))*obj.IDmodel.modelParams.I{i}*obj.dvdx{i,h};
+         crf(obj.v(:,i))*obj.IDmodel.modelParams.I{i}*obj.dvdx{i,h}, (i-1)*4+2, h);
       
       % If i == 1, this term of the b vector is always zero
       if i ~= 1
          % obj.b = set(obj.b, crm(obj.v(:,i))*obj.vJ(:,i), I+1, 1);
-         obj.Ddbx((i-1)*19+1:(i-1)*19+6,h+obj.IDstate.n) = ...
-            obj.Ddbx((i-1)*19+1:(i-1)*19+6,h+obj.IDstate.n) + ...
-            crm(obj.dvdx{i,obj.IDstate.n+h})*obj.vJ(:,i);
+         obj.dDb = set(obj.dDb, ...
+            obj.dDb((i-1)*4+1,h+obj.IDstate.n) + ...
+            crm(obj.dvdx{i,obj.IDstate.n+h})*obj.vJ(:,i), (i-1)*4+1,h+obj.IDstate.n);
          % if i == h, we have also to compute the derivative of
          % obj.vJ(:,i) wrt to q_i (that is simply S_i)
          if( i == h )
-            obj.Ddbx((i-1)*19+1:(i-1)*19+6,h+obj.IDstate.n) = ...
-               obj.Ddbx((i-1)*19+1:(i-1)*19+6,h+obj.IDstate.n) + ...
-               crm(obj.v(:,i))* obj.IDmodel.S{i};
+            obj.dDb = set(obj.dDb, ...
+               obj.dDb((i-1)*4+1,h+obj.IDstate.n) + ...
+               crm(obj.v(:,i))* obj.IDmodel.S{i}, (i-1)*4+1,h+obj.IDstate.n);
          end
       end
       % obj.b = set(obj.b, crf(obj.v(:,i))*obj.IDmodel.modelParams.I{i}*obj.v(:,i), I+2, 1);
       % \frac{\partial v_i \times^{*} I_i v_i }{\partial \dot{q}_j} =
       % \frac{\partial v_i}{\partial \dot{q}_j} \times^{*} I_i v_i +
       % v_i \times^{*} I_i \frac{\partial v_i}{\partial \dot{q}_j} +
-      obj.Ddbx((i-1)*19+7:(i-1)*19+12,h+obj.IDstate.n) = ...
-         obj.Ddbx((i-1)*19+7:(i-1)*19+12,h+obj.IDstate.n) + ...
+      obj.dDb = set(obj.dDb, ...
+         obj.dDb((i-1)*4+2,h+obj.IDstate.n) + ...
          crf(obj.dvdx{i,obj.IDstate.n+h})*obj.IDmodel.modelParams.I{i}*obj.v(:,i) + ...
-         crf(obj.v(:,i))*obj.IDmodel.modelParams.I{i}*obj.dvdx{i,obj.IDstate.n+h};
+         crf(obj.v(:,i))*obj.IDmodel.modelParams.I{i}*obj.dvdx{i,obj.IDstate.n+h}, (i-1)*4+2,h+obj.IDstate.n);
       
    end
 end

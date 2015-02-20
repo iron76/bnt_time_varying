@@ -43,6 +43,11 @@ classdef derivativeIDsolver < stochasticIDsolver
       %
       dXupdq %% Cell array of mdl.n elements.  dXupdq{i} contains
       %  \frac{\partial {}^{i}X_{\lambda(i)}}{\partial q_i}
+      dDb %% Matrix representing the derivative of D d + b with respect 
+      %  to x = [q; dq] \frac{D d + b}{\partial x}
+      iDb %% indeces to access the dDb submatrix
+      jDb %% indeces to access the dDb submatrix
+      
    end
    
    methods
@@ -63,6 +68,10 @@ classdef derivativeIDsolver < stochasticIDsolver
                b.dvdx{i,j+mdl.n} = zeros(6,1);
             end
          end
+         
+         %% Initialize sumatrices
+         b = initdDsubmatrixIndices(b);
+         b = initdDsubmatrix(b);
       end
 
       function obj = setState(obj,q,dq)

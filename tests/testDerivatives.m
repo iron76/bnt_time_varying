@@ -56,8 +56,8 @@ for i = 1 : num_of_tests
    
    myDNEA = myDNEA.setState(q,dq);
    myDNEA = myDNEA.setD(d);
-   if norm(myDNEA.Ddbx - dD) > 1e-5
-      disp(['dD numerical derivative is quite different: ' num2str(norm(myDNEA.Ddbx - dD))])
+   if norm(myDNEA.dDb.matrix - dD) > 1e-5
+      disp(['dD numerical derivative is quite different: ' num2str(norm(myDNEA.dDb.matrix - dD))])
    end
    
 end

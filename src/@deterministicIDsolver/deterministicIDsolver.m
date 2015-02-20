@@ -31,7 +31,6 @@ classdef deterministicIDsolver
    
    properties (SetAccess = protected, GetAccess = public)
       IDmodel, IDsens, d, D, b, Ds, bs
-      Ddbx %% Matrix of iD rows and 2*n columns, derivative of Dd+q with respect to x
    end
    
    properties (SetAccess = protected)
@@ -63,13 +62,12 @@ classdef deterministicIDsolver
             a.fx      = zeros(6, mdl.n);
             a.tau     = zeros(mdl.n, 1);
             a.d2q     = zeros(mdl.n, 1);
-            a.Ddbx    = zeros(19*mdl.n, 2*mdl.n);
             for i = 1 : mdl.n
                a.Xup{i}  = zeros(6,6);
                a.Xa{i}   = zeros(6,6);
             end
-            a   = initSubMatrixIndices(a);
-            a   = initSubMatrix(a);
+            a   = initDsubmatrixIndices(a);
+            a   = initDsubmatrix(a);
             
             a   = initSparseMatrixIndices(a);
             a   = initSparseMatrix(a);
@@ -139,7 +137,7 @@ classdef deterministicIDsolver
          end         
          %% Compute D matrix and b vector, as defined in the IJRR Paper
          % 
-         obj = updateSubMatrix(obj);
+         obj = updateDsubmatrix(obj);
          
          %% Update the sparse representation of the matrix D
          obj = updateSparseMatrix(obj);
@@ -164,11 +162,11 @@ classdef deterministicIDsolver
    
    methods
       obj = initSparseMatrixIndices(obj);
-      obj = initSubMatrixIndices(obj);
-      obj = initSubMatrix(obj);
+      obj = initDsubmatrixIndices(obj);
+      obj = initDsubmatrix(obj);
       obj = initSparseMatrix(obj);
       
-      obj = updateSubMatrix(obj);
+      obj = updateDsubmatrix(obj);
       obj = updateSparseMatrix(obj);      
    end
 end % classdef

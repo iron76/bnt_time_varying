@@ -1,4 +1,4 @@
-function [ obj ] = updateSubMatrix( obj )
+function [ obj ] = updateDsubmatrix( obj )
 %UPDATESUBMATRIX Summary of this function goes here 	
 % Detailed explanation goes here
 

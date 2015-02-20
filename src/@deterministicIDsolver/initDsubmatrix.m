@@ -1,4 +1,4 @@
-function a   = initSubMatrix(a)
+function a   = initDsubmatrix(a)
 
 a.D = submatrix(a.iD, a.jD);
 a.b = submatrix(a.iD, 1);
