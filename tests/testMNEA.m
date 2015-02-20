@@ -1,14 +1,6 @@
-clear all
-close all
-clc
+function res = testMNEA(dmodel, ymodel)
 
-NB        = 30;
-dmodel    = autoTree(NB);
-
-ymodel    = autoSensSNEA(dmodel);
-
-dmodel    = autoTreeStochastic(dmodel);
-ymodel    = autoSensStochastic(ymodel);
+res = 0;
 
 q         = rand(dmodel.NB,1);
 dq        = rand(dmodel.NB,1);
@@ -39,5 +31,13 @@ t_MNEA = toc;
 disp(['Computation time for MNEA is: ' num2str(t_MNEA) '[sec]']);
 
 disp(['Diff d  between PNEA and MNEA is ' num2str(norm(myMNEA.d-myPNEA.d))]);
+if norm(myMNEA.d-myPNEA.d) ~=0
+   disp('Result is excessively inaccurate. Test is declared failed!');
+   res = 1;
+end
 disp(['Diff Sd between PNEA and MNEA is ' num2str(norm(myMNEA.Sd-myPNEA.Sd))]);
+if norm(myMNEA.d-myPNEA.d) ~=0
+   disp('Result is excessively inaccurate. Test is declared failed!');
+   res = 1;
+end
 

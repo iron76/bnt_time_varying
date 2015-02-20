@@ -1,11 +1,6 @@
-clear all
-close all
-clc
+function res = testMRNEA(dmodel, ymodel)
 
-NB        = 20;
-m         = 4;
-dmodel    = autoTree(NB);
-ymodel    = autoSensRNEA(dmodel);
+res = 0;
 
 q         = rand(dmodel.NB,1);
 dq        = rand(dmodel.NB,1);
@@ -37,6 +32,11 @@ disp(['[1st] CPU time for RNEA is: ' num2str(t_RNEA) '[sec]']);
 disp(['[1st] Diff RNEA and MRNEA is ' num2str(norm(myMRNEA.d-myRNEA.d))]);
 disp('/\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ ')
 
+if norm(norm(myMRNEA.d-myRNEA.d)) > 1e-10
+   disp('Result is excessively inaccurate. Test is declared failed!');
+   res = 1;
+end
+
 q         = rand(dmodel.NB,1);
 dq        = rand(dmodel.NB,1);
 y         = rand(ymodel.m,1);
@@ -56,6 +56,11 @@ t_RNEA = toc;
 disp(['[2st] CPU time for RNEA is: ' num2str(t_RNEA) '[sec]']);
 disp(['[2st] Diff RNEA and MRNEA is ' num2str(norm(myMRNEA.d-myRNEA.d))]);
 disp('/\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ ')
+
+if norm(norm(myMRNEA.d-myRNEA.d)) > 1e-10
+   disp('Result is excessively inaccurate. Test is declared failed!');
+   res = 1;
+end
 
 q         = rand(dmodel.NB,1);
 dq        = rand(dmodel.NB,1);
@@ -77,3 +82,7 @@ disp(['[3st] CPU time for RNEA is: ' num2str(t_RNEA) '[sec]']);
 disp(['[3st] Diff RNEA and MRNEA is ' num2str(norm(myMRNEA.d-myRNEA.d))]);
 disp('/\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ ')
 
+if norm(norm(myMRNEA.d-myRNEA.d)) > 1e-10
+   disp('Result is excessively inaccurate. Test is declared failed!');
+   res = 1;
+end

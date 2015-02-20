@@ -1,15 +1,9 @@
-clear all
-close all
-clc
+function res = testLearnBNEA(dmodel, ymodel)
 
-NB      = 30;   %number of rigid bodies
-n       = 10;   %number of samples
+res = 0;
 
-dmodel  = autoTree(NB);
-ymodel  = autoSensSNEA(dmodel);
-
-dmodel  = autoTreeStochastic(dmodel);
-ymodel  = autoSensStochastic(ymodel);
+n  = 10;         %number of samples
+NB = dmodel.NB;  %number of links
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 myModel = model(dmodel);
@@ -43,7 +37,12 @@ end
 % as to have non-decresing EM steps.
 
 cov_prior_weight = 1e-15;
-bnetHat = EM_bnet_learn(bnet, sample, cov_prior_weight);
+[bnetHat, ll] = EM_bnet_learn(bnet, sample, cov_prior_weight);
+
+if (sum(diff(ll) < 0) ~= 0) && (norm(ll(end-1)-ll(end)) > 1e-5)
+   disp('Something wrong with the EM algorithm. Declaring the test failed!')
+   res = 1;
+end
 
 dir_ind = cell2mat(myBNEA.bnt.nodes.index);
 inv_ind(dir_ind) = 1:length(dir_ind);
