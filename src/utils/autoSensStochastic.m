@@ -14,20 +14,20 @@ if nargin == 1
    sMeas   = 1;
 end
 
-idSy_inv = []; jdSy_inv = []; dSy_inv=[];
-
-my = 1;
+iSy_s = cell2mat(model.sizes);
+jSy_s = cell2mat(model.sizes);
+model.Sy_inv = submatrixSparse(iSy_s, jSy_s, (1:length(iSy_s))', (1:length(jSy_s))');
+model.Sy     = submatrixSparse(iSy_s, jSy_s, (1:length(iSy_s))', (1:length(jSy_s))');
 
 for i = 1 : model.ny
    dy = model.sizes{i,1};
-   model.Sy{i,1} = sMeas.*generateSPDmatrix(dy);
-   [ii, jj, ss] = placeSubmatrixSparse(my, my, inv(model.Sy{i,1}));
-   idSy_inv = [idSy_inv; ii];
-   jdSy_inv = [jdSy_inv; jj];
-   dSy_inv  = [dSy_inv;  ss];
-   my = my + dy;
+   % model.Sy{i,1} = sMeas.*generateSPDmatrix(dy);
+   % S = inv(model.Sy{i,1});
+   S = sMeas.*generateSPDmatrix(dy);
+   model.Sy_inv = set(model.Sy_inv, inv(S), i, i);
+   model.Sy     = set(model.Sy    ,     S , i, i);
 end
-model.Sy_inv = sparse(idSy_inv, jdSy_inv, dSy_inv);
+
 end
 
 function A = generateSPDmatrix(n)

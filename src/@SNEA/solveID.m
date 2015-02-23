@@ -67,11 +67,11 @@ Dy = sparse(obj.iDs(obj.kDy), obj.jDs(obj.kDy)-19*NB, obj.Ds(obj.kDy), 19*NB,  7
 % (S^(-1)+[Yy Yx]'*Sw^(-1)*[Yy Yx])^(-1)
 
 % Sv_inv = eye(19*NB)./sModel;
-Sv_inv = obj.IDmodel.modelParams.Sv_inv;
+Sv_inv = obj.IDmodel.modelParams.Sv_inv.matrix;
 % Sw_inv = eye(7*NB) ./sUknown;
-Sw_inv = obj.IDmodel.modelParams.Sw_inv;
+Sw_inv = obj.IDmodel.modelParams.Sw_inv.matrix;
 % Sy_inv = eye(my)   ./sMeas;
-Sy_inv = obj.IDsens.sensorsParams.Sy_inv;
+Sy_inv = obj.IDsens.sensorsParams.Sy_inv.matrix;
 
 Sinv   = [Dx'*Sv_inv*Dx Dx'*Sv_inv*Dy; Dy'*Sv_inv*Dx, Sw_inv+ Dy'*Sv_inv*Dy];
 Sw     = Sw_inv\sparse(1:7*NB, 1:7*NB, 1);

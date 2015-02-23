@@ -35,37 +35,57 @@ elseif nargin == 2
    sUknown = sModel*1e3;
 end
 
-idSw_inv = []; jdSw_inv = []; dSw_inv=[];
-idSv_inv = []; jdSv_inv = []; dSv_inv=[];
+
+%% Sv
+iSv_s = zeros(4*model.NB,1);
+jSv_s = zeros(4*model.NB,1);
+for i = 1 : model.NB
+   [~, Sq    ] = jcalc( model.jtype{i} , 0);
+   [~, jn(i) ] = size(Sq);
+   iSv_s((i-1)*4+1 : 4*i, 1) = [6 6 6 jn(i)]';
+   jSv_s((i-1)*4+1 : 4*i, 1) = [6 6 6 jn(i)]';
+end
+model.Sv_inv = submatrixSparse(iSv_s, jSv_s, (1:length(iSv_s))', (1:length(jSv_s))');
+model.Sv     = submatrixSparse(iSv_s, jSv_s, (1:length(iSv_s))', (1:length(jSv_s))');
 
 for i = 1 : model.NB
-   model.Sm.a{i}   = sModel.*generateSPDmatrix(6);
-   model.Sm.fB{i}  = sModel.*generateSPDmatrix(6);
-   model.Sm.f{i}   = sModel.*generateSPDmatrix(6);
-   model.Sm.tau{i} = sModel.*generateSPDmatrix(1);
-   
-   [ii, jj, ss] = placeSubmatrixSparse(19*i-18, 19*i-18, ...
-      [inv(model.Sm.a{i})  zeros(6,6)    zeros(6,6)   zeros(6,1); ...
-      zeros(6,6)     inv(model.Sm.fB{i}) zeros(6,6)   zeros(6,1); ...
-      zeros(6,6)     zeros(6,6)    inv(model.Sm.f{i}) zeros(6,1); ...
-      zeros(1,6)     zeros(1,6)    zeros(1,6)   inv(model.Sm.tau{i})]);
-   idSv_inv = [idSv_inv; ii];
-   jdSv_inv = [jdSv_inv; jj];
-   dSv_inv  = [dSv_inv;  ss];
-   
-   model.Su.fx{i}  = sUknown.*generateSPDmatrix(6);
-   model.Su.d2q{i} = sUknown.*generateSPDmatrix(1);
+   S = sModel.*generateSPDmatrix(6);
+   model.Sv_inv = set(model.Sv_inv, inv(S), (i-1)*4+1, (i-1)*4+1);
+   model.Sv     = set(model.Sv    ,     S , (i-1)*4+1, (i-1)*4+1);
 
+   S = sModel.*generateSPDmatrix(6);
+   model.Sv_inv = set(model.Sv_inv, inv(S), (i-1)*4+2, (i-1)*4+2);
+   model.Sv     = set(model.Sv    ,     S , (i-1)*4+2, (i-1)*4+2);
 
-   [ii, jj, ss] = placeSubmatrixSparse(7*i-6, 7*i-6, [inv(model.Su.fx{i}) zeros(6,1); zeros(1,6) inv(model.Su.d2q{i})]);
-   idSw_inv = [idSw_inv; ii];
-   jdSw_inv = [jdSw_inv; jj];
-   dSw_inv  = [dSw_inv;  ss];
-   
-   
+   S = sModel.*generateSPDmatrix(6);
+   model.Sv_inv = set(model.Sv_inv, inv(S), (i-1)*4+3, (i-1)*4+3);
+   model.Sv     = set(model.Sv    ,     S , (i-1)*4+3, (i-1)*4+3);
+
+   S = sModel.*generateSPDmatrix(1);
+   model.Sv_inv = set(model.Sv_inv, inv(S), (i-1)*4+4, (i-1)*4+4);
+   model.Sv     = set(model.Sv    ,     S , (i-1)*4+4, (i-1)*4+4);
 end
-model.Sv_inv = sparse(idSv_inv, jdSv_inv, dSv_inv);
-model.Sw_inv = sparse(idSw_inv, jdSw_inv, dSw_inv);
+
+%% Sw
+iSw_s = zeros(2*model.NB,1);
+jSw_s = zeros(2*model.NB,1);
+for i = 1 : model.NB
+   iSw_s((i-1)*2+1 : 2*i, 1) = [6 jn(i)]';
+   jSw_s((i-1)*2+1 : 2*i, 1) = [6 jn(i)]';
+end
+model.Sw_inv = submatrixSparse(iSw_s, jSw_s, (1:length(iSw_s))', (1:length(jSw_s))');
+model.Sw     = submatrixSparse(iSw_s, jSw_s, (1:length(iSw_s))', (1:length(jSw_s))');
+
+for i = 1 : model.NB
+   S = sUknown.*generateSPDmatrix(6);
+   model.Sw_inv = set(model.Sw_inv, inv(S), (i-1)*2+1, (i-1)*2+1);
+   model.Sw     = set(model.Sw    ,     S , (i-1)*2+1, (i-1)*2+1);
+
+   S = sUknown.*generateSPDmatrix(1);
+   model.Sw_inv = set(model.Sw_inv, inv(S), (i-1)*2+2, (i-1)*2+2);
+   model.Sw     = set(model.Sw    ,     S , (i-1)*2+2, (i-1)*2+2);
+end
+
 end
 
 function A = generateSPDmatrix(n)

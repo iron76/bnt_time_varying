@@ -39,7 +39,7 @@ end
 cov_prior_weight = 1e-15;
 [bnetHat, ll] = EM_bnet_learn(bnet, sample, cov_prior_weight);
 
-if (sum(diff(ll) < 0) ~= 0) && (norm(ll(end-1)-ll(end)) > 1e-5)
+if (sum(diff(ll) < 0) ~= 0) && (norm(ll(end-1)-ll(end)) > 1e-3)
    disp('Something wrong with the EM algorithm. Declaring the test failed!')
    res = 1;
 end
