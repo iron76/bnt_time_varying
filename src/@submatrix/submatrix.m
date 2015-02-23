@@ -53,9 +53,9 @@ classdef submatrix
             
             [mA, nA] = size(A);
             if mA ~= b.cm(end)
-               error('when calling submatrix(A, m, n) the sum(m) should equal the number of rows in A')
+               error('when calling submatrix(m, n, A) the sum(m) should equal the number of rows in A')
             elseif nA ~= b.cn(end)
-               error('when calling submatrix(A, m, n) the sum(n) should equal the number of columns in A')
+               error('when calling submatrix(m, n, A) the sum(n) should equal the number of columns in A')
             end
          elseif nargin == 2
             b.m  = m(:)';
