@@ -51,6 +51,6 @@ if res ~=0
    disp('[ERROR] One of the tests failed!')
 else
    disp('------------------------------------')
-   disp('REPORT: All tests ended sucessuflly!')
+   disp('REPORT: All tests ended successfully!')
    disp('------------------------------------')
 end

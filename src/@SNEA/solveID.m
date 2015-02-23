@@ -33,10 +33,9 @@ function obj = solveID(obj)
 
 NB = obj.IDmodel.modelParams.NB;
 b  = sparse(obj.ibs, ones(length(obj.ibs),1), obj.bs, 19*NB, 1);
-D  = sparse(obj.iDs, obj.jDs, obj.Ds, 19*NB, 26*NB); 
 
-Dx = D(1:19*NB, 1:19*NB);
-Dy = D(1:19*NB, 19*NB+1:26*NB);
+Dx = sparse(obj.iDs(obj.kDx), obj.jDs(obj.kDx)      , obj.Ds(obj.kDx), 19*NB, 19*NB); 
+Dy = sparse(obj.iDs(obj.kDy), obj.jDs(obj.kDy)-19*NB, obj.Ds(obj.kDy), 19*NB,  7*NB); 
 
 % We write the estimation problem as:
 %

@@ -30,13 +30,23 @@ classdef deterministicIDsolver
    end
    
    properties (SetAccess = protected, GetAccess = public)
-      IDmodel, IDsens, d, D, b, Ds, bs
+      IDmodel, IDsens, d, D, b,
+      
+      iDs  %% i-indeces for the sparse representation of D
+      jDs  %% j- indeces for the sparse representation of D
+      Ds   %% values fot the sparse representation of D
+      
+      ibs  %% i-indeces for the sparse representation of b
+      bs   %% values fot the sparse representation of b
+      
+      kDx  %% indices for Dx
+      kDy  %% indices for Dy
    end
    
    properties (SetAccess = protected)
       Xup %% Cell array of mdl.n elements. Xup{i} contains {}^{i}X_{\lambda(i)}
       Xa  %% Cell array of mdl.n elements. Xa{i}  contains {}^{i}X_{0}
-      vJ, v, a, fB, f, fx, d2q, tau, iD, jD, iDs, jDs, ibs
+      vJ, v, a, fB, f, fx, d2q, tau, iD, jD
    end
    
    % Class methods
