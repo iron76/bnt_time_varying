@@ -34,6 +34,7 @@ function obj = solveID(obj)
 NB = obj.IDmodel.modelParams.NB;
 b  = sparse(obj.ibs, ones(length(obj.ibs),1), obj.bs, 19*NB, 1);
 
+% [Dx Dy] = D
 Dx = sparse(obj.iDs(obj.kDx), obj.jDs(obj.kDx)      , obj.Ds(obj.kDx), 19*NB, 19*NB); 
 Dy = sparse(obj.iDs(obj.kDy), obj.jDs(obj.kDy)-19*NB, obj.Ds(obj.kDy), 19*NB,  7*NB); 
 
@@ -70,11 +71,11 @@ Dy = sparse(obj.iDs(obj.kDy), obj.jDs(obj.kDy)-19*NB, obj.Ds(obj.kDy), 19*NB,  7
 Sv_inv = obj.IDmodel.modelParams.Sv_inv.matrix;
 % Sw_inv = eye(7*NB) ./sUknown;
 Sw_inv = obj.IDmodel.modelParams.Sw_inv.matrix;
+Sw     = obj.IDmodel.modelParams.Sw.matrix;
 % Sy_inv = eye(my)   ./sMeas;
 Sy_inv = obj.IDsens.sensorsParams.Sy_inv.matrix;
 
 Sinv   = [Dx'*Sv_inv*Dx Dx'*Sv_inv*Dy; Dy'*Sv_inv*Dx, Sw_inv+ Dy'*Sv_inv*Dy];
-Sw     = Sw_inv\sparse(1:7*NB, 1:7*NB, 1);
 Dx_inv = Dx\sparse(1:19*NB, 1:19*NB, 1);
 Y = obj.IDsens.sensorsParams.Ys;
 
