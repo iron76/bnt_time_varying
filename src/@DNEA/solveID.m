@@ -68,7 +68,7 @@ Dy = D(1:19*NB, 19*NB+1:26*NB);
 %         x ~ N(                     mux, Sx);
 %        dy ~ N(                     muy, Sy);
 %   dx|dy,x ~ N( Dx^(-1) [Dy dy + dDb x], Dx^(-1) Sv Dx^(-1)');
-% z|dx,dy,x ~ N(        [Yx Yy]*[dx; dy], Sw);
+% z|dx,dy,x ~ N(   [Yx Yy 0]*[dx; dy; x], Sw);
 %
 % which is totally equivalent to 'SIXTH  EXAMPLE'
 % in gaussSumImplicit.m Some simplifications using
@@ -78,6 +78,13 @@ Dy = D(1:19*NB, 19*NB+1:26*NB);
 %  S      = [Sy, -Sy*Dy'; -Dy*Sy, Sv + Dy*Sy*Dy'];
 %  S^(-1) = [Sy^(-1)+Dy'*Sv^(-1)*Dy, Sv^(-1)*Dy; Dy'*Sv^(-1), Sv^(-1)];
 % (S^(-1)+[Yy Yx]'*Sw^(-1)*[Yy Yx])^(-1)
+%
+% In practice computations are as before with the 
+% following redefinitions:
+%
+%      Sy -> [Sy, 0; 0 Sx]
+% [Yx Yy] -> [Yx Yy 0]
+%      Dy -> [Dy dDb]
 
 % Sv_inv = eye(19*NB)./sModel;
 Sv_inv = obj.IDmodel.modelParams.Sv_inv;
