@@ -51,8 +51,7 @@ classdef derivativeIDsolver < stochasticIDsolver
       dDb_s %% Matrix representing the derivative of D d + b with respect 
       %  to x = [q; dq] \frac{D d + b}{\partial x}, sparse version
       iDb_s %% indeces to access the dDb submatrix, sparse version
-      jDb_s %% indeces to access the dDb submatrix, sparse version
-      
+      jDb_s %% indeces to access the dDb submatrix, sparse version      
    end
    
    methods
