@@ -10,6 +10,10 @@ ymodel    = autoSensRNEA(dmodel);
 dmodel    = autoTreeStochastic(dmodel, 1e-2);
 ymodel    = autoSensStochastic(ymodel, 1e-5);
 
+res = res || testSubmatrix;
+
+res = res || testSubmatrixSparse;
+
 res = res || testSNEA(dmodel, ymodel);
 
 res = res || testRNEA(dmodel, ymodel);

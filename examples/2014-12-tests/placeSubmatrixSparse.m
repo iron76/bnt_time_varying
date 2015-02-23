@@ -1,4 +1,4 @@
-function [ i, j, s ] = submatrixSparse( h, k, A)
+function [ i, j, s ] = placeSubmatrixSparse( h, k, A)
 %SUBMATRIXSPARSE build indeces for placing a submatrix in a sparse matrix 
 %   This function takes a non-sparse matrix A and gives the indeces (i,j)
 %   and the values (s) which can be used to place the same matrix

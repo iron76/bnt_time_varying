@@ -29,7 +29,7 @@ for nb = nbVals
       Sm.f{i}   = sModel.*generateSPDmatrix(6);
       Sm.tau{i} = sModel.*generateSPDmatrix(1);
       
-      [ii, jj, ss] = submatrixSparse(19*i-18, 19*i-18, ...
+      [ii, jj, ss] = placeSubmatrixSparse(19*i-18, 19*i-18, ...
          [inv(Sm.a{i})  zeros(6,6)    zeros(6,6)   zeros(6,1); ...
          zeros(6,6)     inv(Sm.fB{i}) zeros(6,6)   zeros(6,1); ...
          zeros(6,6)     zeros(6,6)    inv(Sm.f{i}) zeros(6,1); ...
@@ -45,7 +45,7 @@ for nb = nbVals
       %   1./diag(Sm.a{i});  1./diag(Sm.fB{i}); ... 
       %   1./diag(Sm.f{i});  1./diag(Sm.tau{i})];
       
-      [ii, jj, ss] = submatrixSparse(7*i-6, 7*i-6, [inv(Su.fx{i}) zeros(6,1); zeros(1,6) inv(Su.d2q{i})]);
+      [ii, jj, ss] = placeSubmatrixSparse(7*i-6, 7*i-6, [inv(Su.fx{i}) zeros(6,1); zeros(1,6) inv(Su.d2q{i})]);
       idSw_inv = [idSw_inv; ii];
       jdSw_inv = [jdSw_inv; jj];
       dSw_inv  = [dSw_inv;  ss];
@@ -74,7 +74,7 @@ for nb = nbVals
          y.sizes{ny,1}  = 6;
          y.labels{ny,1} = ['a' num2str(i)];
          y.S{ny,1}      = sMeas.*generateSPDmatrix(6);
-         [ii, jj, ss] = submatrixSparse(my, my, inv(y.S{ny,1}));
+         [ii, jj, ss] = placeSubmatrixSparse(my, my, inv(y.S{ny,1}));
          idSy_inv = [idSy_inv; ii];
          jdSy_inv = [jdSy_inv; jj];
          dSy_inv  = [dSy_inv;  ss];
@@ -85,7 +85,7 @@ for nb = nbVals
          y.sizes{ny,1} = 6;
          y.labels{ny,1} = ['fB' num2str(i)];
          y.S{ny,1}      = sMeas.*generateSPDmatrix(6);
-         [ii, jj, ss] = submatrixSparse(my, my, inv(y.S{ny,1}));
+         [ii, jj, ss] = placeSubmatrixSparse(my, my, inv(y.S{ny,1}));
          idSy_inv = [idSy_inv; ii];
          jdSy_inv = [jdSy_inv; jj];
          dSy_inv  = [dSy_inv;  ss];
@@ -96,7 +96,7 @@ for nb = nbVals
          y.sizes{ny,1} = 6;
          y.labels{ny,1} = ['f' num2str(i)];
          y.S{ny,1}      = sMeas.*generateSPDmatrix(6);
-         [ii, jj, ss] = submatrixSparse(my, my, inv(y.S{ny,1}));
+         [ii, jj, ss] = placeSubmatrixSparse(my, my, inv(y.S{ny,1}));
          idSy_inv = [idSy_inv; ii];
          jdSy_inv = [jdSy_inv; jj];
          dSy_inv  = [dSy_inv;  ss];
@@ -107,7 +107,7 @@ for nb = nbVals
          y.sizes{ny,1} = 1;
          y.labels{ny,1} = ['tau' num2str(i)];
          y.S{ny,1}      = sMeas.*generateSPDmatrix(1);
-         [ii, jj, ss] = submatrixSparse(my, my, inv(y.S{ny,1}));
+         [ii, jj, ss] = placeSubmatrixSparse(my, my, inv(y.S{ny,1}));
          idSy_inv = [idSy_inv; ii];
          jdSy_inv = [jdSy_inv; jj];
          dSy_inv  = [dSy_inv;  ss];
@@ -118,7 +118,7 @@ for nb = nbVals
          y.sizes{ny,1} = 6;
          y.labels{ny,1} = ['fx'  num2str(i)];
          y.S{ny,1}      = sMeas.*generateSPDmatrix(6);
-         [ii, jj, ss] = submatrixSparse(my, my, inv(y.S{ny,1}));
+         [ii, jj, ss] = placeSubmatrixSparse(my, my, inv(y.S{ny,1}));
          idSy_inv = [idSy_inv; ii];
          jdSy_inv = [jdSy_inv; jj];
          dSy_inv  = [dSy_inv;  ss];
@@ -129,7 +129,7 @@ for nb = nbVals
          y.sizes{ny,1} = 1;
          y.labels{ny,1} = ['d2q' num2str(i)];
          y.S{ny,1}      = sMeas.*generateSPDmatrix(1);
-         [ii, jj, ss] = submatrixSparse(my, my, inv(y.S{ny,1}));
+         [ii, jj, ss] = placeSubmatrixSparse(my, my, inv(y.S{ny,1}));
          idSy_inv = [idSy_inv; ii];
          jdSy_inv = [jdSy_inv; jj];
          dSy_inv  = [dSy_inv;  ss];

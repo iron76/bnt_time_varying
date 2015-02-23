@@ -44,7 +44,7 @@ for i = 1 : model.NB
    model.Sm.f{i}   = sModel.*generateSPDmatrix(6);
    model.Sm.tau{i} = sModel.*generateSPDmatrix(1);
    
-   [ii, jj, ss] = submatrixSparse(19*i-18, 19*i-18, ...
+   [ii, jj, ss] = placeSubmatrixSparse(19*i-18, 19*i-18, ...
       [inv(model.Sm.a{i})  zeros(6,6)    zeros(6,6)   zeros(6,1); ...
       zeros(6,6)     inv(model.Sm.fB{i}) zeros(6,6)   zeros(6,1); ...
       zeros(6,6)     zeros(6,6)    inv(model.Sm.f{i}) zeros(6,1); ...
@@ -57,7 +57,7 @@ for i = 1 : model.NB
    model.Su.d2q{i} = sUknown.*generateSPDmatrix(1);
 
 
-   [ii, jj, ss] = submatrixSparse(7*i-6, 7*i-6, [inv(model.Su.fx{i}) zeros(6,1); zeros(1,6) inv(model.Su.d2q{i})]);
+   [ii, jj, ss] = placeSubmatrixSparse(7*i-6, 7*i-6, [inv(model.Su.fx{i}) zeros(6,1); zeros(1,6) inv(model.Su.d2q{i})]);
    idSw_inv = [idSw_inv; ii];
    jdSw_inv = [jdSw_inv; jj];
    dSw_inv  = [dSw_inv;  ss];
