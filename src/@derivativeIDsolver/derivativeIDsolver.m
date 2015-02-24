@@ -26,6 +26,7 @@
 %     IDsens - the model of the sensor distribution (class sensors)
 %          d - dynamic varaibles [a_i, fB_i, f_i, tau_i, fx_i, d2q_i]
 %          x - kinematic variables [q, dq]
+%         Sx - kinematic vriables variance
 %
 % METHODS
 %   setState - set the current value for x_bar (position q and velocity dq)
@@ -37,7 +38,9 @@
 
 classdef derivativeIDsolver < stochasticIDsolver
    properties (SetAccess = protected)
-      dvdx %% Bidimensional cell array of mdl.n \times 2*mdl.n elements
+      Sx_inv %% The inverse variance of the current esimation for x
+      Sx     %% The variance of the current esimation for x
+      dvdx   %% Bidimensional cell array of mdl.n \times 2*mdl.n elements
       % dvdx{i,h} contains \frac{\partial v_i}{\partial q_h} if h <= n
       % otherwise it contains \frac{\partial v_1}{\partial \dot{q}_{h-n}}
       %
@@ -51,8 +54,17 @@ classdef derivativeIDsolver < stochasticIDsolver
       dDb_s %% Matrix representing the derivative of D d + b with respect 
       %  to x = [q; dq] \frac{D d + b}{\partial x}, sparse version
       iDb_s %% indeces to access the dDb submatrix, sparse version
-      jDb_s %% indeces to access the dDb submatrix, sparse version      
+      jDb_s %% indeces to access the dDb submatrix, sparse version  
+      
+      x_bar %% the current estimation for x (around which we linearize)
+      d_bar %% the current estimation for d (around which we linearize)
    end
+
+   properties
+      sparsified = 0;     %% check if sparsification was already performed
+      S                   %% the sparsification matrix
+      x                   %% the result of the estimation for x
+   end   
    
    methods
       function b = derivativeIDsolver(mdl,sns)
@@ -122,6 +134,9 @@ classdef derivativeIDsolver < stochasticIDsolver
                end
             end
          end
+         
+         %% Current state estimation corresponds to [q; dq]
+         obj.x_bar = [q; dq];        
       end % derivativeIDsolver
       
       function disp(b)
@@ -137,8 +152,29 @@ classdef derivativeIDsolver < stochasticIDsolver
             error('[ERROR] The input d should be provided as a column vector with 26*model.NB rows');
          end
          %  as defined in the IJRR Paper
-         obj = updateStateDerivativeSubMatrix(obj, d);
+         obj.d_bar = d;
+         obj = updateStateDerivativeSubMatrix(obj, obj.d_bar);
       end
+
+      function obj = setStateVariance(obj,Sx)
+         [m,n] = size(Sx);
+         if (m ~= obj.IDmodel.modelParams.NB * 2) || (n ~= obj.IDmodel.modelParams.NB * 2)
+            error('[ERROR] The input Sx should be a matrix with 2*model.NB rows and columns');
+         end
+         S = inv(Sx);
+         [iS, jS] = find(S);
+         obj.Sx_inv = submatrixSparse(ones(m,1), ones(n,1), iS, jS);
+         for k = 1 : length(iS)
+            obj.Sx_inv = set(obj.Sx_inv, S(iS(k),jS(k)), iS(k), jS(k));
+         end
+         
+         S = Sx;
+         [iS, jS] = find(S);
+         obj.Sx = submatrixSparse(ones(m,1), ones(n,1), iS, jS);
+         for k = 1 : length(iS)
+            obj.Sx = set(obj.Sx, S(iS(k),jS(k)), iS(k), jS(k));
+         end
+      end      
       
       function y = simY(obj, d)
          % fprintf('Calling the stochasticIDsolver simY method \n');
