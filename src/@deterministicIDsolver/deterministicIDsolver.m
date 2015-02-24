@@ -41,6 +41,8 @@ classdef deterministicIDsolver
       
       kDx  %% indices for Dx
       kDy  %% indices for Dy
+      
+      id   %% indices for converting [dx dy] in d
    end
    
    properties (SetAccess = protected)
@@ -76,7 +78,7 @@ classdef deterministicIDsolver
                a.Xup{i}  = zeros(6,6);
                a.Xa{i}   = zeros(6,6);
             end
-            a   = initDsubmatrixIndices(a);
+            a   = initDsubmatrixIndices(a);            
             a   = initDsubmatrix(a);
             
             a   = initSparseMatrixIndices(a);

@@ -101,25 +101,8 @@ end
 % d   = mxy + Ss\Y'*Sy_inv*(obj.IDmeas.y-Y*mxy);
 d   = mxy +obj.S*((obj.S'*Ss*obj.S)\(obj.S'*(Y'*Sy_inv*(obj.IDmeas.y-Y*mxy))));
 
-dx    =      d(1:NB*19      , 1);
-dy    =      d(1+NB*19 : end, 1);
-
-dxc  = mat2cell( dx, 19*ones(1, NB), 1);
-dyc  = mat2cell( dy,  7*ones(1, NB), 1);
-
-for i = 1 : NB
-  dc{i}   = [dxc{i,1}; dyc{i,1}];
-  
-  obj.a  (1:6,i) = dc{i}( 1: 6, 1);
-  obj.fB (1:6,i) = dc{i}( 7: 12, 1);
-  obj.f  (1:6,i) = dc{i}(13: 18, 1);
-  obj.tau(1:1,i)  = dc{i}(19, 1);
-  obj.fx (1:6,i) = dc{i}( 20: 25, 1);
-  obj.d2q(1:1,i)  = dc{i}(26, 1);
-  
-  d((1:26)+(i-1)*26, 1) = [obj.a(1:6,i); obj.fB(1:6,i); obj.f(1:6,i); obj.tau(1,i); obj.fx(1:6,i); obj.d2q(1,i)];
-end
-obj.d = d;
+% shuffle from [dx dy] to d
+obj.d = d(obj.id,1);
 
 
 end % solveID
