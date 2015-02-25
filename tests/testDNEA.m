@@ -1,11 +1,70 @@
 function res = testDNEA(dmodel, ymodel)
 
+% This function checks if the differntial procedure for estimating [d; x]
+% from [d_bar; x_bar] works properly. Roughly speaking we start from the
+% following equations:
+%
+% D(x) d + b(x) = 0
+% Y(x) d - y    = 0
+%
+% and the differential estimation should give [d; x] which staisfy the
+% above non-linear equations. The estimation is similar to a Newton-like
+% optimization step, starting from an initial estimation [d_bar; x_bar].
+% The first order approximation of the above non-linear equations around
+% [d_bar; x_bar] is given by:
+%
+% D(x_bar) d + b(x_bar) + dDb(d_bar, x_bar) (x-x_bar) = 0 
+% Y(x_bar) d - y        + dY(x_bar)         (x-x_bar) = 0 
+%
+% where dDb(d_bar, x_bar) is the derivative of D(x)d+b with respect to x
+% evaluated at [d_bar; x_bar] and dY(x_bar) is the derivative of Y(x) with
+% respect to x evaluated at x_bar. In order to check the procedure, we
+% start by assuming [d_bar; x_bar] such that it satisfies the non-linear 
+% equation system. The first set of equations is guranteed by choosing:
+% 
+% d_bar = myRNEA.d;
+%
+% The second set of equations is guaranteed by choosing:
+%
+% y = mySNEA.simY(d_bar);
+%
+% In the specific implmentation Y is not a function of x and therefore the
+% linerarization simplifies as follows:
+%
+% D(x_bar) d + b(x_bar) + dDb(d_bar, x_bar) (x-x_bar) = 0 
+% Y(x_bar) d - y                                      = 0 
+%
+% The estimation for [d; x] is obtained by solving the above equations in
+% [d;x], thus it consits of solving a linear system. If the matrix:
+%
+% | D(x_bar)    dDb(d_bar, x_bar) |
+% | Y(x_bar)    0                 |
+%
+% is full-rank, a unique solution exists and should coincide with 
+% [d; x] = [d_bar; x_bar]. When it is not full-rank the function tries to
+% modify the sensor placement in a recursive fashion. Heuristically, there
+% seems to be quite a good probability of finding a sensor distribution
+% which is associated to a full-rank matrix.
+
+
+ymodel_RNEA = autoSensRNEA(dmodel);
+ymodel_RNEA = autoSensStochastic(ymodel_RNEA, 1e-5);
+
 res = 0;
 
 q         = rand(dmodel.NB,1);
 dq        = rand(dmodel.NB,1);
-y         = rand(ymodel.m,1);
-Sx        = diag(rand(dmodel.NB*2, 1)*1e-12);
+Sx        = diag(rand(dmodel.NB*2, 1));
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+myModel = model(dmodel);
+mySens  = sensors(ymodel_RNEA);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+myRNEA    = RNEA(myModel, mySens);
+myRNEA    = myRNEA.setState(q,dq);
+myRNEA    = myRNEA.solveID();
+d_bar     = myRNEA.d;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 myModel = model(dmodel);
@@ -14,14 +73,15 @@ mySens  = sensors(ymodel);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 mySNEA    = SNEA(myModel, mySens);
 mySNEA    = mySNEA.setState(q,dq);
+y         = mySNEA.simY(d_bar);
 mySNEA    = mySNEA.setY(y);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 myDNEA    = DNEA(myModel, mySens);
 myDNEA    = myDNEA.setState(q,dq);
+y         = mySNEA.simY(d_bar);
 myDNEA    = myDNEA.setY(y);
 myDNEA    = myDNEA.setStateVariance(Sx);
-
 
 
 if (sum(q-mySNEA.IDstate.q))
@@ -41,22 +101,27 @@ end
 
 mySNEA = mySNEA.solveID();
 
-myDNEA = myDNEA.setD(mySNEA.d);
+myDNEA = myDNEA.setD(d_bar);
 myDNEA = myDNEA.solveID();
 
 D  = sparse(myDNEA.iDs, myDNEA.jDs, myDNEA.Ds, 19*dmodel.NB, 26*dmodel.NB); 
 DY = [D myDNEA.dDb_s.matrix; myDNEA.IDsens.sensorsParams.Ys zeros(myDNEA.IDmeas.m, dmodel.NB*2)];
 if rank(full(DY)) < 26*dmodel.NB + 2*dmodel.NB
-   disp('The extended matrix [D;Y] is not full rank!');
-   res = 1;
-end   
+   disp([ 'The extended matrix [D;Y] is not full rank! Rank is: ', num2str(rank(full(DY))), ' should be ', num2str(26*dmodel.NB + 2*dmodel.NB)]);
+   disp('Trying once more...')
+   rng('shuffle');
    
-   
-disp(['Diff between DNEA and SNEA is ' num2str(norm(mySNEA.d-myDNEA.d))]);
-if norm(mySNEA.d-myDNEA.d) > 1
-   disp('Result is excessively inaccurate. Test is declared failed!');
-   res = 1;
+   ymodel    = autoSensSNEA(dmodel);
+   ymodel    = autoSensStochastic(ymodel, 1e-5);
+   res = res || testDNEA(dmodel, ymodel);
+else
+   disp(['Diff between DNEA and SNEA is ' num2str(norm(mySNEA.d-myDNEA.d))]);
+   if norm(mySNEA.d-myDNEA.d) > 1
+      disp('Result is excessively inaccurate. Test is declared failed!');
+      res = 1;
+   end
 end
+
 
 
 

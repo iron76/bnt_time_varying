@@ -43,6 +43,9 @@ ymodel    = autoSensStochastic(ymodel);
 
 res = res || testBNEA(dmodel, ymodel);
 
+if res ~= 0
+   return
+end
 
 run('iCub.m')
 dmodel = iCub_dmodel;
