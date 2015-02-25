@@ -117,7 +117,8 @@ Sy_inv = obj.IDsens.sensorsParams.Sy_inv.matrix;
 Sinv   = [Dx'*Sv_inv*Dx Dx'*Sv_inv*Dy; Dy'*Sv_inv*Dx, Sw_inv+ Dy'*Sv_inv*Dy];
 Dx_inv = Dx\sparse(1:19*NB, 1:19*NB, 1);
 % Y = [Y 0]
-Y = [obj.IDsens.sensorsParams.Ys sparse([],[],[],obj.IDsens.sensorsParams.m,2*NB,0)];
+% Y = [obj.IDsens.sensorsParams.Ys sparse([],[],[],obj.IDsens.sensorsParams.m,2*NB,0)];
+Y = obj.IDsens.sensorsParams.Ys;
 
 Ss = Sinv+Y'*Sy_inv*Y;
 % L = chol(S1'*Ss*S1, 'lower');    % S1'*W*S1 = L*L'

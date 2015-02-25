@@ -1,4 +1,4 @@
-function res = testDNEA(dmodel, ymodel)
+function res = testDNEA(dmodel_DNEA, ymodel_DNEA, dmodel, ymodel)
 
 % This function checks if the differntial procedure for estimating [d; x]
 % from [d_bar; x_bar] works properly. Roughly speaking we start from the
@@ -54,7 +54,9 @@ res = 0;
 
 q         = rand(dmodel.NB,1);
 dq        = rand(dmodel.NB,1);
-Sx        = diag(rand(dmodel.NB*2, 1));
+Sx        = diag(100*rand(dmodel.NB*2, 1));
+eq        = 0.01*rand(size(q));
+edq       = 0.07*rand(size(dq));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 myModel = model(dmodel);
@@ -77,10 +79,13 @@ y         = mySNEA.simY(d_bar);
 mySNEA    = mySNEA.setY(y);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+myModel = model(dmodel_DNEA);
+mySens  = sensors(ymodel_DNEA);
+
 myDNEA    = DNEA(myModel, mySens);
-myDNEA    = myDNEA.setState(q,dq);
+myDNEA    = myDNEA.setState(q+eq,dq+edq);
 y         = mySNEA.simY(d_bar);
-myDNEA    = myDNEA.setY(y);
+myDNEA    = myDNEA.setY([y; q; dq]);
 myDNEA    = myDNEA.setStateVariance(Sx);
 
 
@@ -105,7 +110,7 @@ myDNEA = myDNEA.setD(d_bar);
 myDNEA = myDNEA.solveID();
 
 D  = sparse(myDNEA.iDs, myDNEA.jDs, myDNEA.Ds, 19*dmodel.NB, 26*dmodel.NB); 
-DY = [D myDNEA.dDb_s.matrix; myDNEA.IDsens.sensorsParams.Ys zeros(myDNEA.IDmeas.m, dmodel.NB*2)];
+DY = [D myDNEA.dDb_s.matrix; myDNEA.IDsens.sensorsParams.Ys];
 if rank(full(DY)) < 26*dmodel.NB + 2*dmodel.NB
    disp([ 'The extended matrix [D;Y] is not full rank! Rank is: ', num2str(rank(full(DY))), ' should be ', num2str(26*dmodel.NB + 2*dmodel.NB)]);
    disp('Trying once more...')
@@ -115,11 +120,18 @@ if rank(full(DY)) < 26*dmodel.NB + 2*dmodel.NB
    ymodel    = autoSensStochastic(ymodel, 1e-5);
    res = res || testDNEA(dmodel, ymodel);
 else
-   disp(['Diff between DNEA and SNEA is ' num2str(norm(mySNEA.d-myDNEA.d))]);
-   if norm(mySNEA.d-myDNEA.d) > 1
+   disp(['Diff between d.DNEA and d.SNEA is ' num2str(norm(mySNEA.d-myDNEA.d)/length(mySNEA.d))]);
+   if norm(mySNEA.d-myDNEA.d)/length(mySNEA.d) > 0.1
       disp('Result is excessively inaccurate. Test is declared failed!');
       res = 1;
    end
+   
+   disp(['Diff between x.DNEA and x is ' num2str(norm(myDNEA.x-[q; dq])) ' was ' num2str(norm([eq; edq]))]);
+   if norm(myDNEA.x-[q; dq]) > norm([eq; edq])
+      disp('Result is excessively inaccurate. Test is declared failed!');
+      res = 1;
+   end
+
 end
 
 
