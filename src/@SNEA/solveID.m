@@ -71,12 +71,12 @@ Dy = sparse(obj.iDs(obj.kDy), obj.jDs(obj.kDy)-19*NB, obj.Ds(obj.kDy), 19*NB,  7
 Sv_inv = obj.IDmodel.modelParams.Sv_inv.matrix;
 % Sw_inv = eye(7*NB) ./sUknown;
 Sw_inv = obj.IDmodel.modelParams.Sw_inv.matrix;
-Sw     = obj.IDmodel.modelParams.Sw.matrix;
+% Sw     = obj.IDmodel.modelParams.Sw.matrix;
 % Sy_inv = eye(my)   ./sMeas;
 Sy_inv = obj.IDsens.sensorsParams.Sy_inv.matrix;
 
 Sinv   = [Dx'*Sv_inv*Dx Dx'*Sv_inv*Dy; Dy'*Sv_inv*Dx, Sw_inv+ Dy'*Sv_inv*Dy];
-Dx_inv = Dx\sparse(1:19*NB, 1:19*NB, 1);
+% Dx_inv = Dx\sparse(1:19*NB, 1:19*NB, 1);
 Y = obj.IDsens.sensorsParams.Ys;
 
 Ss = Sinv+Y'*Sy_inv*Y;
@@ -88,10 +88,11 @@ Ss = Sinv+Y'*Sy_inv*Y;
 % mxy = -Sxy*[ -Sv^(-1)*mx; -Dy'*Sv^(-1)*mx - Sy^(-1)*my]
 
 % Sxy = S = [Dx^(-1)*inv(Sv_inv)*Dx^(-1)' + Dx^(-1)*Dy*inv(Sw_inv)*Dy'*Dx^(-1)', -Dx^(-1)*Dy*inv(Sw_inv); -inv(Sw_inv)*Dy'*Dx^(-1)', inv(Sw_inv)],1)
-Sxy = [Dx_inv + Dx_inv*Dy*Sw*Dy'*Sv_inv, -Dx_inv*Dy*Sw; -Sw*Dy'*Sv_inv, Sw];
+% Sxy = [Dx_inv + Dx_inv*Dy*Sw*Dy'*Sv_inv, -Dx_inv*Dy*Sw; -Sw*Dy'*Sv_inv, Sw];
 mx  = -b;
 my  = zeros(7*NB,1);
-mxy = -Sxy*[-mx; -Dy'*Sv_inv*mx - Sw_inv*my];
+% mxy = -Sxy*[-mx; -Dy'*Sv_inv*mx - Sw_inv*my];
+mxy = [Dx\(mx-Dy*my); my];
 
 if ~obj.sparsified 
    [~,~,obj.S] = chol(Ss, 'lower');

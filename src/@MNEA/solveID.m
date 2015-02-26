@@ -54,12 +54,12 @@ Dy = D(1:19*NB, 19*NB+1:26*NB);
 Sv_inv = obj.IDmodel.modelParams.Sv_inv.matrix;
 % Sw_inv = eye(7*NB) ./sUknown;
 Sw_inv = obj.IDmodel.modelParams.Sw_inv.matrix;
-Sw     = obj.IDmodel.modelParams.Sw.matrix;
+% Sw     = obj.IDmodel.modelParams.Sw.matrix;
 % Sy_inv = eye(my)   ./sMeas;
 Sy_inv = obj.IDsens.sensorsParams.Sy_inv.matrix;
 
 Sinv   = [Dx'*Sv_inv*Dx Dx'*Sv_inv*Dy; Dy'*Sv_inv*Dx, Sw_inv+ Dy'*Sv_inv*Dy];
-Dx_inv = Dx\sparse(1:19*NB, 1:19*NB, 1);
+% Dx_inv = Dx\sparse(1:19*NB, 1:19*NB, 1);
 Y = obj.IDsens.sensorsParams.Ys;
 
 Ss = Sinv+Y'*Sy_inv*Y;
@@ -72,34 +72,19 @@ Ss = Sinv+Y'*Sy_inv*Y;
 
 
 % Sxy = S = [Dx^(-1)*inv(Sv_inv)*Dx^(-1)' + Dx^(-1)*Dy*inv(Sw_inv)*Dy'*Dx^(-1)', -Dx^(-1)*Dy*inv(Sw_inv); -inv(Sw_inv)*Dy'*Dx^(-1)', inv(Sw_inv)],1)
-Sxy = [Dx_inv + Dx_inv*Dy*Sw*Dy'*Sv_inv, -Dx_inv*Dy*Sw; -Sw*Dy'*Sv_inv, Sw];
+% Sxy = [Dx_inv + Dx_inv*Dy*Sw*Dy'*Sv_inv, -Dx_inv*Dy*Sw; -Sw*Dy'*Sv_inv, Sw];
 mx  = -b;
 my  = zeros(7*NB,1);
-mxy = -Sxy*[-mx; -Dy'*Sv_inv*mx - Sw_inv*my];
+% mxy = -Sxy*[-mx; -Dy'*Sv_inv*mx - Sw_inv*my];
+mxy = [Dx\(mx-Dy*my); my];
 % d   = mxy + Ss\Y'*Sy_inv*(obj.IDmeas.y-Y*mxy);
 [~,~,S1] = chol(Ss, 'lower');
 d   = mxy +S1*((S1'*Ss*S1)\(S1'*(Y'*Sy_inv*(obj.IDmeas.y-Y*mxy))));
 
-dx    =      d(1:NB*19      , 1);
-dy    =      d(1+NB*19 : end, 1);
 
-dxc  = mat2cell( dx, 19*ones(1, NB), 1);
-dyc  = mat2cell( dy,  7*ones(1, NB), 1);
+% shuffle from [dx dy] to d
+obj.d = d(obj.id,1);
 
-for i = 1 : NB
-   dc{i}   = [dxc{i,1}; dyc{i,1}];
-   
-   obj.a  (1:6,i) = dc{i}( 1: 6, 1);
-   obj.fB (1:6,i) = dc{i}( 7: 12, 1);
-   obj.f  (1:6,i) = dc{i}(13: 18, 1);
-   obj.tau(1:1,i)  = dc{i}(19, 1);
-   obj.fx (1:6,i) = dc{i}( 20: 25, 1);
-   obj.d2q(1:1,i)  = dc{i}(26, 1);
-   
-   d((1:26)+(i-1)*26, 1) = [obj.a(1:6,i); obj.fB(1:6,i); obj.f(1:6,i); obj.tau(1,i); obj.fx(1:6,i); obj.d2q(1,i)];
-end
-
-obj.d  = d;
 obj.Sd = full(inv(Ss));
 
 for i = 1:NB
