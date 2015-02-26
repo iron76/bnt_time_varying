@@ -1,4 +1,4 @@
-function res = testDNEA(dmodel_DNEA, ymodel_DNEA, dmodel, ymodel)
+function res = testDNEA(dmodel_DNEA, ymodel_DNEA, dmodel, ymodel, S_dmodel)
 
 % This function checks if the differntial procedure for estimating [d; x]
 % from [d_bar; x_bar] works properly. Roughly speaking we start from the
@@ -54,9 +54,9 @@ res = 0;
 
 q         = rand(dmodel.NB,1);
 dq        = rand(dmodel.NB,1);
-Sx        = diag(100*rand(dmodel.NB*2, 1));
-eq        = 0.01*rand(size(q));
-edq       = 0.07*rand(size(dq));
+Sx        = diag(1e8*S_dmodel*rand(dmodel.NB*2, 1));
+eq        = 0.0*rand(size(q));
+edq       = 0.4*rand(size(dq));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 myModel = model(dmodel);
@@ -84,8 +84,8 @@ mySens  = sensors(ymodel_DNEA);
 
 myDNEA    = DNEA(myModel, mySens);
 myDNEA    = myDNEA.setState(q+eq,dq+edq);
-y         = mySNEA.simY(d_bar);
-myDNEA    = myDNEA.setY([y; q; dq]);
+y         = myDNEA.simY([d_bar; q; dq]);
+myDNEA    = myDNEA.setY(y);
 myDNEA    = myDNEA.setStateVariance(Sx);
 
 
@@ -99,7 +99,7 @@ if (sum(dq-mySNEA.IDstate.dq))
    res = 1;
 end
 
-if (sum(y-mySNEA.IDmeas.y))
+if (sum(y-myDNEA.IDmeas.y))
    disp('Something wrong with the setY method');
    res = 1;
 end
@@ -109,23 +109,48 @@ mySNEA = mySNEA.solveID();
 myDNEA = myDNEA.setD(d_bar);
 myDNEA = myDNEA.solveID();
 
-D  = sparse(myDNEA.iDs, myDNEA.jDs, myDNEA.Ds, 19*dmodel.NB, 26*dmodel.NB); 
-DY = [D myDNEA.dDb_s.matrix; myDNEA.IDsens.sensorsParams.Ys];
+
+D   = sparse(myDNEA.iDs, myDNEA.jDs, myDNEA.Ds, 19*dmodel.NB, 26*dmodel.NB);
+dDb = myDNEA.dDb_s.matrix;
+Ys  = myDNEA.IDsens.sensorsParams.Ys;
+DY  = [D dDb; Ys];
+
+D_SNEA = mySNEA.D.matrix;
+b_SNEA = sparse(mySNEA.ibs, ones(size(mySNEA.ibs)), mySNEA.bs, 19*dmodel.NB, 1);
+% norm(D_SNEA*mySNEA.d + b_SNEA)
+
+D_DNEA   = myDNEA.D.matrix;
+b_DNEA   = sparse(myDNEA.ibs, ones(size(myDNEA.ibs)), myDNEA.bs, 19*dmodel.NB, 1);
+% norm(D_DNEA*myDNEA.d + b_DNEA + dDb*(myDNEA.x - myDNEA.x_bar))
+% norm(D_DNEA*mySNEA.d + b_DNEA )
+% norm(D_DNEA*myDNEA.d + b_DNEA + dDb(:,1:dmodel.NB)*(myDNEA.x(1:dmodel.NB,1) - [q+eq]))
+
+
+% xx = myDNEA.x;
+% norm(D_DNEA*myDNEA.d + b_DNEA - dDb*[q+eq;dq+edq] + dDb(:,1:dmodel.NB)*xx(1:dmodel.NB,1) + dDb(:,dmodel.NB+1:end)*xx(dmodel.NB+1:end,1))
+% dqx = pinv(full(dDb(:,dmodel.NB+1:end)))*(-(D_DNEA*myDNEA.d + b_DNEA - dDb*[q+eq;dq+edq] + dDb(:,1:dmodel.NB)*xx(1:dmodel.NB,1)));
+
 if rank(full(DY)) < 26*dmodel.NB + 2*dmodel.NB
    disp([ 'The extended matrix [D;Y] is not full rank! Rank is: ', num2str(rank(full(DY))), ' should be ', num2str(26*dmodel.NB + 2*dmodel.NB)]);
-   disp('Trying once more...')
-   rng('shuffle');
-   
-   ymodel    = autoSensSNEA(dmodel);
-   ymodel    = autoSensStochastic(ymodel, 1e-5);
-   res = res || testDNEA(dmodel, ymodel);
+   res = 1;
 else
+   figure
+   subplot(211)
+   plot(mySNEA.d)
+   hold on
+   plot(myDNEA.d, 'r')
    disp(['Diff between d.DNEA and d.SNEA is ' num2str(norm(mySNEA.d-myDNEA.d)/length(mySNEA.d))]);
-   if norm(mySNEA.d-myDNEA.d)/length(mySNEA.d) > 0.1
+   if norm(mySNEA.d-myDNEA.d)/length(mySNEA.d) > 0.01*max(mySNEA.d)
       disp('Result is excessively inaccurate. Test is declared failed!');
       res = 1;
    end
-   
+
+   subplot(212)
+   plot([q; dq])
+   hold on
+   plot(myDNEA.x, 'r')
+   plot([q+eq;dq+edq], 'g')
+
    disp(['Diff between x.DNEA and x is ' num2str(norm(myDNEA.x-[q; dq])) ' was ' num2str(norm([eq; edq]))]);
    if norm(myDNEA.x-[q; dq]) > norm([eq; edq])
       disp('Result is excessively inaccurate. Test is declared failed!');

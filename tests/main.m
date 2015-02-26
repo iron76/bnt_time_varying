@@ -4,6 +4,10 @@ clc
 
 res       = 0;
 NB        = 30;
+S_dmodel  = 1e-6;
+S_ymodel  = 1e-4;
+
+
 dmodel_RNEA   = autoTree(NB);
 dmodel_RNEA   = autoTreeStochastic(dmodel_RNEA, 1e-2);
 
@@ -14,11 +18,11 @@ dmodel_SNEA   = dmodel_RNEA;
 dmodel_SNEA.gravity = [0; -9.81; 0];
 
 ymodel_SNEA   = autoSensSNEA(dmodel_SNEA);
-ymodel_SNEA   = autoSensStochastic(ymodel_SNEA, 1e-5);
+ymodel_SNEA   = autoSensStochastic(ymodel_SNEA, S_ymodel);
 
 dmodel_DNEA = dmodel_SNEA;
-ymodel_DNEA = autoSensDNEA(dmodel_SNEA, ymodel_SNEA, ones(dmodel_SNEA.NB ,1), ones(dmodel_SNEA.NB, 1));
-ymodel_DNEA = autoSensStochastic(ymodel_DNEA, 1e-5);
+ymodel_DNEA = autoSensDNEA(dmodel_SNEA, ymodel_SNEA, ones(dmodel_SNEA.NB ,1), zeros(dmodel_SNEA.NB, 1));
+ymodel_DNEA = autoSensStochastic(ymodel_DNEA, S_ymodel);
 
 dmodel_BNEA    = autoTreeStochastic(dmodel_SNEA);
 ymodel_BNEA    = autoSensStochastic(ymodel_SNEA);
@@ -39,11 +43,11 @@ res = res || testMNEA(dmodel_SNEA, ymodel_SNEA);
 
 res = res || testLearnBNEA(dmodel_SNEA, ymodel_SNEA);
 
+res = res || testBNEA(dmodel_BNEA, ymodel_BNEA);
+
 res = res || testDerivatives(dmodel_DNEA, ymodel_DNEA);
 
-res = res || testDNEA(dmodel_DNEA, ymodel_DNEA, dmodel_SNEA, ymodel_SNEA);
-
-res = res || testBNEA(dmodel_BNEA, ymodel_BNEA);
+res = res || testDNEA(dmodel_DNEA, ymodel_DNEA, dmodel_SNEA, ymodel_SNEA, S_dmodel);
 
 if res ~= 0
    return
@@ -53,12 +57,12 @@ run('iCub.m')
 dmodel_SNEA = iCub_dmodel;
 ymodel_SNEA = iCubSens(dmodel_SNEA);
 
-dmodel_SNEA = autoTreeStochastic(dmodel_SNEA, 1e-3);
-ymodel_SNEA = autoSensStochastic(ymodel_SNEA, 1e-2);
+dmodel_SNEA = autoTreeStochastic(dmodel_SNEA, S_dmodel);
+ymodel_SNEA = autoSensStochastic(ymodel_SNEA, S_ymodel);
 
 dmodel_DNEA = dmodel_SNEA;
 ymodel_DNEA = autoSensDNEA(dmodel_SNEA, ymodel_SNEA, ones(dmodel_SNEA.NB ,1), ones(dmodel_SNEA.NB, 1));
-ymodel_DNEA = autoSensStochastic(ymodel_DNEA, 1e-5);
+ymodel_DNEA = autoSensStochastic(ymodel_DNEA, S_ymodel);
 
 res = res || testPNEA(dmodel_SNEA, ymodel_SNEA);
 
@@ -69,6 +73,8 @@ res = res || testBNEA(dmodel_SNEA, ymodel_SNEA);
 res = res || testLearnBNEA(dmodel_SNEA, ymodel_SNEA);
 
 res = res || testDerivatives(dmodel_DNEA, ymodel_DNEA);
+
+res = res || testDNEA(dmodel_DNEA, ymodel_DNEA, dmodel_SNEA, ymodel_SNEA, S_dmodel);
 
 if res ~=0 
    disp('[ERROR] One of the tests failed!')
