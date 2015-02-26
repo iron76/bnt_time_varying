@@ -66,7 +66,7 @@ if nargin == 4
       end
    end
    for i = 1 : length(mask_dq)
-      if mask_q(i) == 1
+      if mask_dq(i) == 1
          yi = zeros(1, 2*dmodel.NB);
          yi(1, dmodel.NB + i) = 1;
          ymodel.Ys = [ ymodel.Ys;  zeros(1, 26*dmodel.NB) sparse(yi)];
