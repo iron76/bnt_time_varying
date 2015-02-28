@@ -53,7 +53,7 @@ if nargin == 4
       if mask_q(i) == 1
          yi = zeros(1, 2*dmodel.NB);
          yi(1,i) = 1;
-         ymodel.Ys =      [ ymodel.Ys;  [zeros(1, 26*dmodel.NB) sparse(yi)]];         
+         ymodel.Ys =      [ ymodel.Ys;  [sparse(zeros(1, 26*dmodel.NB)) sparse(yi)]];         
          for j = 1 : dmodel.NB
             ymodel.Y{ymodel.ny+1,j} = zeros(1, 26);
          end
@@ -69,7 +69,7 @@ if nargin == 4
       if mask_dq(i) == 1
          yi = zeros(1, 2*dmodel.NB);
          yi(1, dmodel.NB + i) = 1;
-         ymodel.Ys = [ ymodel.Ys;  zeros(1, 26*dmodel.NB) sparse(yi)];
+         ymodel.Ys = [ ymodel.Ys;  sparse(zeros(1, 26*dmodel.NB)) sparse(yi)];
          for j = 1 : dmodel.NB
             ymodel.Y{ymodel.ny+1,j} = zeros(1, 26);
          end
@@ -82,8 +82,25 @@ if nargin == 4
       end
    end
 end
-   
 
+%% Angular velocity measurements
+% sample 20% angular 
+ry = ceil(dmodel.NB*0.2);
+for i = 1 : ry
+   % select a random body from 1 to NB
+   ymodel.ny = ymodel.ny + 1;
+   ymodel.sizes{ymodel.ny,1} = 3;
+   ymodel.m  = ymodel.m  + ymodel.sizes{ymodel.ny,1};
+   py = randi(dmodel.NB, 1);
+   ymodel.labels{ymodel.ny,1} = ['y_omega' num2str(py)];
+   
+   for j = 1 : dmodel.NB
+      ymodel.Y{ymodel.ny,j} = zeros(ymodel.sizes{ymodel.ny,1}, 26);
+   end
+   ymodel.Y{ymodel.ny,dmodel.NB+1} = zeros(ymodel.sizes{ymodel.ny,1}, dmodel.NB);
+   ymodel.Y{ymodel.ny,dmodel.NB+2} = zeros(ymodel.sizes{ymodel.ny,1}, dmodel.NB); 
+   ymodel.Ys = [ ymodel.Ys;  sparse(zeros(ymodel.sizes{ymodel.ny,1}, 28*dmodel.NB)) ];
+end   
 
 % ymodel.NB = dmodel.NB;
 % ny = 0;

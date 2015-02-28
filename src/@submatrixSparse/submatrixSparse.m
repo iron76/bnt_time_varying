@@ -51,7 +51,9 @@ classdef submatrixSparse < submatrix
          [mi, ni] = size(i);
          [mj, nj] = size(j);
          if (ni ~= 1) || (nj ~= 1) || (mi ~= mj)
-            error('In defining submatrixSparse(m, n, i, j), the arguments i and j should be column vectors of the same length')
+            if (~isempty(i) && ~isempty(j))
+               error('In defining submatrixSparse(m, n, i, j), the arguments i and j should be column vectors of the same length')
+            end
          end
          b.i  = i;
          b.j  = j;

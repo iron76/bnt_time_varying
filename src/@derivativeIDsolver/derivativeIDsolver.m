@@ -43,7 +43,8 @@ classdef derivativeIDsolver < stochasticIDsolver
       dvdx   %% Bidimensional cell array of mdl.n \times 2*mdl.n elements
       % dvdx{i,h} contains \frac{\partial v_i}{\partial q_h} if h <= n
       % otherwise it contains \frac{\partial v_1}{\partial \dot{q}_{h-n}}
-      %
+      ant    %% ant(h,i) == 1 if h is ancestor of i
+      
       dXupdq %% Cell array of mdl.n elements.  dXupdq{i} contains
       %  \frac{\partial {}^{i}X_{\lambda(i)}}{\partial q_i}
       dDb %% Matrix representing the derivative of D d + b with respect 
@@ -55,6 +56,19 @@ classdef derivativeIDsolver < stochasticIDsolver
       %  to x = [q; dq] \frac{D d + b}{\partial x}, sparse version
       iDb_s %% indeces to access the dDb submatrix, sparse version
       jDb_s %% indeces to access the dDb submatrix, sparse version  
+
+      by_s  %% Matrix representing by(x)
+      iby   %% indeces to access the by(x) submatrix
+      jby   %% indeces to access the by(x) submatrix
+      iby_s %% indeces to access the by(x) submatrix, sparse version
+      jby_s %% indeces to access the by(x) submatrix, sparse version  
+
+      dby_s  %% Matrix representing dby(x) derivative of by(x) w.r.t.
+      %  x = [q; dq] \frac{by(x)}{\partial x}, sparse version
+      idby   %% indeces to access the by(x) submatrix
+      jdby   %% indeces to access the by(x) submatrix
+      idby_s %% indeces to access the by(x) submatrix, sparse version
+      jdby_s %% indeces to access the by(x) submatrix, sparse version
       
       x_bar %% the current estimation for x (around which we linearize)
       d_bar %% the current estimation for d (around which we linearize)
@@ -85,9 +99,25 @@ classdef derivativeIDsolver < stochasticIDsolver
             end
          end
          
+         %% Initialize ancestors
+         b.ant = zeros(b.IDstate.n, b.IDstate.n);
+         for i = 1 : b.IDstate.n
+            h = i;
+            while( h ~= 0 )
+               parenth = b.IDmodel.modelParams.parent(h);               
+               b.ant(h,i) = 1;
+               h = parenth;
+            end
+         end
+         
+         
          %% Initialize sumatrices
          b = initdDsubmatrixIndices(b);
          b = initdDsubmatrix(b);
+         
+         b = initBYsubmatrixIndices(b);         
+         b = initdBYsubmatrixIndices(b);
+
       end
 
       function obj = setState(obj,q,dq)
@@ -136,7 +166,12 @@ classdef derivativeIDsolver < stochasticIDsolver
          end
          
          %% Current state estimation corresponds to [q; dq]
-         obj.x_bar = [q; dq];        
+         obj.x_bar = [q; dq];
+         
+         %% Update the Y and dY matrices
+         obj = updateBYsubmatrix(obj);
+         obj = updatedBYsubmatrix(obj);
+         
       end % derivativeIDsolver
       
       function disp(b)
@@ -155,7 +190,7 @@ classdef derivativeIDsolver < stochasticIDsolver
          obj.d_bar = d;
          obj = updateStateDerivativeSubMatrix(obj, obj.d_bar);
       end
-
+      
       function obj = setStateVariance(obj,Sx)
          [m,n] = size(Sx);
          if (m ~= obj.IDmodel.modelParams.NB * 2) || (n ~= obj.IDmodel.modelParams.NB * 2)
@@ -176,9 +211,9 @@ classdef derivativeIDsolver < stochasticIDsolver
          end
       end      
       
-      function y = simY(obj, d)
+      function y = simY(obj, d_q_dq)
          % fprintf('Calling the stochasticIDsolver simY method \n');
-         y = cell2mat(obj.IDsens.sensorsParams.Y)*d; % + chol(inv(obj.IDsens.sensorsParams.Sy_inv))*randn(obj.IDmeas.m, 1)
+         y = cell2mat(obj.IDsens.sensorsParams.Y)*d_q_dq + obj.by_s.matrix; % + chol(inv(obj.IDsens.sensorsParams.Sy_inv))*randn(obj.IDmeas.m, 1)
       end
       
    end % methods

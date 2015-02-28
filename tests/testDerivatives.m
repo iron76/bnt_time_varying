@@ -47,6 +47,27 @@ for i = 1 : num_of_tests
    q  = rand(dmodel.NB     ,1);
    dq = rand(dmodel.NB     ,1);
    d  = rand(dmodel.NB * 26,1);
+   
+   myDNEA = myDNEA.setState(q,dq);
+   
+   f  = @(x) computeY(myDNEA, d, x);
+   dy = deriv(f, [q; dq]);
+   
+   % In current formulation part of dby is in Y (columns relative to [q;dq])
+   dby = myDNEA.dby_s.matrix + myDNEA.IDsens.sensorsParams.Ys(:,(end-2*dmodel.NB+1):end);
+   if norm( dby - dy) > 1e-7
+      disp(['dy numerical derivative is quite different: ' num2str(norm(dby - dy))])
+      imagesc([dby - dy])
+      colorbar
+      res = 1;
+   end
+end
+
+
+for i = 1 : num_of_tests
+   q  = rand(dmodel.NB     ,1);
+   dq = rand(dmodel.NB     ,1);
+   d  = rand(dmodel.NB * 26,1);
    Sx = diag(rand(dmodel.NB*2, 1));
    f  = @(x) computeDb(myDNEA , d , x);
    dD = deriv(f, [q; dq]);
