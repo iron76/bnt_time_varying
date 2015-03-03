@@ -53,8 +53,16 @@ for i = 1 : num_of_tests
    f  = @(x) computeY(myDNEA, d, x);
    dy = deriv(f, [q; dq]);
    
-   % In current formulation part of dby is in Y (columns relative to [q;dq])
-   dby = myDNEA.dby_s.matrix + myDNEA.IDsens.sensorsParams.Ys(:,(end-2*dmodel.NB+1):end);
+   % In current formulation 
+   %
+   % y = Yd d + Yx x + b_Y(x) = [Yd(x) Yx][d ; x] + b_Y(x)
+   %
+   % and therefore the derivative is:
+   %
+   % dy/dx = Yx + db_Y/dx
+   
+   Yx  = myDNEA.IDsens.sensorsParams.Ys(:,(end-2*dmodel.NB+1):end);
+   dby = myDNEA.dby_s.matrix + Yx;
    if norm( dby - dy) > 1e-7
       disp(['dy numerical derivative is quite different: ' num2str(norm(dby - dy))])
       imagesc([dby - dy])
