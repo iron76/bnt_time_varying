@@ -4,15 +4,15 @@ clc
 
 res       = 0;
 NB        = 30;
-S_dmodel  = 1e-6;
-S_ymodel  = 1e-4;
+S_dmodel  = 1e2;
+S_ymodel  = 1e-2;
 
 
 dmodel_RNEA   = autoTree(NB);
-dmodel_RNEA   = autoTreeStochastic(dmodel_RNEA, 1e-2);
+dmodel_RNEA   = autoTreeStochastic(dmodel_RNEA, S_dmodel);
 
 ymodel_RNEA   = autoSensRNEA(dmodel_RNEA);
-ymodel_RNEA   = autoSensStochastic(ymodel_RNEA, 1e-5);
+ymodel_RNEA   = autoSensStochastic(ymodel_RNEA, S_ymodel);
 
 dmodel_SNEA   = dmodel_RNEA;
 dmodel_SNEA.gravity = [0; -9.81; 0];
@@ -21,8 +21,20 @@ ymodel_SNEA   = autoSensSNEA(dmodel_SNEA);
 ymodel_SNEA   = autoSensStochastic(ymodel_SNEA, S_ymodel);
 
 dmodel_DNEA = dmodel_SNEA;
-ymodel_DNEA = autoSensDNEA(dmodel_SNEA, ymodel_SNEA, ones(dmodel_SNEA.NB ,1), zeros(dmodel_SNEA.NB, 1));
+ymodel_DNEA = autoSensDNEA(dmodel_SNEA, ymodel_SNEA, zeros(dmodel_SNEA.NB,1), zeros(dmodel_SNEA.NB, 1));
 ymodel_DNEA = autoSensStochastic(ymodel_DNEA, S_ymodel);
+
+for i = 1 : ymodel_DNEA.ny
+   lb = ymodel_DNEA.labels{i,1};
+   if (length(lb) >= 7 && strcmp(lb(1:7), 'y_omega'))
+      ymodel_DNEA.Sy_inv = set(ymodel_DNEA.Sy_inv, ymodel_DNEA.Sy_inv(i,i)*1e2, i, i);
+      ymodel_DNEA.Sy     = set(ymodel_DNEA.Sy    , ymodel_DNEA.Sy(i,i)*1e-2   , i, i);
+   end
+   if (length(lb) >= 3 && strcmp(lb(1:3), 'y_q'))
+      ymodel_DNEA.Sy_inv = set(ymodel_DNEA.Sy_inv, ymodel_DNEA.Sy_inv(i,i)*1e2, i, i);
+      ymodel_DNEA.Sy     = set(ymodel_DNEA.Sy    , ymodel_DNEA.Sy(i,i)*1e-2   , i, i);
+   end   
+end
 
 dmodel_BNEA    = autoTreeStochastic(dmodel_SNEA);
 ymodel_BNEA    = autoSensStochastic(ymodel_SNEA);
@@ -52,6 +64,9 @@ res = res || testDNEA(dmodel_DNEA, ymodel_DNEA, dmodel_SNEA, ymodel_SNEA, S_dmod
 if res ~= 0
    return
 end
+
+S_dmodel  = 1e-6;
+S_ymodel  = 1e-4;
 
 run('iCub.m')
 dmodel_SNEA = iCub_dmodel;
