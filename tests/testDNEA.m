@@ -51,12 +51,13 @@ ymodel_RNEA = autoSensRNEA(dmodel);
 ymodel_RNEA = autoSensStochastic(ymodel_RNEA, 1e-5);
 
 res = 0;
+NB  = dmodel.NB;
 
 q         = rand(dmodel.NB,1);
 dq        = rand(dmodel.NB,1);
 Sx        = diag(1e8*S_dmodel*rand(dmodel.NB*2, 1));
-eq        = 0.0*rand(size(q));
-edq       = 0.4*rand(size(dq));
+eq        = 0.8*rand(size(q));
+edq       = 0.8*rand(size(dq));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 myModel = model(dmodel);
@@ -83,8 +84,9 @@ myModel = model(dmodel_DNEA);
 mySens  = sensors(ymodel_DNEA);
 
 myDNEA    = DNEA(myModel, mySens);
+myDNEA    = myDNEA.setState(q,dq);
+y         = myDNEA.simY(d_bar, q, dq);
 myDNEA    = myDNEA.setState(q+eq,dq+edq);
-y         = myDNEA.simY([d_bar; q; dq]);
 myDNEA    = myDNEA.setY(y);
 myDNEA    = myDNEA.setStateVariance(Sx);
 
@@ -115,20 +117,6 @@ dDb = myDNEA.dDb_s.matrix;
 Ys  = myDNEA.IDsens.sensorsParams.Ys;
 DY  = [D dDb; Ys];
 
-D_SNEA = mySNEA.D.matrix;
-b_SNEA = sparse(mySNEA.ibs, ones(size(mySNEA.ibs)), mySNEA.bs, 19*dmodel.NB, 1);
-% norm(D_SNEA*mySNEA.d + b_SNEA)
-
-D_DNEA   = myDNEA.D.matrix;
-b_DNEA   = sparse(myDNEA.ibs, ones(size(myDNEA.ibs)), myDNEA.bs, 19*dmodel.NB, 1);
-% norm(D_DNEA*myDNEA.d + b_DNEA + dDb*(myDNEA.x - myDNEA.x_bar))
-% norm(D_DNEA*mySNEA.d + b_DNEA )
-% norm(D_DNEA*myDNEA.d + b_DNEA + dDb(:,1:dmodel.NB)*(myDNEA.x(1:dmodel.NB,1) - [q+eq]))
-
-
-% xx = myDNEA.x;
-% norm(D_DNEA*myDNEA.d + b_DNEA - dDb*[q+eq;dq+edq] + dDb(:,1:dmodel.NB)*xx(1:dmodel.NB,1) + dDb(:,dmodel.NB+1:end)*xx(dmodel.NB+1:end,1))
-% dqx = pinv(full(dDb(:,dmodel.NB+1:end)))*(-(D_DNEA*myDNEA.d + b_DNEA - dDb*[q+eq;dq+edq] + dDb(:,1:dmodel.NB)*xx(1:dmodel.NB,1)));
 
 if rank(full(DY)) < 26*dmodel.NB + 2*dmodel.NB
    disp([ 'The extended matrix [D;Y] is not full rank! Rank is: ', num2str(rank(full(DY))), ' should be ', num2str(26*dmodel.NB + 2*dmodel.NB)]);
@@ -136,9 +124,9 @@ if rank(full(DY)) < 26*dmodel.NB + 2*dmodel.NB
 else
    figure
    subplot(211)
-   plot(mySNEA.d)
+   shadedErrorBar(1:26*NB, myDNEA.d, sqrt(diag(myDNEA.Sd)), {'r' , 'LineWidth', 2}, 0);
    hold on
-   plot(myDNEA.d, 'r')
+   plot(mySNEA.d)
    disp(['Diff between d.DNEA and d.SNEA is ' num2str(norm(mySNEA.d-myDNEA.d)/length(mySNEA.d))]);
    if norm(mySNEA.d-myDNEA.d)/length(mySNEA.d) > 0.01*max(mySNEA.d)
       disp('Result is excessively inaccurate. Test is declared failed!');
@@ -146,11 +134,11 @@ else
    end
 
    subplot(212)
-   plot([q; dq])
+   shadedErrorBar(1:2*NB, myDNEA.x, sqrt(diag(myDNEA.Sx)), {'r' , 'LineWidth', 2}, 0);
    hold on
-   plot(myDNEA.x, 'r')
-   plot([q+eq;dq+edq], 'g')
-
+   plot([q; dq])
+   % plot([q+eq;dq+edq], 'g')
+   
    disp(['Diff between x.DNEA and x is ' num2str(norm(myDNEA.x-[q; dq])) ' was ' num2str(norm([eq; edq]))]);
    if norm(myDNEA.x-[q; dq]) > norm([eq; edq])
       disp('Result is excessively inaccurate. Test is declared failed!');
