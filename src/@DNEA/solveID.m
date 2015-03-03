@@ -44,7 +44,10 @@ function obj = solveID(obj)
 NB = obj.IDmodel.modelParams.NB;
 
 % b = [b - db_D * x_bar]
-b  = sparse(obj.ibs, ones(length(obj.ibs),1), obj.bs, 19*NB, 1) - obj.dDb.matrix * obj.x_bar;
+b  = sparse(obj.ibs, ones(length(obj.ibs),1), obj.bs, 19*NB, 1) - obj.dDb.matrix * sparse(obj.x_bar);
+
+% by = [cy - dc_Y * x_bar]
+by = obj.by_s.matrix - obj.dby_s.matrix * sparse(obj.x_bar);
 
 % Dx 
 Dx = sparse(obj.iDs(obj.kDx), obj.jDs(obj.kDx)      , obj.Ds(obj.kDx), 19*NB, 19*NB); 
@@ -118,12 +121,14 @@ else
    Sy_inv = obj.IDsens.sensorsParams.Sy_inv;
 end
 
-
 Sinv   = [Dx'*Sv_inv*Dx Dx'*Sv_inv*Dy; Dy'*Sv_inv*Dx, Sw_inv+ Dy'*Sv_inv*Dy];
 % Dx_inv = Dx\sparse(1:19*NB, 1:19*NB, 1);
 % Y = [Y 0]
 % Y = [obj.IDsens.sensorsParams.Ys sparse([],[],[],obj.IDsens.sensorsParams.m,2*NB,0)];
 Y = obj.IDsens.sensorsParams.Ys;
+
+% Y = [Y Yx+dc_Y]
+Y(:, (end-2*NB+1):end) = Y(:, (end-2*NB+1):end) + obj.dby_s.matrix;
 
 Ss = Sinv+Y'*Sy_inv*Y;
 % L = chol(S1'*Ss*S1, 'lower');    % S1'*W*S1 = L*L'
@@ -148,7 +153,7 @@ if ~obj.sparsified
    obj.sparsified = 1;
 end
 % d   = mxy + Ss\Y'*Sy_inv*(obj.IDmeas.y-Y*mxy);
-d   = mxy + obj.S*((obj.S'*Ss*obj.S)\(obj.S'*(Y'*Sy_inv*(obj.IDmeas.y-Y*mxy))));
+d   = mxy + obj.S*((obj.S'*Ss*obj.S)\(obj.S'*(Y'*Sy_inv*((obj.IDmeas.y-by)-Y*mxy))));
 
 % shuffle from [dx dy] to d
 obj.d = d(obj.id,1);
@@ -168,7 +173,7 @@ for i = 1 : NB
 end
 obj.Sd = obj.Sd_sm(S_ind, S_ind);
 
-obj.Sx = full(inv(Ss(26*NB+1 : 28*NB, 26*NB+1 : 28*NB)));
+obj.Sx = full(inv(Ss(end-2*NB+1 : end, end-2*NB+1 : end)));
 
 
 end % solveID
