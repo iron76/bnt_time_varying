@@ -84,14 +84,12 @@ if nargin == 4
 end
 
 %% Angular velocity measurements
-% sample 20% angular 
-ry = ceil(dmodel.NB*0.2);
-for i = 1 : ry
+for i = 1 : dmodel.NB
    % select a random body from 1 to NB
    ymodel.ny = ymodel.ny + 1;
    ymodel.sizes{ymodel.ny,1} = 3;
    ymodel.m  = ymodel.m  + ymodel.sizes{ymodel.ny,1};
-   py = randi(dmodel.NB, 1);
+   py = i;
    ymodel.labels{ymodel.ny,1} = ['y_omega' num2str(py)];
    
    for j = 1 : dmodel.NB
