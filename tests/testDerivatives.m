@@ -63,7 +63,7 @@ for i = 1 : num_of_tests
    
    Yx  = myDNEA.IDsens.sensorsParams.Ys(:,(end-2*dmodel.NB+1):end);
    dby = myDNEA.dby_s.matrix + Yx;
-   if norm( dby - dy) > 1e-7
+   if norm( dby - dy) > 1e-6
       disp(['dy numerical derivative is quite different: ' num2str(norm(dby - dy))])
       imagesc([dby - dy])
       colorbar
