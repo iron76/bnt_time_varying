@@ -42,11 +42,12 @@ function obj = solveID(obj)
 % Genova, Dec 2014
 
 NB = obj.IDmodel.modelParams.NB;
-b  = sparse(obj.ibs, ones(length(obj.ibs),1), obj.bs, 19*NB, 1);
 
-% [Dx Dy] = D
+% b = [b - db_D * x_bar]
+b  = sparse(obj.ibs, ones(length(obj.ibs),1), obj.bs, 19*NB, 1) - obj.dDb.matrix * obj.x_bar;
+
+% Dx 
 Dx = sparse(obj.iDs(obj.kDx), obj.jDs(obj.kDx)      , obj.Ds(obj.kDx), 19*NB, 19*NB); 
-% Dy = sparse(obj.iDs(obj.kDy), obj.jDs(obj.kDy)-19*NB, obj.Ds(obj.kDy), 19*NB,  7*NB); 
 
 % Dy = [Dy dDb]
 Dy = sparse(...
@@ -111,7 +112,11 @@ Sw_inv = sparse(...
 % Sw     = obj.IDmodel.modelParams.Sw.matrix;
 
 % Sy_inv = [Sy_inv 0; 0 Sx_inv]
-Sy_inv = obj.IDsens.sensorsParams.Sy_inv.matrix;
+if isa(obj.IDsens.sensorsParams.Sy_inv, 'submatrixSparse')
+   Sy_inv = obj.IDsens.sensorsParams.Sy_inv.matrix;
+else
+   Sy_inv = obj.IDsens.sensorsParams.Sy_inv;
+end
 
 
 Sinv   = [Dx'*Sv_inv*Dx Dx'*Sv_inv*Dy; Dy'*Sv_inv*Dx, Sw_inv+ Dy'*Sv_inv*Dy];
@@ -132,8 +137,8 @@ Ss = Sinv+Y'*Sy_inv*Y;
 
 % Sxy = S = [Dx^(-1)*inv(Sv_inv)*Dx^(-1)' + Dx^(-1)*Dy*inv(Sw_inv)*Dy'*Dx^(-1)', -Dx^(-1)*Dy*inv(Sw_inv); -inv(Sw_inv)*Dy'*Dx^(-1)', inv(Sw_inv)],1)
 % Sxy = [Dx_inv + Dx_inv*Dy*Sw*Dy'*Sv_inv, -Dx_inv*Dy*Sw; -Sw*Dy'*Sv_inv, Sw];
-mx  = -b + obj.dDb.matrix * obj.x_bar;
-my  = [zeros(7*NB,1); obj.x_bar*0];
+mx  = -b ;
+my  = [zeros(7*NB,1); obj.x_bar];
 % mxy = -Sxy*[-mx; -Dy'*Sv_inv*mx - Sw_inv*my];
 mxy = [Dx\(mx-Dy*my); my];
 % d   = mxy + Ss\Y'*Sy_inv*(obj.IDmeas.y-Y*mxy);
@@ -149,5 +154,21 @@ d   = mxy + obj.S*((obj.S'*Ss*obj.S)\(obj.S'*(Y'*Sy_inv*(obj.IDmeas.y-Y*mxy))));
 obj.d = d(obj.id,1);
 % x = [q;dq]
 obj.x = d(26*NB+1:end, 1);
+
+%% Rearrange Sd
+obj.Sd = full(inv(Ss(1:26*NB, 1:26*NB)));
+for i = 1:NB
+   iSd(       (i-1)*4+1 :        4*i, 1) = [6 6 6 obj.IDmodel.jn(i)]';
+   iSd(4*NB + (i-1)*2+1 : 4*NB + 2*i, 1) = [6 obj.IDmodel.jn(i)]';
+end
+obj.Sd_sm = submatrix(iSd, iSd, obj.Sd);
+for i = 1 : NB
+   S_ind((i-1)*6+1:(i-1)*6+4, 1) =        (i-1)*4+1:       i*4;
+   S_ind((i-1)*6+5:(i-1)*6+6, 1) = 4*NB + (i-1)*2+1:4*NB + i*2;
+end
+obj.Sd = obj.Sd_sm(S_ind, S_ind);
+
+obj.Sx = full(inv(Ss(26*NB+1 : 28*NB, 26*NB+1 : 28*NB)));
+
 
 end % solveID

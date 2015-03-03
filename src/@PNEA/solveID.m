@@ -70,7 +70,11 @@ Sv_inv = obj.IDmodel.modelParams.Sv_inv.matrix;
 Sw_inv = obj.IDmodel.modelParams.Sw_inv.matrix;
 % Sw     = obj.IDmodel.modelParams.Sw.matrix;
 % Sy_inv = eye(my)   ./sMeas;
-Sy_inv = obj.IDsens.sensorsParams.Sy_inv.matrix;
+if isa(obj.IDsens.sensorsParams.Sy_inv, 'submatrixSparse')
+   Sy_inv = obj.IDsens.sensorsParams.Sy_inv.matrix;
+else
+   Sy_inv = obj.IDsens.sensorsParams.Sy_inv;
+end
 
 Sinv   = [Dx'*Sv_inv*Dx Dx'*Sv_inv*Dy; Dy'*Sv_inv*Dx, Sw_inv+ Dy'*Sv_inv*Dy];
 % Dx_inv = Dx\sparse(1:19*NB, 1:19*NB, 1);
