@@ -44,11 +44,11 @@ ny = 0;
 ry = randfixedsum(ymodel.NB, 1, 4*ymodel.NB, 2, 6);
 ry = round(ry);
 for i = 1 : ymodel.NB
-   if ry(i) >= 6
+   %if ry(i) >= 6
       ny = ny + 1;
       ymodel.sizes{ny,1} = 6;
       ymodel.labels{ny,1} = ['y_a' num2str(i)];
-   end
+   %end
    if ry(i) >= 5
       ny = ny + 1;
       ymodel.sizes{ny,1} = 6;
