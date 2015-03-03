@@ -211,9 +211,10 @@ classdef derivativeIDsolver < stochasticIDsolver
          end
       end      
       
-      function y = simY(obj, d_q_dq)
+      function y = simY(obj, d, q, dq)
          % fprintf('Calling the stochasticIDsolver simY method \n');
-         y = cell2mat(obj.IDsens.sensorsParams.Y)*d_q_dq + obj.by_s.matrix; % + chol(inv(obj.IDsens.sensorsParams.Sy_inv))*randn(obj.IDmeas.m, 1)
+         Y = cell2mat(obj.IDsens.sensorsParams.Y);
+         y = Y * [d; q; dq] + obj.by_s.matrix; % + chol(inv(obj.IDsens.sensorsParams.Sy_inv))*randn(obj.IDmeas.m, 1)
       end
       
    end % methods
