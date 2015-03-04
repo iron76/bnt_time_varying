@@ -52,11 +52,11 @@ if ~exist('preprocess.mat', 'file')
    % for i = 1 : length(data.time)
    %    iCubVisualize(data.q(:,i), R)
    % end
-   
+      
    ymdl    = iCubSens(dmodel, sens);
    ymodel  = iCubSensDNEA(dmodel, ymdl, sens, mask_q, mask_dq);
    
-   dmodel  = autoTreeStochastic(dmodel, 1e-5, 1e4);
+   dmodel  = autoTreeStochastic(dmodel, 1e-1, 1e4);
    ymodel  = iCubSensStochastic(ymodel);
    myModel = model(dmodel);
    mySens  = sensors(ymodel);
@@ -85,7 +85,7 @@ if ~exist('preprocess.mat', 'file')
       myRNEA = myRNEA.solveID();
       
       myDNEA = myDNEA.setState(data.q(:,i), data.dq(:,i));
-      y(:,i) = myDNEA.simY([myRNEA.d; data.q(:,i); data.dq(:,i)]);
+      y(:,i) = myDNEA.simY(myRNEA.d, data.q(:,i), data.dq(:,i));
       if mod(i-1,100) == 0
          fprintf('Processing %d %% of the dataset\n', round(i/length(data.time)*100));
       end
@@ -156,15 +156,18 @@ end
 
 %% Build data.y anda data.Sy from adjusted ys_label
 data.y  = [];
+ind_d2q = [];
 for i = 1 : myDNEA.IDsens.sensorsParams.ny
    sens_str = myDNEA.IDsens.sensorsParams.labels{i};
+   sens_lng = length(sens_str);
    if length(sens_str)>=4 && strcmp(sens_str(end-3:end), '_ftx')
       eval('data.y  = [data.y ; zeros(6, length(data.time))];');
    elseif length(sens_str)>=3 && strcmp(sens_str(1:3), 'y_q')
-      eval('data.y  = [data.y ; zeros(1, length(data.time))];');
+      eval('data.y  = [data.y ; data.q(str2double(sens_str(4:sens_lng)), :)];');
    elseif length(sens_str)>=4 && strcmp(sens_str(1:4), 'y_dq')
-      eval('data.y  = [data.y ; zeros(1, length(data.time))];');
+      eval('data.y  = [data.y ; data.dq(str2double(sens_str(5:sens_lng)), :)];');
    elseif length(sens_str)>=4 && strcmp(sens_str(end-3:end), '_d2q')
+      ind_d2q = [ind_d2q, size(data.y, 1)+1];
       eval('data.y  = [data.y ; zeros(1, length(data.time))];');
    elseif length(sens_str)==9 && strcmp(sens_str, 'y_omega13')
       eval('data.y  = [data.y ; data.ys_lh_gyr];');
@@ -174,6 +177,7 @@ for i = 1 : myDNEA.IDsens.sensorsParams.ny
       eval(['data.y  = [data.y ; data.ys_' myDNEA.IDsens.sensorsParams.labels{i} '];']);
    end
 end
+data.y(ind_d2q, :) = data.d2q;
 
 data.Sy = [];
 for i = 1 : length(myDNEA.IDsens.sensorsParams.labels)
