@@ -26,8 +26,8 @@ ftsS   = [sf*eye(3) zeros(3,3); zeros(3,3) su*eye(3)];
 accS   = imuS(1:3, 1:3);
 ftxS   = ftsS.*1e-4;
 d2qS   = sd;
-qS     = 0.1*pi/180;
-dqS    = 0.1;
+qS     = 0.05*pi/180;
+dqS    = 0.01;
 omegaS = so*eye(3);
 
 for i = 1 : model.ny
