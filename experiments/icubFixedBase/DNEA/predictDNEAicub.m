@@ -6,8 +6,17 @@ load d0.mat
 [~, n]  = size(y);
 NB      = myModel.modelParams.NB;
 
-Sq  = 0.1 * pi/180;
-Sdq = 10 * pi/180;
+Sq  = 0.05 * pi/180;
+Sdq = 10   * pi/180;
+Sx0 = diag([ones(NB,1)*Sq;  ones(NB,1)*Sdq]);
+
+%% iCub model
+ymdl    = iCubSens(dmodel, sens);
+ymodel  = iCubSensDNEA(dmodel, ymdl, sens, mask_q, mask_dq);
+dmodel  = autoTreeStochastic(dmodel, 1e-3, 1e4);
+ymodel  = iCubSensStochastic(ymodel);
+myModel = model(dmodel);
+mySens  = sensors(ymodel);
 
 %% Compute solution
 myDNEA    = DNEA(myModel, mySens);
@@ -20,12 +29,12 @@ res.Sx = zeros(2 *NB, 2* NB, n);
 for i = 1 : n
    myDNEA = myDNEA.setState(data.q(:,i), data.dq(:,i));
    myDNEA = myDNEA.setY(data.y(:,i));
-   myDNEA = myDNEA.setStateVariance(diag([ones(NB,1)*Sq;  ones(NB,1)*Sdq]));
+   myDNEA = myDNEA.setStateVariance(Sx0);
    myDNEA = myDNEA.setD(d0); 
    myDNEA = myDNEA.solveID();
    
    Y = cell2mat(myDNEA.IDsens.sensorsParams.Y);
-   
+
    res.d(:,i)    = myDNEA.d;
    res.x(:,i)    = myDNEA.x;
    res.Sd(:,:,i) = myDNEA.Sd;
@@ -97,3 +106,9 @@ for l = 1 : length(label_to_plot)
       end
    end
 end
+
+figure 
+shadedErrorBar(data.time, data.q(10,:)', sqrt(ones(1,n)*Sx0(10,10)), {'r--' , 'LineWidth', 1}, 0);
+hold on
+shadedErrorBar(data.time,  res.q(10,:)', sqrt(reshape(res.Sx(10, 10, :), 1, n)), {'r' , 'LineWidth', 1}, 0);
+
