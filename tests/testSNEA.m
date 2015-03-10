@@ -11,14 +11,16 @@ myModel = model(dmodel);
 mySens  = sensors(ymodel);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-mySNEA    = SNEA(myModel, mySens);
-mySNEA    = mySNEA.setState(q,dq);
-mySNEA    = mySNEA.setY(y);
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 myRNEA    = RNEA(myModel, mySens);
 myRNEA    = myRNEA.setState(q,dq);
 myRNEA    = myRNEA.setY(y);
+myRNEA    = myRNEA.solveID();
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+mySNEA    = SNEA(myModel, mySens);
+mySNEA    = mySNEA.setState(q,dq);
+mySNEA    = mySNEA.setY(y);
+mySNEA    = mySNEA.solveID();
 
 if (sum(q-mySNEA.IDstate.q))
    disp('Something wrong with the setQ method');
@@ -35,14 +37,9 @@ if (sum(y-mySNEA.IDmeas.y))
    res = 1;
 end
 
-mySNEA = mySNEA.solveID();
-mySNEA.d;
-
-myRNEA = myRNEA.solveID();
-myRNEA.d;
 
 disp(['Diff between RNEA and SNEA is ' num2str(norm(mySNEA.d-myRNEA.d))]);
-if norm(mySNEA.d-myRNEA.d) > 0.2
+if norm(mySNEA.d-myRNEA.d) > 2.0
    disp('Result is excessively inaccurate. Test is declared failed!');
    res = 1;
 end   
