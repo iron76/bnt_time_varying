@@ -54,7 +54,7 @@ for h = 1 : obj.IDstate.n
          %   obj.dXupdq{1}*(-obj.IDmodel.g), (i-1)*4+1, h);
          obj.iDb_s = [obj.iDb_s (i-1)*4+1];
          obj.jDb_s = [obj.jDb_s h];
-      elseif i ~= 1
+      else
          %obj.dDb = set(obj.dDb, obj.dDb((i-1)*4+1,h) + ...
          %   crm(obj.dvdx{i,h})*obj.vJ(:,i), (i-1)*4+1,h);
          obj.iDb_s = [obj.iDb_s (i-1)*4+1];

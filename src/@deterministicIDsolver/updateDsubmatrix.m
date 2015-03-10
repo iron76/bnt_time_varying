@@ -8,7 +8,7 @@ for i = 1 : obj.IDstate.n
    I = (i-1)*4;
    J = (i-1)*6;
    
-   if i == 1
+   if obj.IDmodel.modelParams.parent(i) == 0
       obj.b = set(obj.b, obj.Xup{i}*(-obj.IDmodel.g), I+1, 1);
    else
       obj.b = set(obj.b, crm(obj.v(:,i))*obj.vJ(:,i), I+1, 1);

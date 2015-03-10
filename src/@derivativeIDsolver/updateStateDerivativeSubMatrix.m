@@ -39,11 +39,11 @@ for h = 1 : obj.IDstate.n
    for i = 1 : obj.IDstate.n
       
       % b vector
-      % If i == 1 and we have only the term of gravitational acceleration
-      if (i == 1) && (h == 1)
+      % If parent(i) == 1 and we have only the term of gravitational acceleration
+      if (obj.IDmodel.modelParams.parent(i)==0) && (h == i)
          obj.dDb = set(obj.dDb, obj.dDb((i-1)*4+1,h) + ...
-            obj.dXupdq{1}*(-obj.IDmodel.g), (i-1)*4+1, h);
-      elseif i ~= 1
+            obj.dXupdq{i}*(-obj.IDmodel.g) + crm(obj.dvdx{i,h})*obj.vJ(:,i), (i-1)*4+1, h);
+      else 
          obj.dDb = set(obj.dDb, obj.dDb((i-1)*4+1,h) + ...
             crm(obj.dvdx{i,h})*obj.vJ(:,i), (i-1)*4+1,h);
       end
@@ -111,16 +111,19 @@ for h = 1 : obj.IDstate.n
    %  with respect to \dot{q}_h (x_{n+h})
    for i = 1 : obj.IDstate.n
       
-      % b vector
-      % If i == 1 and we have only the term of gravitational acceleration
-      if (i == 1) && (h == 1)
+      
+      
+      %% db1/dq vector
+      % If parent(i) == 0 and we have only the term of gravitational acceleration
+      if (obj.IDmodel.modelParams.parent(i)==0) && (h == i)
          obj.dDb_s = set(obj.dDb_s, obj.dDb_s((i-1)*4+1,h) + ...
-            obj.dXupdq{1}*(-obj.IDmodel.g), (i-1)*4+1, h);
-      elseif i ~= 1
+            obj.dXupdq{i}*(-obj.IDmodel.g) + crm(obj.dvdx{i,h})*obj.vJ(:,i), (i-1)*4+1, h);
+      else
          obj.dDb_s = set(obj.dDb_s, obj.dDb_s((i-1)*4+1,h) + ...
             crm(obj.dvdx{i,h})*obj.vJ(:,i), (i-1)*4+1,h);
       end
       
+      %% db2/dq vector
       % \frac{\partial v_i \times^{*} I_i v_i }{\partial q_j} =
       % \frac{\partial v_i}{\partial q_j} \times^{*} I_i v_i +
       % v_i \times^{*} I_i \frac{\partial v_i}{\partial q_j} +
@@ -128,6 +131,7 @@ for h = 1 : obj.IDstate.n
          crf(obj.dvdx{i,h})*obj.IDmodel.modelParams.I{i}*obj.v(:,i) + ...
          crf(obj.v(:,i))*obj.IDmodel.modelParams.I{i}*obj.dvdx{i,h}, (i-1)*4+2, h);
       
+      %% db1/dvq vector
       % If i == 1, this term of the b vector is always zero
       if i ~= 1
          % obj.b = set(obj.b, crm(obj.v(:,i))*obj.vJ(:,i), I+1, 1);
@@ -142,6 +146,8 @@ for h = 1 : obj.IDstate.n
                crm(obj.v(:,i))* obj.IDmodel.S{i}, (i-1)*4+1,h+obj.IDstate.n);
          end
       end
+      
+      %% db2/dvq vector
       % obj.b = set(obj.b, crf(obj.v(:,i))*obj.IDmodel.modelParams.I{i}*obj.v(:,i), I+2, 1);
       % \frac{\partial v_i \times^{*} I_i v_i }{\partial \dot{q}_j} =
       % \frac{\partial v_i}{\partial \dot{q}_j} \times^{*} I_i v_i +
