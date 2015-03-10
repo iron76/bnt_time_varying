@@ -4,8 +4,8 @@ clc
 
 res       = 0;
 NB        = 30;
-S_dmodel  = 1e2;
-S_ymodel  = 1e-2;
+S_dmodel  = 1e-2;
+S_ymodel  = 1e-4;
 
 
 dmodel_RNEA   = autoTree(NB);
@@ -17,11 +17,12 @@ ymodel_RNEA   = autoSensStochastic(ymodel_RNEA, S_ymodel);
 dmodel_SNEA   = dmodel_RNEA;
 dmodel_SNEA.gravity = [0; -9.81; 0];
 
-ymodel_SNEA   = autoSensSNEA(dmodel_SNEA);
+ymodel_SNEA   = autoSensSNEA(dmodel_SNEA, {'fx', 'd2q'});
 ymodel_SNEA   = autoSensStochastic(ymodel_SNEA, S_ymodel);
 
 dmodel_DNEA = dmodel_SNEA;
-ymodel_DNEA = autoSensDNEA(dmodel_SNEA, ymodel_SNEA, zeros(dmodel_SNEA.NB,1), zeros(dmodel_SNEA.NB, 1));
+ymodel_DNEA = autoSensSNEA(dmodel_DNEA, {'a', 'fx', 'd2q'});
+ymodel_DNEA = autoSensDNEA(dmodel_DNEA, ymodel_DNEA, zeros(dmodel_SNEA.NB,1), zeros(dmodel_SNEA.NB, 1));
 ymodel_DNEA = autoSensStochastic(ymodel_DNEA, S_ymodel);
 
 for i = 1 : ymodel_DNEA.ny
@@ -65,7 +66,7 @@ if res ~= 0
    return
 end
 
-S_dmodel  = 1e-6;
+S_dmodel  = 1e-2;
 S_ymodel  = 1e-4;
 
 run('iCub.m')
