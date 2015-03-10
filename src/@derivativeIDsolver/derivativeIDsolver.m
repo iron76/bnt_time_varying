@@ -216,6 +216,56 @@ classdef derivativeIDsolver < stochasticIDsolver
          Y = cell2mat(obj.IDsens.sensorsParams.Y);
          y = Y * [d; q; dq] + obj.by_s.matrix; % + chol(inv(obj.IDsens.sensorsParams.Sy_inv))*randn(obj.IDmeas.m, 1)
       end
+
+      function res = eq(obj1, obj2)
+         res = 1;
+         res = res && isequal(obj1.IDsens.sensorsParams.Sy_inv, obj2.IDsens.sensorsParams.Sy_inv);
+         if ~isequal(obj1.IDsens.sensorsParams.Sy_inv, obj2.IDsens.sensorsParams.Sy_inv)
+            disp('Sy_inv are different')
+         end
+         res = res && isequal(obj1.IDmodel.modelParams.Sv_inv.matrix, obj2.IDmodel.modelParams.Sv_inv.matrix);
+         if ~isequal(obj1.IDmodel.modelParams.Sv_inv.matrix, obj2.IDmodel.modelParams.Sv_inv.matrix)
+            disp('Sv_inv are different')
+         end         
+         res = res && isequal(obj1.IDmodel.modelParams.Sw_inv.As, obj2.IDmodel.modelParams.Sw_inv.As);
+         if ~isequal(obj1.IDmodel.modelParams.Sw_inv.As, obj2.IDmodel.modelParams.Sw_inv.As)
+            disp('Sw_inv are different')
+         end                  
+         res = res && isequal(obj1.Ds, obj2.Ds);
+         if ~isequal(obj1.Ds, obj2.Ds)
+            disp('Ds are different')
+         end
+         res = res && isequal(obj1.x_bar, obj2.x_bar);
+         if ~isequal(obj1.x_bar, obj2.x_bar)
+            disp('x_bar are different')
+         end
+         res = res && isequal(obj1.d_bar, obj2.d_bar);
+         if ~isequal(obj1.d_bar, obj2.d_bar)
+            disp('d_bar are different')
+         end
+         res = res && isequal(obj1.bs, obj2.bs);
+         if ~isequal(obj1.bs, obj2.bs)
+            disp('bs are different')
+         end         
+         res = res && isequal(obj1.Sx_inv.As, obj2.Sx_inv.As);
+         if ~isequal(obj1.Sx_inv.As, obj2.Sx_inv.As)
+            disp('Sx_inv are different')
+         end                  
+         res = res && isequal(obj1.IDmeas.y, obj2.IDmeas.y);
+         if ~isequal(obj1.IDmeas.y, obj2.IDmeas.y)
+            disp('y are different')
+         end
+         res = res && isequal(obj1.x, obj2.x);
+         if ~isequal(obj1.x, obj2.x)
+            disp('x are different')
+         end
+         res = res && isequal(obj1.d, obj2.d);
+         if ~isequal(obj1.d, obj2.d)
+            disp('d are different')
+         end
+         
+      end
+      
       
    end % methods
 end % classdef
