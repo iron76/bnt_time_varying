@@ -1,4 +1,4 @@
-function [ ymodel ] = autoSensSNEA( dmodel )
+function [ ymodel ] = autoSensSNEA( dmodel , sens )
 %AUTOSENSSNEA Generates a random sensor distribution articulated rigid body.
 %   This function generates a structure that contains all measurements
 %   needed to perform sparse inverse dynanmic compuations on the supplied
@@ -35,41 +35,49 @@ function [ ymodel ] = autoSensSNEA( dmodel )
 %
 %       Ys - a sparse representation of the whole-matrix Y
 %
+%    If a second argument sens is specified in the form {'s1', 's2'} the
+%    sensors 's1' and 's2' are included among sensors where possible
+%    sensors are 'a', 'f', 'fB', 'd2q', 'tau', 'fB'.
+%
 % Author: Francesco Nori
 % Genova, Dec 2014
+
+if nargin == 1
+   sens = [];
+end
 
 ymodel.NB = dmodel.NB;
 ny = 0;
 
-ry = randfixedsum(ymodel.NB, 1, 4*ymodel.NB, 2, 6);
+ry = randfixedsum(ymodel.NB, 1, 4*ymodel.NB, 0, 6);
 ry = round(ry);
 for i = 1 : ymodel.NB
-   %if ry(i) >= 6
+   if ry(i) >= 6 || ~isempty(find(strcmp(sens, 'a'), 1))
       ny = ny + 1;
       ymodel.sizes{ny,1} = 6;
       ymodel.labels{ny,1} = ['y_a' num2str(i)];
-   %end
-   if ry(i) >= 5
+   end
+   if ry(i) >= 5 || ~isempty(find(strcmp(sens, 'fB'), 1))
       ny = ny + 1;
       ymodel.sizes{ny,1} = 6;
       ymodel.labels{ny,1} = ['y_fB' num2str(i)];
    end
-   if ry(i) >= 4
+   if ry(i) >= 4 || ~isempty(find(strcmp(sens, 'f'), 1))
       ny = ny + 1;
       ymodel.sizes{ny,1} = 6;
       ymodel.labels{ny,1} = ['y_f' num2str(i)];
    end
-   if ry(i) >= 3
+   if ry(i) >= 3 || ~isempty(find(strcmp(sens, 'tau'), 1))
       ny = ny + 1;
       ymodel.sizes{ny,1} = 1;
       ymodel.labels{ny,1} = ['y_tau' num2str(i)];
    end
-   if ry(i) >= 2
+   if ry(i) >= 2 || ~isempty(find(strcmp(sens, 'fx'), 1))
       ny = ny + 1;
       ymodel.sizes{ny,1} = 6;
       ymodel.labels{ny,1} = ['y_fx'  num2str(i)];
    end
-   if ry(i) >= 1
+   if ry(i) >= 1 || ~isempty(find(strcmp(sens, 'd2q'), 1))
       ny = ny + 1;
       ymodel.sizes{ny,1} = 1;
       ymodel.labels{ny,1} = ['y_d2q' num2str(i)];
