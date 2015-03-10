@@ -1,20 +1,29 @@
 clear all
 close all
+clc
 load preprocess2.mat
 load d0.mat
 
 [~, n]  = size(y);
 NB      = myModel.modelParams.NB;
 
-Sq  = 0.05 * pi/180;
-Sdq = 10   * pi/180;
-Sx0 = [ones(NB,1)*Sq;  ones(NB,1)*Sdq];
-Sx0(10,10) = 10 * pi/180;
+Sq       = 0.05 * pi/180;
+Sdq      = 10   * pi/180;
+Sx0      = [ones(NB,1)*Sq;  ones(NB,1)*Sdq];
+data.q0  = data.q;
+data.dq0 = data.dq;
+
+for i = 1 : NB
+   if mask_q(i) == 0
+      Sx0(i,1)      = Sx0(i,1)*1000;
+      data.q0(i,:)  = 0;
+   end
+end
 
 %% iCub model
 ymdl    = iCubSens(dmodel, sens);
 ymodel  = iCubSensDNEA(dmodel, ymdl, sens, mask_q, mask_dq);
-dmodel  = autoTreeStochastic(dmodel, 1e-3, 1e4);
+dmodel  = autoTreeStochastic(dmodel, 1e-2, 1e4);
 ymodel  = iCubSensStochastic(ymodel);
 myModel = model(dmodel);
 mySens  = sensors(ymodel);
@@ -28,12 +37,11 @@ res.x  = zeros(2 *NB, n);
 res.Sx = zeros(2 *NB, 2* NB, n);
 
 for i = 1 : n
-   eq     = [zeros(9,1); 0.5; zeros(15,1)];
-   myDNEA = myDNEA.setState(data.q(:,i)+eq, data.dq(:,i));
+   myDNEA = myDNEA.setState(data.q0(:,i), data.dq0(:,i));
    myDNEA = myDNEA.setY(data.y(:,i));
    myDNEA = myDNEA.setStateVariance(diag(Sx0));
    myDNEA = myDNEA.setD(d0); 
-   myDNEA = myDNEA.solveID();
+   myDNEA = myDNEA.solveID();   
    
    Y = cell2mat(myDNEA.IDsens.sensorsParams.Y);
 
@@ -109,8 +117,34 @@ for l = 1 : length(label_to_plot)
    end
 end
 
-figure 
-shadedErrorBar(data.time, data.q(10,:)', sqrt(ones(1,n)*Sq), {'r--' , 'LineWidth', 1}, 0);
-hold on
-shadedErrorBar(data.time,  res.q(10,:)', sqrt(reshape(res.Sx(10, 10, :), 1, n)), {'r' , 'LineWidth', 1}, 0);
+close all
+for i = 1 : NB
+   if mask_q(i) == 0
+      % calib = mean(res.q(i,:)'- data.q(i,:)');
+      calib = 0;
+      figure
+      subplot(211)
+      h1 = shadedErrorBar(data.time, data.q(i,:)' + calib, sqrt(ones(1,n)*Sx0(i)), {'k--' , 'LineWidth', 1}, 0);
+      hold on
+      h2 = shadedErrorBar(data.time,  res.q(i,:)', sqrt(reshape(res.Sx(i, i, :), 1, n)), {'k' , 'LineWidth', 2}, 1);
+      grid
+      ax = gca;
+      set(ax, 'FontSize', 24)      
+      legend('q', 'q_{map}')
+      ylabel('q [deg]')
+      [legh,objh,outh,outm] =legend([h1.mainLine h2.mainLine], 'q', 'q_{map}', 'Location', 'Southeast');
+      title(strrep(myDNEA.IDmodel.modelParams.jointname{i}, '_', '-'));
+      set(legh,'linewidth',4);
+      
+      subplot(212)
+      plot(data.time,  res.q(i,:)'- data.q(i,:)'- calib, 'k', 'LineWidth', 2)
+      grid
+      ax = gca;
+      set(ax, 'FontSize', 24)
+      xlabel('time[s]')
+      ylabel('e [deg]')
+      eval(['print -dpdf q' strrep(myDNEA.IDmodel.modelParams.jointname{i}, '_', '-') '.pdf'])
+   end
+end
+
 

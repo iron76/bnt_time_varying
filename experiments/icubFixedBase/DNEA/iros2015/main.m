@@ -54,7 +54,10 @@ if ~exist('preprocess.mat', 'file')
    % end
    
    %%%%%%%%%%%TMP%%%%%%%%%%%
-   mask_q(10,1) = 0;
+   mask_q(12:13,1) = 0;
+   mask_q(23:24,1) = 0;
+   mask_q(4,1) = 0;
+   mask_q(15,1) = 0;
    %%%%%%%%%%%%%%%%%%%%%%%%%
    
    ymdl    = iCubSens(dmodel, sens);
@@ -160,6 +163,7 @@ end
 
 %% Build data.y anda data.Sy from adjusted ys_label
 data.y  = [];
+ind_d2q = [];
 for i = 1 : myDNEA.IDsens.sensorsParams.ny
    sens_str = myDNEA.IDsens.sensorsParams.labels{i};
    sens_lng = length(sens_str);
@@ -170,6 +174,7 @@ for i = 1 : myDNEA.IDsens.sensorsParams.ny
    elseif length(sens_str)>=4 && strcmp(sens_str(1:4), 'y_dq')
       eval('data.y  = [data.y ; data.dq(str2double(sens_str(5:sens_lng)), :)];');
    elseif length(sens_str)>=4 && strcmp(sens_str(end-3:end), '_d2q')
+      ind_d2q = [ind_d2q, size(data.y, 1)+1];
       eval('data.y  = [data.y ; zeros(1, length(data.time))];');
    elseif length(sens_str)==9 && strcmp(sens_str, 'y_omega13')
       eval('data.y  = [data.y ; data.ys_lh_gyr];');
@@ -179,6 +184,7 @@ for i = 1 : myDNEA.IDsens.sensorsParams.ny
       eval(['data.y  = [data.y ; data.ys_' myDNEA.IDsens.sensorsParams.labels{i} '];']);
    end
 end
+data.y(ind_d2q, :) = data.d2q;
 
 data.Sy = [];
 for i = 1 : length(myDNEA.IDsens.sensorsParams.labels)
