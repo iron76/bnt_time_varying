@@ -15,8 +15,8 @@ data.dq0 = data.dq;
 
 for i = 1 : NB
    if mask_q(i) == 0
-      Sx0(i,1)      = Sx0(i,1)*1000;
-      data.q0(i,:)  = 0;
+      Sx0(i,1)      = Sx0(i,1)*10;
+      % data.q0(i,:)  = 0;
    end
 end
 
@@ -56,6 +56,8 @@ for i = 1 : n
       fprintf('Processing %d %% of the dataset\n', round(i/n*100));
    end
    d0 = res.d(:,i);
+   data.q0(:, i+1) = res.x(   1:  NB,i);
+   data.dq0(:,i+1) = res.x(NB+1:2*NB,i);
 end
 
 %% Rerrange solution
