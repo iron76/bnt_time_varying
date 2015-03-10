@@ -82,6 +82,7 @@ for h = 1 : obj.IDstate.n
 end
 
 %% Sparse submatrix
+obj.dDb_s.As = zeros(size(obj.dDb_s.As));
 
 for h = 1 : obj.IDstate.n
    %% Compute the derivatives of D_{i,j}d_j subvector of Dd + b
