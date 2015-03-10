@@ -3,9 +3,9 @@ close all
 clc
 
 res       = 0;
-NB        = 10;
-S_dmodel  = 1e-1;
-S_ymodel  = 1e-2;
+NB        = 30;
+S_dmodel  = 1e-2;
+S_ymodel  = 1e-3;
 
 
 dmodel_RNEA   = autoTree(NB);
@@ -17,11 +17,12 @@ ymodel_RNEA   = autoSensStochastic(ymodel_RNEA, S_ymodel);
 dmodel_SNEA   = dmodel_RNEA;
 dmodel_SNEA.gravity = [0; -9.81; 0];
 
-ymodel_SNEA   = autoSensSNEA(dmodel_SNEA);
+ymodel_SNEA   = autoSensSNEA(dmodel_SNEA, {'fx', 'd2q'});
 ymodel_SNEA   = autoSensStochastic(ymodel_SNEA, S_ymodel);
 
 dmodel_DNEA = dmodel_SNEA;
-ymodel_DNEA = autoSensDNEA(dmodel_SNEA, ymodel_SNEA, zeros(NB,1), zeros(NB, 1));
+ymodel_DNEA = autoSensSNEA(dmodel_DNEA, {'a', 'fx', 'd2q'});
+ymodel_DNEA = autoSensDNEA(dmodel_DNEA, ymodel_DNEA, zeros(dmodel_SNEA.NB,1), zeros(dmodel_SNEA.NB, 1));
 ymodel_DNEA = autoSensStochastic(ymodel_DNEA, S_ymodel);
 
 for i = 1 : ymodel_DNEA.ny
@@ -40,8 +41,6 @@ dmodel_BNEA    = autoTreeStochastic(dmodel_SNEA);
 ymodel_BNEA    = autoSensStochastic(ymodel_SNEA);
 
 
-% res = res || testDNEA(dmodel_DNEA, ymodel_DNEA, dmodel_SNEA, ymodel_SNEA, S_dmodel);
-
 ymodel_RNEA = autoSensRNEA(dmodel_SNEA);
 ymodel_RNEA = autoSensStochastic(ymodel_RNEA, 1e-5);
 
@@ -49,11 +48,11 @@ res = 0;
 NB  = dmodel_SNEA.NB;
 
 for i = 1 : 10
-   q         = rand(dmodel_SNEA.NB,1);
-   dq        = rand(dmodel_SNEA.NB,1);
-   Sx        = diag(1e8*S_dmodel*rand(dmodel_SNEA.NB*2, 1));
-   eq        = 0.8*rand(size(q));
-   edq       = 1.8*rand(size(dq));
+   q         = randn(NB,1)*0.5;
+   dq        = randn(NB,1)*0.5;
+   Sx        = diag(1e8*S_dmodel*rand(NB*2, 1));
+   eq        = 0.05*randn(size(q));
+   edq       = 0.05*randn(size(dq));
    
    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
    myModel = model(dmodel_SNEA);
@@ -65,16 +64,6 @@ for i = 1 : 10
    myRNEA    = myRNEA.solveID();
    d         = myRNEA.d;
    
-   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-   myModel = model(dmodel_SNEA);
-   mySens  = sensors(ymodel_SNEA);
-   
-   mySNEA    = SNEA(myModel, mySens);
-   mySNEA    = mySNEA.setState(q+eq,dq+edq);
-   y         = mySNEA.simY(d);
-   mySNEA    = mySNEA.setY(y);
-   mySNEA    = mySNEA.solveID();
-   
    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
    myModel = model(dmodel_DNEA);
    mySens  = sensors(ymodel_DNEA);
@@ -85,14 +74,14 @@ for i = 1 : 10
    myDNEA    = myDNEA.setState(q+eq,dq+edq);
    myDNEA    = myDNEA.setY(y);
    myDNEA    = myDNEA.setStateVariance(Sx);
-   d_bar     = d + rand(size(d))*100;
+   d_bar     = d + randn(size(d)).*abs(d).*0.1;
    myDNEA    = myDNEA.setD(d_bar);
    myDNEA    = myDNEA.solveID();
-   
    
    D   = sparse(myDNEA.iDs, myDNEA.jDs, myDNEA.Ds, 19*dmodel_SNEA.NB, 26*dmodel_SNEA.NB);
    dDb = myDNEA.dDb_s.matrix;
    Ys  = myDNEA.IDsens.sensorsParams.Ys;
+   Ys(:,(end-2*dmodel_SNEA.NB+1):end) = Ys(:,(end-2*dmodel_SNEA.NB+1):end) + myDNEA.dby_s.matrix;
    DY  = [D dDb; Ys];
    
    
@@ -100,44 +89,35 @@ for i = 1 : 10
       disp([ 'The extended matrix [D;Y] is not full rank! Rank is: ', num2str(rank(full(DY))), ' should be ', num2str(26*dmodel_SNEA.NB + 2*dmodel_SNEA.NB)]);
       res = 1;
    else
-      errSNEAd(i) = norm(d - d_bar);
+      errd(i) = norm(d - d_bar);
       errDNEAd(i) = norm(myDNEA.d - d);
-      
-%       figure
-%       plot(abs(mySNEA.d - d_bar), 'g')
-%       hold on
-%       plot(abs(myDNEA.d - d_bar))
-      disp(['Diff between d.DNEA and d is ' num2str(norm(myDNEA.d - d)) ' was ' num2str(norm(d - d_bar))]);
-      if norm(mySNEA.d-myDNEA.d)/length(mySNEA.d) > 0.01*max(mySNEA.d)
-         disp('Result is excessively inaccurate. Test is declared failed!');
-         res = 1;
-      end
       
       errDNEAq(i)  = norm(myDNEA.x(   1:NB ,1) - q);
       errDNEAdq(i) = norm(myDNEA.x(NB+1:end,1) - dq);
       
-      errSNEAq(i)  = norm(eq);
-      errSNEAdq(i) = norm(edq);
-
+      errq(i)  = norm(eq);
+      errdq(i) = norm(edq);
+      
       valDNEAq(i, :)  = abs(myDNEA.x(   1:NB ,1) - q);
       valDNEAdq(i, :) = abs(myDNEA.x(NB+1:end,1) - dq);
       
-      valSNEAq(i, :)  = abs(eq);
-      valSNEAdq(i, :) = abs(edq);
+      valq(i, :)  = abs(eq);
+      valdq(i, :) = abs(edq);
       
+      disp(['Diff between d.DNEA and d was ' num2str(errd(i)) ' is ' num2str(errDNEAd(i))]);
+      if errDNEAd(i) > errd(i)
+         disp('Result is excessively inaccurate. Test is declared failed!');
+         res = 1;
+      end
       
-%       figure
-%       plot(abs(myDNEA.x(1:NB,1) - q))
-%       hold on
-%       plot(abs(eq), 'g')
-%       
-%       figure
-%       plot(abs(myDNEA.x(NB+1:end,1) - dq))
-%       hold on
-%       plot(abs(edq), 'g')
+      disp(['Diff between q.DNEA and q was ' num2str(errq(i)) ' is ' num2str(errDNEAq(i))]);
+      if errDNEAq(i) > errq(i)
+         disp('Result is excessively inaccurate. Test is declared failed!');
+         res = 1;
+      end
       
-      disp(['Diff between x.DNEA and x was ' num2str(norm([eq; edq])) ' is ' num2str(norm(myDNEA.x-[q; dq]))]);
-      if norm(myDNEA.x-[q; dq]) > norm([eq; edq])
+      disp(['Diff between dq.DNEA and dq was ' num2str(errdq(i)) ' is ' num2str(errDNEAdq(i))]);
+      if errDNEAdq(i) > errdq(i)
          disp('Result is excessively inaccurate. Test is declared failed!');
          res = 1;
       end
@@ -146,17 +126,18 @@ for i = 1 : 10
 end
 
 disp('\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/')
-disp(['Mean and variance of d-d_bar:  ' num2str(mean(errSNEAd)) '+/-' num2str(var(errSNEAd)^(1/2))]);
+disp(['Mean and variance of d-d_bar:  ' num2str(mean(errd)) '+/-' num2str(var(errd)^(1/2))]);
 disp(['Mean and variance of d-d.DNEA: ' num2str(mean(errDNEAd)) '+/-' num2str(var(errDNEAd)^(1/2))]);
 disp('\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/')
-disp(['Mean and variance of q-q_bar:  '  num2str(mean(errSNEAq))  '+/-' num2str(var(errSNEAq)^(1/2))]);
+disp(['Mean and variance of q-q_bar:  '  num2str(mean(errq))  '+/-' num2str(var(errq)^(1/2))]);
 disp(['Mean and variance of q-q.DNEA: '  num2str(mean(errDNEAq))  '+/-' num2str(var(errDNEAq)^(1/2))]);
 disp('\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/')
-disp(['Mean and variance of dq-dq_bar: ' num2str(mean(errDNEAdq)) '+/-' num2str(var(errDNEAdq)^(1/2))]);
-disp(['Mean and variance of dq-dq_bar: ' num2str(mean(errSNEAdq)) '+/-' num2str(var(errSNEAdq)^(1/2))]);
+disp(['Mean and variance of dq-dq_bar: ' num2str(mean(errdq)) '+/-' num2str(var(errdq)^(1/2))]);
+disp(['Mean and variance of dq-dq.DNEA:' num2str(mean(errDNEAdq)) '+/-' num2str(var(errDNEAdq)^(1/2))]);
+
 
 figure
-errorbar((1 : NB)+0.1, mean(valSNEAq,1), -2*sqrt(var(valSNEAq,1)), 2*sqrt(var(valSNEAq,1)), 'o', 'LineWidth',2, 'Color',[0.7 0.7 0.7], 'MarkerSize', 6, 'MarkerFaceColor',[0.7 0.7 0.7])
+errorbar((1 : NB)+0.1, mean(valq,1), -2*sqrt(var(valq,1)), 2*sqrt(var(valq,1)), 'o', 'LineWidth',2, 'Color',[0.7 0.7 0.7], 'MarkerSize', 6, 'MarkerFaceColor',[0.7 0.7 0.7])
 hold on;
 errorbar((1 : NB)-0.1, mean(valDNEAq,1), -2*sqrt(var(valDNEAq,1)), 2*sqrt(var(valDNEAq,1)), 'o' ,'LineWidth',2, 'Color',[0 0 0], 'MarkerSize', 6, 'MarkerFaceColor',[0 0 0])
 ax = gca;
@@ -169,11 +150,11 @@ legend('{e}^{bar}_{q}', 'e^{map}_{q}')
 xlabel('joint number')
 ylabel('pos. estimation error [rad]')
 grid
-legend boxoff  
+legend boxoff
 print -dpdf eq.pdf
 
 figure
-errorbar((1 : NB)+0.1, mean(valSNEAdq,1), -2*sqrt(var(valSNEAdq,1)), 2*sqrt(var(valSNEAdq,1)), 'o', 'LineWidth',2, 'Color',[0.7 0.7 0.7], 'MarkerSize', 6, 'MarkerFaceColor',[0.7 0.7 0.7])
+errorbar((1 : NB)+0.1, mean(valdq,1), -2*sqrt(var(valdq,1)), 2*sqrt(var(valdq,1)), 'o', 'LineWidth',2, 'Color',[0.7 0.7 0.7], 'MarkerSize', 6, 'MarkerFaceColor',[0.7 0.7 0.7])
 hold on;
 errorbar((1 : NB)-0.1, mean(valDNEAdq,1), -2*sqrt(var(valDNEAdq,1)), 2*sqrt(var(valDNEAdq,1)), 'o' ,'LineWidth',2, 'Color',[0 0 0], 'MarkerSize', 6, 'MarkerFaceColor',[0 0 0])
 ax = gca;
@@ -185,8 +166,9 @@ set(ax, 'XTick', daxXTick, 'XTickLabel', daxXTickLabel, 'FontSize', 24)
 legend('{e}^{bar}_{dq}', 'e^{map}_{dq}')
 xlabel('joint number')
 ylabel('vel. estimation error [rad/s]')
-legend boxoff  
+legend boxoff
 grid
 print -dpdf edq.pdf
+
 
 
