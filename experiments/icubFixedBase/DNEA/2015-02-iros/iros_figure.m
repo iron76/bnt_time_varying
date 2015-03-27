@@ -73,9 +73,12 @@ for i = 1 : 10
    y         = myDNEA.simY(d, q, dq);
    myDNEA    = myDNEA.setState(q+eq,dq+edq);
    myDNEA    = myDNEA.setY(y);
-   myDNEA    = myDNEA.setStateVariance(Sx);
+   myDNEA    = myDNEA.setXvariance(Sx);
    d_bar     = d + randn(size(d)).*abs(d).*0.1;
+   x_bar     = [q; dq] + [eq; edq];
    myDNEA    = myDNEA.setD(d_bar);
+   myDNEA    = myDNEA.setDprior(d_bar);
+   myDNEA    = myDNEA.setXprior(x_bar);
    myDNEA    = myDNEA.solveID();
    
    D   = sparse(myDNEA.iDs, myDNEA.jDs, myDNEA.Ds, 19*dmodel_SNEA.NB, 26*dmodel_SNEA.NB);
