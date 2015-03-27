@@ -65,13 +65,16 @@ classdef derivativeIDsolver < stochasticIDsolver
 
       dby_s  %% Matrix representing dby(x) derivative of by(x) w.r.t.
       %  x = [q; dq] \frac{by(x)}{\partial x}, sparse version
-      idby   %% indeces to access the by(x) submatrix
-      jdby   %% indeces to access the by(x) submatrix
-      idby_s %% indeces to access the by(x) submatrix, sparse version
-      jdby_s %% indeces to access the by(x) submatrix, sparse version
+      idby   %% indeces to access the dby(x) submatrix
+      jdby   %% indeces to access the dby(x) submatrix
+      idby_s %% indeces to access the dby(x) submatrix, sparse version
+      jdby_s %% indeces to access the dby(x) submatrix, sparse version
       
       x_bar %% the current estimation for x (around which we linearize)
       d_bar %% the current estimation for d (around which we linearize)
+      
+      x_prior %% the prior on x
+      d_prior %% the prior on d
    end
 
    properties
@@ -164,14 +167,13 @@ classdef derivativeIDsolver < stochasticIDsolver
                end
             end
          end
-         
-         %% Current state estimation corresponds to [q; dq]
-         obj.x_bar = [q; dq];
-         
+                  
          %% Update the Y and dY matrices
          obj = updateBYsubmatrix(obj);
          obj = updatedBYsubmatrix(obj);
          
+         %% Value of x around which we linearize        
+         obj.x_bar = [q;dq];
       end % derivativeIDsolver
       
       function disp(b)
@@ -179,9 +181,8 @@ classdef derivativeIDsolver < stochasticIDsolver
          disp@deterministicIDsolver(b)
          fprintf('derivativeIDsolver disp to be implemented! \n')
       end % disp
-      
-      function obj = setD(obj,d)
-         %% Compute \frac{\partial (Dd+b)}{\partial x} matrix
+
+      function obj = setD(obj, d)
          [m,n] = size(d);
          if (m ~= obj.IDmodel.modelParams.NB * 26) || (n ~= 1)
             error('[ERROR] The input d should be provided as a column vector with 26*model.NB rows');
@@ -191,7 +192,28 @@ classdef derivativeIDsolver < stochasticIDsolver
          obj = updateStateDerivativeSubMatrix(obj, obj.d_bar);
       end
       
-      function obj = setStateVariance(obj,Sx)
+      
+      function obj = setDprior(obj, d)
+         %% Compute \frac{\partial (Dd+b)}{\partial x} matrix
+         [m,n] = size(d);
+         if (m ~= obj.IDmodel.modelParams.NB * 26) || (n ~= 1)
+            error('[ERROR] The input d should be provided as a column vector with 26*model.NB rows');
+         end
+         %  as defined in the IJRR Paper
+         obj.d_prior = d;
+      end
+      
+      function obj = setXprior(obj, x)         
+         %% Current prior for the state [q; dq]         
+         [m,n] = size(x);
+         if (m ~= obj.IDmodel.modelParams.NB * 2) || (n ~= 1)
+            error('[ERROR] The input x should be provided as a column vector with 2*model.NB rows');
+         end
+         %  as defined in the IJRR Paper
+         obj.x_prior = x;
+      end
+      
+      function obj = setXvariance(obj,Sx)
          [m,n] = size(Sx);
          if (m ~= obj.IDmodel.modelParams.NB * 2) || (n ~= obj.IDmodel.modelParams.NB * 2)
             error('[ERROR] The input Sx should be a matrix with 2*model.NB rows and columns');
