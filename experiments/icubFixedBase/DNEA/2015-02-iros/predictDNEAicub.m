@@ -39,8 +39,11 @@ res.Sx = zeros(2 *NB, 2* NB, n);
 for i = 1 : n
    myDNEA = myDNEA.setState(data.q0(:,i), data.dq0(:,i));
    myDNEA = myDNEA.setY(data.y(:,i));
-   myDNEA = myDNEA.setStateVariance(diag(Sx0));
-   myDNEA = myDNEA.setD(d0); 
+   myDNEA = myDNEA.setXvariance(diag(Sx0));
+   x0     = [data.q0(:,i); data.dq0(:,i)];
+   myDNEA = myDNEA.setD(d0);
+   myDNEA = myDNEA.setDprior(d0);
+   myDNEA = myDNEA.setXprior(x0);
    myDNEA = myDNEA.solveID();   
    
    Y = cell2mat(myDNEA.IDsens.sensorsParams.Y);
