@@ -82,7 +82,9 @@ for i = 1 : num_of_tests
    
    myDNEA = myDNEA.setState(q,dq);
    myDNEA = myDNEA.setD(d);
-   myDNEA = myDNEA.setStateVariance(Sx);
+   myDNEA = myDNEA.setDprior(d);
+   myDNEA = myDNEA.setXprior([q; dq]);
+   myDNEA = myDNEA.setXvariance(Sx);
    myDNEA.solveID();
    if norm(myDNEA.dDb_s.matrix - dD) > 1e-3
       disp(['dD numerical derivative is quite different: ' num2str(norm(myDNEA.dDb_s.matrix - dD))])
