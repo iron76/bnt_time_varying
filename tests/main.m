@@ -62,12 +62,14 @@ res = res || testDerivatives(dmodel_DNEA, ymodel_DNEA);
 
 res = res || testDNEA(dmodel_DNEA, ymodel_DNEA, dmodel_SNEA, ymodel_SNEA, S_dmodel);
 
+res = res || testCalibration(dmodel_DNEA, ymodel_DNEA, dmodel_SNEA, ymodel_SNEA, S_dmodel);
+
 if res ~= 0
    return
 end
 
-S_dmodel  = 1e-2;
-S_ymodel  = 1e-4;
+S_dmodel  = 1e-1;
+S_ymodel  = 1e-3;
 
 run('iCub.m')
 dmodel_SNEA = iCub_dmodel;
@@ -91,6 +93,8 @@ res = res || testLearnBNEA(dmodel_SNEA, ymodel_SNEA);
 res = res || testDerivatives(dmodel_DNEA, ymodel_DNEA);
 
 res = res || testDNEA(dmodel_DNEA, ymodel_DNEA, dmodel_SNEA, ymodel_SNEA, S_dmodel);
+
+res = res || testCalibration(dmodel_DNEA, ymodel_DNEA, dmodel_SNEA, ymodel_SNEA, S_dmodel);
 
 if res ~=0 
    disp('[ERROR] One of the tests failed!')
