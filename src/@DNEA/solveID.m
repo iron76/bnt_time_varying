@@ -44,7 +44,7 @@ function obj = solveID(obj)
 NB = obj.IDmodel.modelParams.NB;
 
 % b = [b - db_D * x_bar]
-b  = sparse(obj.ibs, ones(length(obj.ibs),1), obj.bs, 19*NB, 1) - obj.dDb.matrix * sparse(obj.x_bar);
+b  = sparse(obj.ibs, ones(length(obj.ibs),1), obj.bs, 19*NB, 1) - obj.dDb_s.matrix * sparse(obj.x_bar);
 
 % by = [cy - dc_Y * x_bar]
 by = obj.by_s.matrix - obj.dby_s.matrix * sparse(obj.x_bar);
@@ -143,7 +143,7 @@ Ss = Sinv+Y'*Sy_inv*Y;
 % Sxy = S = [Dx^(-1)*inv(Sv_inv)*Dx^(-1)' + Dx^(-1)*Dy*inv(Sw_inv)*Dy'*Dx^(-1)', -Dx^(-1)*Dy*inv(Sw_inv); -inv(Sw_inv)*Dy'*Dx^(-1)', inv(Sw_inv)],1)
 % Sxy = [Dx_inv + Dx_inv*Dy*Sw*Dy'*Sv_inv, -Dx_inv*Dy*Sw; -Sw*Dy'*Sv_inv, Sw];
 mx  = -b ;
-my  = [zeros(7*NB,1); obj.x_bar];
+my  = [zeros(7*NB,1); obj.x_prior];
 % mxy = -Sxy*[-mx; -Dy'*Sv_inv*mx - Sw_inv*my];
 mxy = [Dx\(mx-Dy*my); my];
 % d   = mxy + Ss\Y'*Sy_inv*(obj.IDmeas.y-Y*mxy);
