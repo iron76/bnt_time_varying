@@ -10,6 +10,8 @@ S_ymodel  = 1e-4;
 
 dmodel_RNEA   = autoTree(NB);
 dmodel_RNEA   = autoTreeStochastic(dmodel_RNEA, S_dmodel);
+dmodel_RNEA.gravity = [0; -9.81; 0];
+
 
 ymodel_RNEA   = autoSensRNEA(dmodel_RNEA);
 ymodel_RNEA   = autoSensStochastic(ymodel_RNEA, S_ymodel);
@@ -24,6 +26,13 @@ dmodel_DNEA = dmodel_SNEA;
 ymodel_DNEA = autoSensSNEA(dmodel_DNEA, {'a', 'fx', 'd2q'});
 ymodel_DNEA = autoSensDNEA(dmodel_DNEA, ymodel_DNEA, zeros(dmodel_SNEA.NB,1), zeros(dmodel_SNEA.NB, 1));
 ymodel_DNEA = autoSensStochastic(ymodel_DNEA, S_ymodel);
+
+dmodel_ANEA = autoTreeStochasticANEA(dmodel_RNEA, S_dmodel);
+dmodel_ANEA.gravity = dmodel_SNEA.gravity;
+
+ymodel_ANEA = autoSensANEA(dmodel_ANEA);
+ymodel_ANEA = autoSensStochastic(ymodel_ANEA, S_ymodel);
+
 
 for i = 1 : ymodel_DNEA.ny
    lb = ymodel_DNEA.labels{i,1};
@@ -63,6 +72,10 @@ res = res || testDerivatives(dmodel_DNEA, ymodel_DNEA);
 res = res || testDNEA(dmodel_DNEA, ymodel_DNEA, dmodel_SNEA, ymodel_SNEA, S_dmodel);
 
 res = res || testCalibration(dmodel_DNEA, ymodel_DNEA, dmodel_SNEA, ymodel_SNEA, S_dmodel);
+
+res = res || testANEA(dmodel_RNEA, ymodel_RNEA, dmodel_ANEA, ymodel_ANEA);
+
+res = res || testDANEA(dmodel_ANEA, ymodel_ANEA);
 
 if res ~= 0
    return

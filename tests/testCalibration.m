@@ -85,7 +85,7 @@ for i = 1 : T
    x_bar  = [q; dq] + [eq; edq];
    x_pri  = x_bar + dx;
    
-   disp(['Error on dx is: ' num2str(norm(x_pri - x))]);
+   disp(['Distance forom real x is: ' num2str(norm(x_pri - x))]);
       
    myDNEA = myDNEA.setState(x(1:NB ,1),x(NB+1:end,1));
    y      = myDNEA.simY(d,  x(1:NB ,1),x(NB+1:end,1));
