@@ -28,7 +28,6 @@ function obj = solveID(obj)
 
 NB = obj.IDmodel.modelParams.NB;
 b  = obj.b.matrix;
-D  = obj.D.matrix; 
 
 Dx = obj.D(1:NB, 1:2:2*NB);
 Dy = obj.D(1:NB, 2:2:2*NB);

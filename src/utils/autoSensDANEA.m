@@ -96,6 +96,7 @@ for i = 1 : dmodel.NB
    ymodel.Ys = [ ymodel.Ys;  sparse(zeros(ymodel.sizes{ymodel.ny,1}, 9*dmodel.NB)) ];
 end   
 
+
 % ymodel.NB = dmodel.NB;
 % ny = 0;
 % 

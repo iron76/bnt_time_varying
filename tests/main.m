@@ -30,8 +30,12 @@ ymodel_DNEA = autoSensStochastic(ymodel_DNEA, S_ymodel);
 dmodel_ANEA = autoTreeStochasticANEA(dmodel_RNEA, S_dmodel);
 dmodel_ANEA.gravity = dmodel_SNEA.gravity;
 
-ymodel_ANEA = autoSensANEA(dmodel_ANEA);
+ymodel_ANEA = autoSensANEA(dmodel_ANEA, 0);
 ymodel_ANEA = autoSensStochastic(ymodel_ANEA, S_ymodel);
+
+ymodel_DANEA = autoSensANEA(dmodel_ANEA, 1);
+ymodel_DANEA  = autoSensDANEA(dmodel_ANEA, ymodel_DANEA, zeros(NB,1), zeros(NB, 1));
+ymodel_DANEA  = autoSensStochastic(ymodel_DANEA, S_ymodel);
 
 
 for i = 1 : ymodel_DNEA.ny
@@ -76,6 +80,9 @@ res = res || testCalibration(dmodel_DNEA, ymodel_DNEA, dmodel_SNEA, ymodel_SNEA,
 res = res || testANEA(dmodel_RNEA, ymodel_RNEA, dmodel_ANEA, ymodel_ANEA);
 
 res = res || testDANEA(dmodel_ANEA, ymodel_ANEA);
+
+res = res || testDANEACalibration(dmodel_ANEA, ymodel_DANEA, dmodel_SNEA, ymodel_SNEA, S_dmodel);
+
 
 if res ~= 0
    return

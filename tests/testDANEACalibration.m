@@ -1,4 +1,4 @@
-function res = testCalibration(dmodel_DNEA, ymodel_DNEA, dmodel, ymodel, S_dmodel)
+function res = testDANEACalibration(dmodel_DANEA, ymodel_DANEA, dmodel, ymodel, S_dmodel)
 
 % This function checks the calibration procedure. Given x, the calibration
 % consists in estimating [d; dx] which satisy the following:
@@ -59,26 +59,31 @@ dq        = randn(NB,1)*0.5;
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-myModel = model(dmodel_DNEA);
+myModel = model(dmodel_DANEA);
 mySens  = sensors(ymodel_RNEA);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 myRNEA    = RNEA(myModel, mySens);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-myModel = model(dmodel_DNEA);
-mySens  = sensors(ymodel_DNEA);
-myDNEA  = DNEA(myModel, mySens);
-% myModel = myModel.updateVarianceDNEA(0, myDNEA.dDb_s);
-% mySens  = mySens.updateVarianceDNEA(0, myDNEA.dby_s);
-% myDNEA  = DNEA(myModel, mySens);
+myDANEA       = DANEA(model(dmodel_DANEA), sensors(ymodel_DANEA));
+% myModel = myModel.updateVarianceDNEA(0, myDANEA.dDb_s);
+% mySens  = mySens.updateVarianceDNEA(0, myDANEA.dby_s);
+% myDANEA  = DNEA(myModel, mySens);
+
 
 for i = 1 : T
    myRNEA    = myRNEA.setState(q,dq);
    myRNEA    = myRNEA.solveID();
    d         = myRNEA.d;
+   d_red     = zeros(7*NB,1);
+   for j = NB : -1 : 1
+      d_red(1+(j-1)*7 : 6+(j-1)*7, 1 ) = d( 1+(j-1)*26 :  6+(j-1)*26, 1 );
+      d_red(7+(j-1)*7 : 7+(j-1)*7, 1 ) = d(26+(j-1)*26 : 26+(j-1)*26, 1 );
+   end
+   % disp(['RNEA Error in D d + b is: ' num2str(norm(myRNEA.D.matrix*d + myRNEA.b.matrix))]);
    
-   d_pri  = d + randn(size(d)).*abs(d).*0.1;
+   d_pri  = d_red + randn(size(d_red)).*abs(d_red).*0.1;
    d_bar  = d_pri;
    
    x      = [q; dq];
@@ -87,26 +92,40 @@ for i = 1 : T
    
    disp(['Distance from real x is: ' num2str(norm(x_pri - x))]);
       
-   myDNEA = myDNEA.setState(x(1:NB ,1),x(NB+1:end,1));
-   y      = myDNEA.simY(d,  x(1:NB ,1),x(NB+1:end,1));
+   myDANEA = myDANEA.setState(x(1:NB ,1),x(NB+1:end,1));
+   y       = myDANEA.simY(d_red,  x(1:NB ,1),x(NB+1:end,1));
    
-   myDNEA = myDNEA.setState(x_pri(1:NB ,1),x_pri(NB+1:end,1));
-   myDNEA = myDNEA.setY(y);
+   myDANEA = myDANEA.setState(x_pri(1:NB ,1),x_pri(NB+1:end,1));
+   myDANEA = myDANEA.setY(y);
    
-   myDNEA = myDNEA.setD(d_bar);
-   myDNEA = myDNEA.setDprior(d_pri);
-   myDNEA = myDNEA.setXprior(x_pri);
-   myDNEA = myDNEA.setXvariance(Sx);
-   myDNEA = myDNEA.solveID();
+   myDANEA = myDANEA.setD(d_bar);
+   myDANEA = myDANEA.setDprior(d_pri);
+   myDANEA = myDANEA.setXprior(x_pri);
+   myDANEA = myDANEA.setXvariance(Sx);
+   myDANEA = myDANEA.solveID();
+      
+   errDNEAd(i)  = norm(myDANEA.d - d_pri);
+   errDNEAq(i)  = norm(myDANEA.x(   1:NB ,1)  -  q);
+   errDNEAdq(i) = norm(myDANEA.x(NB+1:end,1)  - dq);
    
-   errDNEAd(i)  = norm(myDNEA.d - d);
-   errDNEAq(i)  = norm(myDNEA.x(   1:NB ,1)  -  q);
-   errDNEAdq(i) = norm(myDNEA.x(NB+1:end,1)  - dq);
-   
-   errd(i)  = norm(d-d_bar);
+   errd(i)  = norm(d_pri-d_bar);
    errq(i)  = norm(eq);
    errdq(i) = norm(edq);
    errdx(i) = norm(dx+[eq; edq]);
+   
+   D   = myDANEA.D(1:NB, 1:2*NB);
+   dDb = myDANEA.dDb_s.matrix;
+   Ys  = myDANEA.IDsens.sensorsParams.Ys;
+   Ys(:,(end-2*dmodel.NB+1):end) = Ys(:,(end-2*dmodel.NB+1):end) + myDANEA.dby_s.matrix;
+   DY  = [D dDb; Ys];
+   %norm(DY*[d_red; x*0]-[zeros(6*NB,1); y])
+      
+   
+   
+   if rank(full(DY)) < 7*dmodel.NB + 2*dmodel.NB
+      disp([ 'The extended matrix [D;Y] is not full rank! Rank is: ', num2str(rank(full(DY))), ' should be ', num2str(7*dmodel.NB + 2*dmodel.NB)]);
+      res = 1;
+   end
       
    if i > 1 && errDNEAq(i) - errDNEAq(i-1) > 1
       disp(['No improvement in estimating dx, therefore exiting. Increase is: ' num2str(errDNEAq(i-1)-errDNEAq(i))]);
@@ -119,27 +138,22 @@ for i = 1 : T
          return;
       end
    end
-   
+
    q      = randn(NB,1)*0.5;
    dq     = randn(NB,1)*0.5;
-   
-   dx     = dx + myDNEA.x - x_pri;
-   Sx     = myDNEA.Sx + Q;
+
+   dx     = dx + myDANEA.x - x_pri;
+   Sx     = myDANEA.Sx + Q;
 end
 
 if errdx(end) > 0.02
-   disp(['Estimation of dx did not converged! Error was ' num2str(norm([eq; edq])) ' is ' num2str(errdx(i))]);
+   disp(['Estimation of dx did not converged! Error was ' num2str(norm([eq; edq])) ' is ' num2str(errdx(end))]);
    res = 1;
    return;
 else
-   disp(['Estimation of dx converged. Error was ' num2str(norm([eq; edq])) ' is ' num2str(errdx(i))]);
+   disp(['Estimation of dx converged. Error was ' num2str(norm([eq; edq])) ' is ' num2str(errdx(end))]);
    return;
 end
 
 
 end
-
-
-
-
-

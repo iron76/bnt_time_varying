@@ -1,4 +1,4 @@
-function [ ymodel ] = autoSensANEA( dmodel )
+function [ ymodel ] = autoSensANEA( dmodel , use_a )
 %AUTOSENSRNEA Generates an RNEA sensor distribution for the given dynamic model.
 %   This function generates a structure that contains all measurements
 %   needed to perform RNEA inverse dynanmic compuations on the supplied
@@ -44,6 +44,12 @@ for i = 1 : ymodel.NB
    ymodel.ny = ymodel.ny + 1;
    ymodel.sizes{ymodel.ny,1} = 1;
    ymodel.labels{ymodel.ny,1} = ['d2q' num2str(i)];
+   
+   if (use_a)
+      ymodel.ny = ymodel.ny + 1;
+      ymodel.sizes{ymodel.ny,1} = 6;
+      ymodel.labels{ymodel.ny,1} = ['a' num2str(i)];
+   end
 end
 
 ymodel.m  = sum(cell2mat(ymodel.sizes));

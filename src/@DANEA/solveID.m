@@ -44,20 +44,26 @@ function obj = solveID(obj)
 NB = obj.IDmodel.modelParams.NB;
 
 % b = [b - db_D * x_bar]
-b  = sparse(obj.ibs, ones(length(obj.ibs),1), obj.bs, 6*NB, 1) - obj.dDb_s.matrix * sparse(obj.x_bar);
+b  = obj.b.matrix - obj.dDb_s.matrix * sparse(obj.x_bar);
 
 % by = [cy - dc_Y * x_bar]
 by = obj.by_s.matrix - obj.dby_s.matrix * sparse(obj.x_bar);
 
 % Dx 
-Dx = sparse(obj.iDs(obj.kDx), obj.jDs(obj.kDx)      , obj.Ds(obj.kDx), 6*NB, 6*NB); 
+% Dx = sparse(obj.iDs(obj.kDx), obj.jDs(obj.kDx)      , obj.Ds(obj.kDx), 6*NB, 6*NB); 
 
 % Dy = [Dy dDb]
-Dy = sparse(...
-   [obj.iDs(obj.kDy);       obj.dDb_s.is       ], ...
-   [obj.jDs(obj.kDy)-6*NB;  obj.dDb_s.js + 1*NB], ...
-   [obj.Ds(obj.kDy);        obj.dDb_s.As       ], ...
-   6*NB,  3*NB); 
+% Dy = sparse(...
+%    [obj.iDs(obj.kDy);       obj.dDb_s.is       ], ...
+%    [obj.jDs(obj.kDy)-6*NB;  obj.dDb_s.js + 1*NB], ...
+%    [obj.Ds(obj.kDy);        obj.dDb_s.As       ], ...
+%    6*NB,  3*NB); 
+
+Dx  = obj.D(1:NB, 1:2:2*NB);
+Dy  = obj.D(1:NB, 2:2:2*NB);
+dDb = sparse(obj.dDb_s.is, obj.dDb_s.js, obj.dDb_s.As, 6*NB, 2*NB);
+
+Dy = [Dy, dDb];
 
 % We write the estimation problem as:
 %
@@ -121,11 +127,6 @@ else
    Sy_inv = obj.IDsens.sensorsParams.Sy_inv;
 end
 
-size(Dx)
-size(Sv_inv)
-size(Dy)
-size(Sw_inv)
-
 Sinv   = [Dx'*Sv_inv*Dx Dx'*Sv_inv*Dy; Dy'*Sv_inv*Dx, Sw_inv+ Dy'*Sv_inv*Dy];
 % Dx_inv = Dx\sparse(1:19*NB, 1:19*NB, 1);
 % Y = [Y 0]
@@ -164,6 +165,14 @@ d   = mxy + obj.S*((obj.S'*Ss*obj.S)\(obj.S'*(Y'*Sy_inv*((obj.IDmeas.y-by)-Y*mxy
 obj.d = d(obj.id,1);
 % x = [q;dq]
 obj.x = d(7*NB+1:end, 1);
+
+% disp(['DANEA Error in D d + b is: ' num2str(norm(obj.D.matrix*obj.d_prior + obj.b.matrix))]);
+% disp(['Error in D d + b is: ' num2str(norm(obj.D.matrix*obj.d + obj.b.matrix))]);
+% 
+% norm([Dx, Dy]*d+b)
+% 
+% norm(Y*d+by-obj.IDmeas.y)
+
 
 %% Rearrange Sd
 obj.Sd = full(inv(Ss(1:7*NB, 1:7*NB)));
