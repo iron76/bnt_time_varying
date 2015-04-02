@@ -53,7 +53,8 @@ obj.f = obj.fB;
 if ~isempty(obj.fx) 
   for i = 1:length(obj.IDmodel.modelParams.parent)
     if ~isempty(obj.fx(:,i)) 
-      obj.f(:,i) = obj.f(:,i) - obj.Xa{i}' \ obj.fx(:,i);
+      % obj.f(:,i) = obj.f(:,i) - obj.Xa{i}' \ obj.fx(:,i);
+      obj.f(:,i) = obj.f(:,i) - obj.fx(:,i);
     end
   end
 end

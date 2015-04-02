@@ -67,5 +67,5 @@ for i = length(dir_ind(1:NB*6))+1 : length(dir_ind)
    cov_ini = get_field(myBNEA.bnt.bnet.CPD{dir_ind(i)}, 'cov');
    cov_est = get_field(bnetHat.CPD{dir_ind(i)},         'cov');
    cov_upd = cov_est - cov_ini;
-   fprintf('[INFO] %s was updated by %f \n', myBNEA.bnt.nodes.labels{i}, norm(cov_upd)./norm(cov_ini));
+   fprintf('[INFO] %s was updated by %f \n', myBNEA.bnt.nodes.labels{dir_ind(i)}, norm(cov_upd)./norm(cov_ini));
 end

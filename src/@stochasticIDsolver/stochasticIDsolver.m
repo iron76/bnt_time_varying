@@ -11,8 +11,8 @@ classdef stochasticIDsolver < deterministicIDsolver
              'model to instantiate stochasticIDsolver'] )            
          end
          b = b@deterministicIDsolver(m,y);
-         b   = initSubMatrixIndices(b);
-         b   = initSubMatrix(b);
+         b   = initSsubmatrixIndices(b);
+         b   = initSsubmatrix(b);
 
       end % stochasticIDsolver
       
@@ -27,8 +27,8 @@ classdef stochasticIDsolver < deterministicIDsolver
          y = cell2mat(obj.IDsens.sensorsParams.Y)*d; % + chol(inv(obj.IDsens.sensorsParams.Sy_inv))*randn(obj.IDmeas.m, 1)
       end 
       
-      obj = initSubMatrixIndices(obj);
-      obj = initSubMatrix(obj);
+      obj = initSsubmatrixIndices(obj);
+      obj = initSsubmatrix(obj);
    end % methods   
 end % classdef
 

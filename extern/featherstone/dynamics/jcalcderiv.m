@@ -27,15 +27,15 @@ switch code
   case 'Px'				% prismatic X axis
     Xj = xlt([q 0 0]);
     S = [0;0;0;1;0;0];
-    error( 'joint code ''%s'' not supported by jcalcderiv', code );
+    dXjdq = traslxderiv(q);
   case 'Py'				% prismatic Y axis
     Xj = xlt([0 q 0]);
     S = [0;0;0;0;1;0];
-    error( 'joint code ''%s'' not supported by jcalcderiv', code );
+    dXjdq = traslyderiv(q);
   case {'P','Pz'}			% prismatic Z axis
     Xj = xlt([0 0 q]);
     S = [0;0;0;0;0;1];
-    error( 'joint code ''%s'' not supported by jcalcderiv', code );
+    dXjdq = traslzderiv(q);
   case 'H'				% helical (Z axis)
     Xj = rotz(q) * xlt([0 0 q*jtyp.pars.pitch]);
     S = [0;0;1;0;0;jtyp.pars.pitch];
