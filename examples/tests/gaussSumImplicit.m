@@ -268,11 +268,11 @@ bnet = mk_bnet(dag, ns, 'discrete', dnodes);
 %  I dx + Dy dy         = v
 %  I dz - Yx dx - Yy dy = w
 %
-%    dy ~ N(         my , Sy)
+%       dy ~ N(         my , Sy)
 %
-% dx|dy ~ N( mx + Dy dy , Sv)
+%    dx|dy ~ N( mx + Dy dy , Sv)
 %
-% dz|dy ~ N( [Yy Yx] [dy; dx] , Sw)
+% dz|dx,dy ~ N( [Yy Yx] [dy; dx] , Sw)
 
 mx  = [ 1 2 ]';
 mz  = [ 3 4 ]';
@@ -319,6 +319,85 @@ Sxy_z
 (Sxy^(-1)+Y'*Sw^(-1)*Y)^(-1)
 Exy_z
 mxy + (Sxy^(-1)+Y'*Sw^(-1)*Y)^(-1)*Y'*Sw^(-1)*((zm-mz)-Y*mxy) 
+
+%%%%%%%%%%%%%%%%%%%%%
+% SEVENTS  EXAMPLE  %
+%%%%%%%%%%%%%%%%%%%%%
+
+clear all
+
+N = 3;
+dx1 = 2;  dx2 = 1;  dy = 3;
+dag = zeros(N,N);
+dag(dx2,dx1) = 1;
+dag(dx2,dy)  = 1;
+dag(dx1,dy)  = 1;
+
+ns = [2 2 2];   % vector-valued
+
+dnodes = [];  % no discrete nodes
+bnet = mk_bnet(dag, ns, 'discrete', dnodes);
+
+%  I dx + Dy dy         = v
+%  I dz - Yx dx - Yy dy = w
+%
+%       dy ~ N(         my , Sy)
+%
+%    dx|dy ~ N( mx + Dy dy , Sv)
+%
+% dz|dx,dy ~ N( [Yy Yx] [dy; dx] , Sw)
+
+mx1  = [ 1 2 ]';
+my   = [ 3 4 ]';
+mx2  = [ 5 6 ]';
+Sx1  = [ 2 1; 1 2];
+Sy   = [ 100 0; 0 200];
+Sx2  = eye(2);
+
+D2 = [ 1 2  ; 4 5  ];
+Y1 = [  0 2  ;  1 2  ];
+Y2 = [ -1 2  ;  1 1  ];
+ym  = [ 2 1 ]';
+
+bnet.CPD{dx1} = gaussian_CPD(bnet, dx1, 'mean', mx1, 'cov', Sx1, 'weights', -D2);
+bnet.CPD{dy } = gaussian_CPD(bnet, dy,  'mean', my,  'cov', Sy,  'weights', [Y2 Y1]);
+bnet.CPD{dx2} = gaussian_CPD(bnet, dx2, 'mean', mx2, 'cov', Sx2);
+
+engine = jtree_inf_engine(bnet);
+
+evidence     = cell(1,N);
+evidence{dy} = ym;
+[engine, ll] = enter_evidence(engine, evidence);
+
+marg = marginal_nodes(engine, [dx2 dx1]);
+Ex_y = marg.mu;
+Sx_y = marg.Sigma;
+
+% I dx + Dy dy = v
+%
+%    dy ~ N(         my , Sy)
+% dx|dy ~ N( mx + Dy dy , Sv)
+%
+% Induces a distribution p(x,y)
+%
+% x,y ~ N(mxy, Sxy)
+%
+% Sx  = [Sx2, -Sx2*D2'; -D2*Sx2, Sx1 + D2*Sx2*D2'];
+Sx  = [Sx1 + D2*Sx2*D2', -D2*Sx2; -Sx2*D2', Sx2];
+% mx  = -Sx*[-D2'*Sx1^(-1)*mx1 - Sx2^(-1)*mx2; -Sx1^(-1)*mx1];
+mx  = -Sx*[-Sx1^(-1)*mx1; -D2'*Sx1^(-1)*mx1 - Sx2^(-1)*mx2];
+
+% It results: 
+Y = [Y1 Y2];
+
+mx
+[mx1-D2*mx2; mx2]
+[Sx_y(3:4, 3:4) Sx_y(3:4, 1:2); Sx_y(1:2, 3:4) Sx_y(1:2, 1:2)]
+(Sx^(-1)+Y'*Sy^(-1)*Y)^(-1)
+[Ex_y(3:4,1); Ex_y(1:2,1)]
+mx + (Sx^(-1)+Y'*Sy^(-1)*Y)^(-1)*Y'*Sy^(-1)*((ym-my)-Y*mx) 
+
+
 
 
 

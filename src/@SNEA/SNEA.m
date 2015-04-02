@@ -30,12 +30,9 @@ classdef SNEA < deterministicIDsolver
             end
          end
          b = b@deterministicIDsolver(m,y);                 
-         b = initSparseIndices(b); 
 
       end % SNEA
-      
-      obj = initSparseIndices(obj)
-      
+            
       function disp(b)
          % Display SNEA object
          disp@deterministicIDsolver(b)

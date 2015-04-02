@@ -1,13 +1,6 @@
-clear all
-close all
-clc
+function res = testSNEA(dmodel, ymodel)
 
-NB        = 20;
-dmodel    = autoTree(NB);
-ymodel    = autoSensRNEA(dmodel);
-
-dmodel    = autoTreeStochastic(dmodel, 1e-2);
-ymodel    = autoSensStochastic(ymodel, 1e-5);
+res = 0;
 
 q         = rand(dmodel.NB,1);
 dq        = rand(dmodel.NB,1);
@@ -18,32 +11,36 @@ myModel = model(dmodel);
 mySens  = sensors(ymodel);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-mySNEA    = SNEA(myModel, mySens);
-mySNEA    = mySNEA.setState(q,dq);
-mySNEA    = mySNEA.setY(y);
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 myRNEA    = RNEA(myModel, mySens);
 myRNEA    = myRNEA.setState(q,dq);
 myRNEA    = myRNEA.setY(y);
+myRNEA    = myRNEA.solveID();
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+mySNEA    = SNEA(myModel, mySens);
+mySNEA    = mySNEA.setState(q,dq);
+mySNEA    = mySNEA.setY(y);
+mySNEA    = mySNEA.solveID();
 
 if (sum(q-mySNEA.IDstate.q))
-   error('Something wrong with the setQ method');
+   disp('Something wrong with the setQ method');
+   res = 1;
 end
 
 if (sum(dq-mySNEA.IDstate.dq))
-   error('Something wrong with the setDq method');
+   disp('Something wrong with the setDq method');
+   res = 1;
 end
 
 if (sum(y-mySNEA.IDmeas.y))
-   error('Something wrong with the setY method');
+   disp('Something wrong with the setY method');
+   res = 1;
 end
 
-mySNEA = mySNEA.solveID();
-mySNEA.d;
-
-myRNEA = myRNEA.solveID();
-myRNEA.d;
 
 disp(['Diff between RNEA and SNEA is ' num2str(norm(mySNEA.d-myRNEA.d))]);
+if norm(mySNEA.d-myRNEA.d) > 2.0
+   disp('Result is excessively inaccurate. Test is declared failed!');
+   res = 1;
+end   
 

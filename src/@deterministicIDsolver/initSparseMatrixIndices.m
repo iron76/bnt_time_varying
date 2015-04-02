@@ -116,5 +116,9 @@ for i = 1:obj.IDmodel.modelParams.NB
    end
 end
 
+obj.kDx = find(obj.jDs <=  19*obj.IDmodel.modelParams.NB);
+obj.kDy = find(obj.jDs  >  19*obj.IDmodel.modelParams.NB);
+
+
 end
 
