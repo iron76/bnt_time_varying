@@ -65,6 +65,11 @@ for subjectID = 1:length(subjectList)
         dq1 = [dq1;dq1(end,:)];
         dq2 = [dq2;dq2(end,:)];
         
+        ddq1 = diff(dq1)./1e-3;
+        ddq2 = diff(dq2)./1e-3;
+        ddq1 = [ddq1;ddq1(end,:)];
+        ddq2 = [ddq2;ddq2(end,:)];
+        
         figure;
         plot(temp.t_vicon(:,1:pSelec),dq1.*(180/pi),'r'); hold on;
         xlabel('Time t(sec)');
@@ -137,22 +142,31 @@ for subjectID = 1:length(subjectList)
         ylabel('Wrench Momments (Nm)');
         legend('x','y','z');
         
-        imu_vicon_shiftedData(subjectID,trialID).R_G_0=R_G_0;
-        imu_vicon_shiftedData(subjectID,trialID).R_2_imu = R_2_imu;
-        imu_vicon_shiftedData(subjectID,trialID).R_G_imu0 = R_G_imu0;
-        imu_vicon_shiftedData(subjectID,trialID).q1 = q1;
-        imu_vicon_shiftedData(subjectID,trialID).q2 = q2;
-        imu_vicon_shiftedData(subjectID,trialID).dq1 = dq1;
-        imu_vicon_shiftedData(subjectID,trialID).dq2 = dq2;
-        imu_vicon_shiftedData(subjectID,trialID).a_2_imulin = a_2_imulin;
-        imu_vicon_shiftedData(subjectID,trialID).v_2_imurot = v_2_imurot;
-        imu_vicon_shiftedData(subjectID,trialID).adjT_0_PWA = adjT_0_PWAG;
-        imu_vicon_shiftedData(subjectID,trialID).f_x_1 = fx_0_1;
-        imu_vicon_shiftedData(subjectID,trialID).a_2_imulin = a_2_imulin;
-        imu_vicon_shiftedData(subjectID,trialID).v_2_imurot = v_2_imurot;
+        processedSensorData(subjectID,trialID).R_G_0=R_G_0;
+        processedSensorData(subjectID,trialID).R_2_imu = R_2_imu;
+        processedSensorData(subjectID,trialID).R_G_imu0 = R_G_imu0;
+        processedSensorData(subjectID,trialID).q1 = q1;
+        processedSensorData(subjectID,trialID).q2 = q2;
+        processedSensorData(subjectID,trialID).dq1 = dq1;
+        processedSensorData(subjectID,trialID).dq2 = dq2;
+        processedSensorData(subjectID,trialID).ddq1 = ddq1;
+        processedSensorData(subjectID,trialID).ddq2 = ddq2;
+        
+        processedSensorData(subjectID,trialID).a_2_imulin = a_2_imulin;
+        processedSensorData(subjectID,trialID).v_2_imurot = v_2_imurot;
+        processedSensorData(subjectID,trialID).adjT_0_PWA = adjT_0_PWAG;
+        processedSensorData(subjectID,trialID).f_x_1 = fx_0_1';
+
+        processedSensorData(subjectID,trialID).a_2_imulin = a_2_imulin;
+        processedSensorData(subjectID,trialID).v_2_imurot = v_2_imurot;
+        
+        processedSensorData(subjectID,trialID).t = temp.t_vicon;
+        processedSensorData(subjectID,trialID).imu = [a_2_imulin v_2_imurot]';
+        %processedSensorData(subjectID,trialID).imu = 
+        processedSensorData(subjectID,trialID).ftx = fx_0_1';
         
     end
 end
 % make loop
-processedSensorData = imu_vicon_shiftedData;
-save('processedSensorData.mat','processedSensorData');
+%processedSensorData = imu_vicon_shiftedData;
+save('./experiments/humanFixedBase/preProcessedSensorData.mat','processedSensorData');%a_2_imulin
