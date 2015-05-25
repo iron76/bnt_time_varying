@@ -250,6 +250,9 @@ for i = 1 : NB
 end
 
 tempT = data.time;%data.time(1:10:end-3);
-figure;plot(tempT,res.tau_foot);
-figure;plot(tempT,res.tau_leg);
-   
+figure;plot(tempT,res.tau_foot,'b',tempT,res.tau_leg,'r');
+xlabel('Time (sec)');
+ylabel('Torques (Nm)');
+axis tight; hold on;   
+legend('\tau_1 (ankle)','\tau_2 (hip)');
+title('Torque Estimates');

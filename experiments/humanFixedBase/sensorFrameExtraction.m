@@ -51,6 +51,7 @@ for subjectID = 1:length(subjectList)
         z_1_0 = repmat([0,0,1],len,1);
          %q1 = computeAngleBetweenVectors(z_1_0,(R_G_1*(P_G_2-P_G_1)')');
         q1 = computeAngleBetweenVectors(z_1_0,P_G_2-P_G_1);
+        subplot(2,1,1);
         plot(temp.t_vicon(:,1:pSelec),q1.*(180/pi),'r'); hold on;
         xlabel('Time t(sec)');
         ylabel('q_1 and q_2 (degrees)');
@@ -60,17 +61,37 @@ for subjectID = 1:length(subjectList)
         legend('q_1','q_2');
         axis tight;
         
+        subplot(2,1,2);
+        plot(temp.t_vicon(:,1:pSelec),sgolayfilt(q1.*(180/pi),3,57),'r'); hold on;
+        xlabel('Time t(sec)');
+        ylabel('q_1 and q_2 (degrees)');
+        plot(temp.t_vicon(:,1:pSelec),sgolayfilt(q2.*(180/pi),3,57));
+        legend('q_1','q_2');
+        axis tight;
+        
+        q1 = sgolayfilt(q1,3,57);
+        q2 = sgolayfilt(q2,3,57);
+        
         dq1 = diff(q1)./1e-3;%diff(temp.t_vicon(1:end-1));
         dq2 = diff(q2)./1e-3;%diff(temp.t_vicon(1:end-1));
         dq1 = [dq1;dq1(end,:)];
         dq2 = [dq2;dq2(end,:)];
         
+        dq1 = sgolayfilt(dq1,3,57);
+        dq2 = sgolayfilt(dq2,3,57);
+        
         ddq1 = diff(dq1)./1e-3;
         ddq2 = diff(dq2)./1e-3;
+        
+        ddq1 = sgolayfilt(ddq1,3,57);
+        ddq2 = sgolayfilt(ddq2,3,57);
+        
         ddq1 = [ddq1;ddq1(end,:)];
         ddq2 = [ddq2;ddq2(end,:)];
         
+        
         figure;
+        subplot(2,1,1);
         plot(temp.t_vicon(:,1:pSelec),dq1.*(180/pi),'r'); hold on;
         xlabel('Time t(sec)');
         ylabel('dq_1 and dq_2 (degrees/sec)');
@@ -79,6 +100,32 @@ for subjectID = 1:length(subjectList)
         legend('dq_1','dq_2');
         axis tight;
         
+        subplot(2,1,2);
+        plot(temp.t_vicon(:,1:pSelec),sgolayfilt(dq1.*(180/pi),3,57),'r'); hold on;
+        xlabel('Time t(sec)');
+        ylabel('dq_1 and dq_2 (degrees/sec)');
+        
+        plot(temp.t_vicon(:,1:pSelec),sgolayfilt(dq2.*(180/pi),3,57));
+        legend('dq_1','dq_2');
+        axis tight;
+        
+        figure;
+        subplot(2,1,1);
+        plot(temp.t_vicon(:,1:pSelec),ddq1.*(180/pi),'r'); hold on;
+        xlabel('Time t(sec)');
+        ylabel('ddq_1 and ddq_2 (degrees/sec^2)');
+        
+        plot(temp.t_vicon(:,1:pSelec),ddq2.*(180/pi));
+        legend('ddq_1','ddq_2');
+        axis tight;
+        subplot(2,1,2);
+        plot(temp.t_vicon(:,1:pSelec),sgolayfilt(ddq1.*(180/pi),3,57),'r'); hold on;
+        xlabel('Time t(sec)');
+        ylabel('ddq_1 and ddq_2 (degrees/sec^2)');
+        
+        plot(temp.t_vicon(:,1:pSelec),sgolayfilt(ddq2.*(180/pi),3,57));
+        legend('ddq_1','ddq_2');
+        axis tight;
         % computing R_G_imu
         
         [R_G_imu0,p_G_imu0] = computeInitialIMURotation(P_G_imuA,P_G_imuB,P_G_imuC);
