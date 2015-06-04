@@ -249,6 +249,8 @@ for i = 1 : NB
    end
 end
 
+save('./experiments/humanFixedBase/savedBERDYresult.mat','res','data','myPNEA');
+
 tempT = data.time;%data.time(1:10:end-3);
 figure;plot(tempT,res.tau_foot,'b',tempT,res.tau_leg,'r');
 xlabel('Time (sec)');
