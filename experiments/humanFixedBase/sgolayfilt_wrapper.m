@@ -55,7 +55,7 @@ if nargin < 5, DIM = []; end
 % end
 
 % Compute the projection matrix B
-B = sgolay(k,F,W);
+B = sgolay_wrapper(k,F,W);
 
 if ~isempty(DIM) && DIM > ndims(x)
 	error(message('signal:sgolayfilt:InvalidDimensionsInput', 'X'))
