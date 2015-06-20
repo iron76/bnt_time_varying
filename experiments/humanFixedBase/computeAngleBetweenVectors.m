@@ -1,6 +1,6 @@
 function [ theta ] = computeAngleBetweenVectors( v1,v2 )
-%COMPUTEANGLEBETWEENVECTORS arcsin of the cross product
-%   Detailed explanation goes here
+%COMPUTEANGLEBETWEENVECTORS compute the angle from v1 to v2
+%   
 
 %    theta = acos(dot(v1',v2')'./...
 %        (rowWiseNorm(v1).*rowWiseNorm(v2)));

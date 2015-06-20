@@ -2,8 +2,6 @@
 
 load('IMU_VICON_ShiftedData.mat');
 
-%[footAlpha.footBeta,footGamma]
-
 subjectList = 1;
 trialList = 1 ; 
 
@@ -34,29 +32,31 @@ for subjectID = 1:length(subjectList)
         P_G_imuB = temp.P_G_imuB(1:pSelec,:);
         P_G_imuC = temp.P_G_imuC(1:pSelec,:);
         
-        P_G_s = temp.P_G_s(1:pSelec,:);
-        f_GPWA_s = temp.f_GPWA_s(1:pSelec,:);
-        f_GPWA_s(:,4:6) = f_GPWA_s(:,4:6).*1e-3;
+        P_PWA_C = temp.P_PWA_C(1:pSelec,:);
+        fx_PWAPWA_1 = temp.fx_PWAPWA_1(1:pSelec,:);
+        fx_PWAPWA_1(:,4:6) = fx_PWAPWA_1(:,4:6).*1e-3;
         
         P_G_1 = computeCentroidOfPoints(P_G_lankle,P_G_rankle);
         P_G_2 = computeCentroidOfPoints(P_G_lhip,P_G_rhip);
         P_G_3 = computeCentroidOfTriangle(P_G_lsho,P_G_rsho,P_G_tors);
+        [R_G_0,P_G_0] = computeFootRotation(P_G_lhee,P_G_rhee,P_G_ltoe,P_G_rtoe); 
+      
+        R_0_G = R_G_0';
+        R_G_1 = R_G_0;     
+       
+        r_0_from0toPWA = computeVectorFromPoints(repmat(P_G_0,size(P_PWA_C,1),1),P_PWA_C).*1e-3;% positions in mm
         
-        [R_G_0, P_G_0] = computeFootRotation(P_G_lhee,P_G_rhee,P_G_ltoe,P_G_rtoe);    
-        R_0_G = R_G_0;
-        R_G_1 = R_G_0;        
-        P_0_0PWA = computeVectorFromPoints(repmat(P_G_0,size(P_G_s,1),1),P_G_s).*1e-3;% positions in mm
         len = size(P_G_1,1);
         %z_1_0 = repmat((R_G_0*[0,0,1]')',len,1);
         z_1_0 = repmat([0,0,1],len,1);
          %q1 = computeAngleBetweenVectors(z_1_0,(R_G_1*(P_G_2-P_G_1)')');
-        q1 = computeAngleBetweenVectors(z_1_0,P_G_2-P_G_1);
+        q1 = computeAngleBetweenVectors(z_1_0,(P_G_2-P_G_1));
         subplot(2,1,1);
         plot(temp.t_vicon(:,1:pSelec),q1.*(180/pi),'r'); hold on;
         xlabel('Time t(sec)');
         ylabel('q_1 and q_2 (degrees)');
         %q2 = computeAngleBetweenVectors((R_G_1*(P_G_2-P_G_1)')',(R_G_1*(P_G_3-P_G_2)')');
-        q2 = computeAngleBetweenVectors((R_G_1*(P_G_3-P_G_2)')',(R_G_1*(P_G_2-P_G_1)')');
+        q2 = computeAngleBetweenVectors((P_G_2-P_G_1),(P_G_3-P_G_2));
         plot(temp.t_vicon(:,1:pSelec),q2.*(180/pi));
         legend('q_1','q_2');
         axis tight;
@@ -127,27 +127,34 @@ for subjectID = 1:length(subjectList)
         plot(temp.t_vicon(:,1:pSelec),sgolayfilt_wrapper(ddq2.*(180/pi),3,57));
         legend('ddq_1','ddq_2');
         axis tight;
+       
         % computing R_G_imu
         
-        [R_G_imu0,p_G_imu0] = computeInitialIMURotation(P_G_imuA,P_G_imuB,P_G_imuC);
+        [R_G_imu0,P_G_imu0] = computeInitialIMURotation(P_G_imuA,P_G_imuB,P_G_imuC);
         
         
-        fx_0_1 = zeros(size(f_GPWA_s));
-        a_2_imulin = zeros(size(f_GPWA_s,1),3);
-        v_2_imurot = zeros(size(f_GPWA_s,1),3);
+        fx_0_1 = zeros(size(fx_PWAPWA_1));
+        
+        a_2_imulin = zeros(size(fx_PWAPWA_1,1),3);
+        v_2_imurot = zeros(size(fx_PWAPWA_1,1),3);
         
         for i = 1:length(temp.t_vicon)
-            R_0_1{i} = euler2dcm([0,0,q1(i)]);
-            R_1_2{i} = euler2dcm([0,0,q2(i)]);
+           
+            R_0_1{i} = euler2dcm([0,q1(i),0]);
+            R_1_2{i} = euler2dcm([0,q2(i),0]);
             
             R_G_2{i} = R_G_0 * R_0_1{i}  * R_1_2{i};
             R_2_imu{i} = R_G_2{i}'*R_G_imu0;
             
             a_2_imulin(i,:) =  (R_2_imu{i}*temp.a_imu_imulin(i,:)')';
             v_2_imurot(i,:) =  (R_2_imu{i}*temp.v_imu_imurot(i,:)')'; 
-            adjT_0_PWAG{i} = [ R_0_G , zeros(3) ; -skew(P_0_0PWA(i,:)') * R_0_G , R_0_G]; 
+           
+            adjT_0_PWA{i} = [ R_0_G , zeros(3) ; -skew(r_0_from0toPWA(i,:)') * R_0_G , R_0_G]; 
+            %CLA: the notation for force transformation is modified because
+            %whe use the notation linear-angular in 6d vectors and not
+            %angular-linear like in the Featherstone.
             
-            fx_0_1(i,:) = (adjT_0_PWAG{i}'*f_GPWA_s(i,:)')';
+            fx_0_1(i,:) = (adjT_0_PWA{i}' * fx_PWAPWA_1(i,:)')';
         end
         
         figure;
@@ -166,15 +173,15 @@ for subjectID = 1:length(subjectList)
         
         figure;
         subplot(2,1,1);
-        plot(temp.t_vicon,f_GPWA_s(:,1:3)); axis tight;
+        plot(temp.t_vicon,fx_PWAPWA_1(:,1:3)); axis tight;
         xlabel('time (sec)');
         ylabel('Wrench Force(N)');
         title('Wrench measured');
         legend('x','y','z');
         subplot(2,1,2);
-        plot(temp.t_vicon,f_GPWA_s(:,4:6)); axis tight;
+        plot(temp.t_vicon,fx_PWAPWA_1(:,4:6)); axis tight;
         xlabel('time (sec)');
-        ylabel('Wrench Momments(Nm)');
+        ylabel('Wrench Moments(Nm)');
         legend('x','y','z');
         
         figure;
@@ -187,10 +194,10 @@ for subjectID = 1:length(subjectList)
         subplot(2,1,2);
         plot(temp.t_vicon, fx_0_1(:,4:6)); axis tight;
         xlabel('time (sec)');
-        ylabel('Wrench Momments (Nm)');
+        ylabel('Wrench Moments (Nm)');
         legend('x','y','z');
         
-        processedSensorData(subjectID,trialID).R_G_0=R_G_0;
+        processedSensorData(subjectID,trialID).R_G_0 = R_G_0;
         processedSensorData(subjectID,trialID).R_2_imu = R_2_imu;
         processedSensorData(subjectID,trialID).R_G_imu0 = R_G_imu0;
         processedSensorData(subjectID,trialID).q1 = q1;
@@ -202,7 +209,7 @@ for subjectID = 1:length(subjectList)
         
         processedSensorData(subjectID,trialID).a_2_imulin = a_2_imulin;
         processedSensorData(subjectID,trialID).v_2_imurot = v_2_imurot;
-        processedSensorData(subjectID,trialID).adjT_0_PWA = adjT_0_PWAG;
+        processedSensorData(subjectID,trialID).adjT_0_PWA = adjT_0_PWA;
         processedSensorData(subjectID,trialID).f_x_1 = fx_0_1';
 
         processedSensorData(subjectID,trialID).a_2_imulin = a_2_imulin;

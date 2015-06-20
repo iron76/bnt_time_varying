@@ -5,11 +5,11 @@ function [ data ] = organiseBERDYCompatibleSensorData( data )
 %   matrices in correct form
 
 
-if(isempty(data))
-    data=struct;
-end
+% if (isempty(data))
+%     data=struct;
+% end
 
-load('./experiments/humanFixedBase/preProcessedSensorData.mat','processedSensorData');%
+load('./experiments/humanFixedBase/preProcessedSensorData.mat','processedSensorData');
 
 subjectID = 1;
 trialID = 1;
@@ -73,7 +73,7 @@ data.ys_fts = data.y_ftx;
 data.ys_ftx = data.y_ftx;
 data.ys_imu = data.y_imu;
 
-save('./experiments/humanFixedBase/processedSensorData.mat','data');%
+save('./experiments/humanFixedBase/processedSensorData.mat','data');
 
 
 end

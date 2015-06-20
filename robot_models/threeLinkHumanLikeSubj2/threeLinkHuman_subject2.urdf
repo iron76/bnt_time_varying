@@ -1,0 +1,87 @@
+<robot name="threeLinkHuman_subject2">
+    <link name="foot">
+        <inertial>
+            <mass value="3.188"/>
+            <origin xyz="0 0 0.0265" rpy="0 0 0" />
+            <inertia ixx="0.013" iyy="0.015" izz="0.027" ixy="0" ixz="0" iyz="0"/>
+        </inertial>
+
+        <visual>
+			<origin xyz="0 0 0.0265" rpy="0 0 0" />
+            <geometry>
+                <box size="0.234 0.215 0.053"/>
+            </geometry>
+        </visual>
+
+        <collision>
+			<origin xyz="0 0 0.0265" rpy="0 0 0" />
+            <geometry>
+                <box size="0.234 0.215 0.053"/>
+            </geometry>
+        </collision>
+    </link>
+    
+    <link name="leg">
+        <inertial>
+            <mass value="26.065"/>
+            <origin xyz="0 0 0.4335" rpy="0 0 0" />
+            <inertia ixx="1.735" iyy="1.661" izz="0.132" ixy="0" ixz="0" iyz="0"/>
+        </inertial>
+
+        <visual>
+            <origin xyz="0 0 0.4335" rpy="0 0 0" />
+            <geometry>
+                <box size="0.116 0.218 0.867"/>
+            </geometry>
+        </visual>
+
+        <collision>
+            <origin xyz="0 0 0.4335" rpy="0 0 0" />
+            <geometry>
+                <box size="0.116 0.218 0.867"/>
+            </geometry>
+        </collision>
+    </link>
+    
+    <link name="torso">
+        <inertial>
+            <mass value="22.224"/>
+            <origin xyz="0 0 0.248" rpy="0 0 0" />
+            <inertia ixx="0.650" iyy="0.480" izz="0.220" ixy="0" ixz="0" iyz="0"/>
+        </inertial>
+
+        <visual>
+            <origin xyz="0 0 0.248" rpy="0 0 0" />
+            <geometry>
+                <box size="0.116 0.325 0.496"/>
+            </geometry>
+        </visual>
+
+        <collision>
+            <origin xyz="0 0 0.248" rpy="0 0 0" />
+            <geometry>
+                <box size="0.116 0.325 0.496"/>
+            </geometry>
+        </collision>
+    </link>
+        
+    <joint name="ankle" type="revolute">
+        <origin xyz="-0.0585 0 0.053" rpy="0 0 0"/>
+        <parent link="foot"/>
+        <child link="leg"/>
+        <dynamics damping="0.1" friction="0.0"/>
+        <limit effort="30" velocity="1.0" lower="-10.0" upper="10.0" />
+        <axis xyz="0 1 0" />
+    </joint>
+    
+    <joint name="hip" type="revolute">
+        <origin xyz="0 0 0.867" rpy="0 0 0"/>
+        <parent link="leg"/>
+        <child link="torso"/>
+        <dynamics damping="0.1" friction="0.0"/>
+        <limit effort="30" velocity="1.0" lower="-10.0" upper="10.0" />
+        <axis xyz="0 1 0" />
+    </joint>
+
+</robot>
+      
