@@ -1,8 +1,10 @@
+% load data
+
 load('VICONsaveData.mat');
 load('imuExtractedData.mat');
 
 subjectIDList = [1,2,3];
-trialIDList = 1:3;%1:3;
+trialIDList = 1:3;
 
 
 for subjectID=1:length(subjectIDList)
@@ -90,8 +92,9 @@ for subjectID=1:length(subjectIDList)
         imu_vicon_shiftedData(subjectID,trialID).P_G_imuB = interp1( t_raw_vicon_p,subjectData(subjectID,trialID).markers.imuB,t_vicon);
         imu_vicon_shiftedData(subjectID,trialID).P_G_imuC = interp1( t_raw_vicon_p,subjectData(subjectID,trialID).markers.imuC,t_vicon);
         
-        imu_vicon_shiftedData(subjectID,trialID).f_GPWA_s = interp1( t_raw_vicon_f,[subjectData(subjectID,trialID).grwsFOR,subjectData(subjectID,trialID).grwsMOM],t_vicon);
-        imu_vicon_shiftedData(subjectID,trialID).P_G_s = interp1( t_raw_vicon_f,subjectData(subjectID,trialID).grwsPOS,t_vicon);
+        imu_vicon_shiftedData(subjectID,trialID).fx_PWAPWA_1 = interp1( t_raw_vicon_f,[subjectData(subjectID,trialID).grwsFOR,subjectData(subjectID,trialID).grwsMOM],t_vicon);
+        %imu_vicon_shiftedData(subjectID,trialID).f_GPWA_s = interp1( t_raw_vicon_f,[subjectData(subjectID,trialID).analogsFOR,subjectData(subjectID,trialID).analogsMOM],t_vicon);
+        imu_vicon_shiftedData(subjectID,trialID).P_PWA_C = interp1( t_raw_vicon_f,subjectData(subjectID,trialID).grwsPOS,t_vicon);
         % extract points needed in correct variable names
         %deltaT_accl = 
     end

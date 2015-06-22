@@ -1,4 +1,4 @@
-function [ R_G_0 , P_G_0] = computeFootRotation( P_G_lheeT,P_G_rheeT, P_G_ltoeT, P_G_rtoeT)
+function [R_G_0,P_G_0] = computeFootRotation( P_G_lheeT,P_G_rheeT, P_G_ltoeT, P_G_rtoeT)
 %COMPUTEFOOTROTATION Computes the elements of the roation matrix of the
 %foot frame, frame in link 0
 %   Detailed explanation goes here
@@ -14,11 +14,18 @@ function [ R_G_0 , P_G_0] = computeFootRotation( P_G_lheeT,P_G_rheeT, P_G_ltoeT,
     P_G_0 = computeCentroidOfPoints(P_G_mhee,P_G_mtoe);
     
     v_G_0 = computeVectorFromPoints(P_G_0,P_G_mtoe);
+  
     x_G_0 = v_G_0 ./ norm(v_G_0);
     z_G_0 = repmat([0,0,1],size(v_G_0,1),1);
-    y_G_0 = cross(x_G_0,z_G_0);
+    y_G_0 = cross(z_G_0,x_G_0);
+    % R_G_0 = [x_G_0', y_G_0', z_G_0']
+  
+    v_G_0y = ((v_G_0').*[0;1;0])./norm(v_G_0); % y component of v_G_0
     
-    R_G_0 = [x_G_0', y_G_0', z_G_0']; 
-
+    [angle] = computeAngleBetweenVectors( v_G_0,v_G_0y);
+   
+    % assuming rotation around z axis
+    R_G_0 = [cos(angle) -sin(angle) 0; sin(angle) cos(angle) 0; 0 0 1];
+    
 end
 

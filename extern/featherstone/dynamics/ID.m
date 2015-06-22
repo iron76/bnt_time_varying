@@ -28,6 +28,8 @@ end
 
 if nargin >= 5
   [f, Xa] = apply_external_forces( model.parent, Xup, fB, f_ext );
+else
+    f = fB;
 end
 
 for i = model.NB:-1:1
