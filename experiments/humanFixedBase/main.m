@@ -70,10 +70,10 @@ if(exist(data.path,'file'))
     load(data.path);
 else    
     sensorFrameExtraction
-    [ data ] = organiseBERDYCompatibleSensorData( data );
+    [ data ] = organiseBERDYCompatibleSensorData( data, subjectID, trialID );
 end
 
-[ data ] = organiseBERDYCompatibleSensorData( data );
+[ data ] = organiseBERDYCompatibleSensorData( data, subjectID,trialID );
 label_to_plot = {'fts','imu'};
 
 %% Process raw sensor data and bring it in the desired reference frames

@@ -2,11 +2,15 @@
 
 load('IMU_VICON_ShiftedData.mat');
 
-subjectList = 1;
-trialList = 1 ; 
+isTest = 'false';
+
+subjectList = 1:3;
+trialList = 1:2 ; 
 
 for subjectID = 1:length(subjectList)
+    fprintf('\n---------\nSubject : %d\nTrial : ',subjectID);
     for trialID = 1:length(trialList)
+        fprintf('%d, ',trialID);
         figure;
         temp = imu_vicon_shiftedData(subjectID,trialID);
         
@@ -200,6 +204,7 @@ for subjectID = 1:length(subjectList)
         processedSensorData(subjectID,trialID).R_G_0 = R_G_0;
         processedSensorData(subjectID,trialID).R_2_imu = R_2_imu;
         processedSensorData(subjectID,trialID).R_G_imu0 = R_G_imu0;
+        processedSensorData(subjectID,trialID).R_G_2 = R_G_2;
         processedSensorData(subjectID,trialID).q1 = q1;
         processedSensorData(subjectID,trialID).q2 = q2;
         processedSensorData(subjectID,trialID).dq1 = dq1;
@@ -224,4 +229,6 @@ for subjectID = 1:length(subjectList)
 end
 % make loop
 %processedSensorData = imu_vicon_shiftedData;
-save('./experiments/humanFixedBase/preProcessedSensorData.mat','processedSensorData');%a_2_imulin
+if(strcmp(isTest,'true')~=1)
+    save('./experiments/humanFixedBase/preProcessedSensorData.mat','processedSensorData');%a_2_imulin
+end

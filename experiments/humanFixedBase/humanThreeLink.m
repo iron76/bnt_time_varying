@@ -1,13 +1,13 @@
 if(exist(sprintf('./experiments/humanFixedBase/humanThreeLinkModelFromURDF_subject%d.mat',subjectID),'file'))
-    fprintf('Loading preconfigured model\n');
-    fprintf('-----------------------------\n\n');
+    fprintf('Loading preconfigured model...\n');
+    %fprintf('-----------------------------\n\n');
     load(sprintf('./experiments/humanFixedBase/humanThreeLinkModelFromURDF_subject%d.mat',subjectID));
 else
     
     
 
-    fprintf('Loading the model from URDF\n');
-    fprintf('-----------------------------\n\n');
+    fprintf('Loading the model from URDF...\n');
+    %fprintf('-----------------------------\n\n');
     
     path_to_drake_distro = '../../Drake/drake-distro/';
     addpath(path_to_drake_distro);

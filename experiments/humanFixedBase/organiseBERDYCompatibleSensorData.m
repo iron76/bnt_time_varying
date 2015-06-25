@@ -1,4 +1,4 @@
-function [ data ] = organiseBERDYCompatibleSensorData( data )
+function [ data ] = organiseBERDYCompatibleSensorData( data , subjectID, trialID)
 %ORGANISEBERDYCOMPATIBLESENSORDATA Reorganises the sensor data from human
 %capture into a BERDY compatible form
 %   loads sensor transfors and organises data to generate the y and ys
@@ -11,8 +11,8 @@ function [ data ] = organiseBERDYCompatibleSensorData( data )
 
 load('./experiments/humanFixedBase/preProcessedSensorData.mat','processedSensorData');
 
-subjectID = 1;
-trialID = 1;
+%subjectID = 1;
+%trialID = 1;
 % computing min and max time by looking at peaks on f/t
 t = processedSensorData(subjectID,trialID).t;
 f_temp = processedSensorData(subjectID,trialID).ftx;
@@ -22,8 +22,9 @@ f_temp = processedSensorData(subjectID,trialID).ftx;
 totPointsInConsideration = tmaxIndex - tminIndex;
 tminIndex = tminIndex + round(0.1*totPointsInConsideration);
 tmaxIndex = tmaxIndex + round(length(t)/2) - round(0.1*totPointsInConsideration);
-figure;plot(t,f_temp); axis tight;xlabel('time (sec');ylabel('Force (N)');
-fprintf('tmin : %3.3f, tmax = %3.3f\n',t(tminIndex),t(tmaxIndex));
+
+%figure;plot(t,f_temp); axis tight;xlabel('time (sec');ylabel('Force (N)');
+%fprintf('tmin : %3.3f, tmax = %3.3f\n',t(tminIndex),t(tmaxIndex));
 
 data.min_time = t(tminIndex);
 data.max_time = t(tmaxIndex);

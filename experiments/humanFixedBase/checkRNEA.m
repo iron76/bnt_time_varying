@@ -33,7 +33,7 @@ end
 
 figure;
 plot(tau); hold on;
-xlabel('xxx');
-ylabel('xxx');
-legend('tau q1','tau q2');
+xlabel('time (sec)');
+ylabel('torque (Nm)');
+legend('\tau_1','\tau_2');
 axis tight;
