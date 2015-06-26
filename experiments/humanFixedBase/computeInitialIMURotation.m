@@ -4,14 +4,17 @@ function [ R_G_imu0,P_G_imu0 ] = computeInitialIMURotation(P_G_imuAT,P_G_imuBT,P
     
     %considering initial values only
     numValues = 10;
-  	P_G_imuA = mean(P_G_imuAT(1:numValues,:),1);
-    P_G_imuB = mean(P_G_imuBT(1:numValues,:),1);
+  	P_G_imuB = mean(P_G_imuAT(1:numValues,:),1);
+    
+    
+    P_G_imuA = mean(P_G_imuBT(1:numValues,:),1);
     P_G_imuC = mean(P_G_imuCT(1:numValues,:),1);
    
-    x_G_imu = computeVectorFromPoints(P_G_imuC,P_G_imuA);
+    P_G_imuFakeA = [P_G_imuB(1) P_G_imuB(2) P_G_imuA(3)];
+    x_G_imu = computeVectorFromPoints(P_G_imuB,P_G_imuFakeA);
     x_G_imu_hat = x_G_imu ./ norm(x_G_imu);
     
-    y_G_imuCandidate = computeVectorFromPoints(P_G_imuC,P_G_imuB);
+    y_G_imuCandidate = computeVectorFromPoints(P_G_imuB,P_G_imuC);
     y_G_imuCandidate_hat = y_G_imuCandidate ./ norm(y_G_imuCandidate);
     
     y_G_imu = y_G_imuCandidate_hat - (dot(y_G_imuCandidate_hat',x_G_imu_hat')') .* x_G_imu_hat;
