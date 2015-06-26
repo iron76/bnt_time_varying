@@ -4,8 +4,11 @@ load('IMU_VICON_ShiftedData.mat');
 
 isTest = 'false';
 
-subjectList = 1:3;
-trialList = 1:2 ; 
+%subjectList = 1:3;
+%trialList = 1:2 ; 
+
+subjectList = 3;
+trialList = 1 ; 
 
 for subjectID = 1:length(subjectList)
     fprintf('\n---------\nSubject : %d\nTrial : ',subjectID);
@@ -48,7 +51,7 @@ for subjectID = 1:length(subjectList)
         R_0_G = R_G_0';
         R_G_1 = R_G_0;     
        
-        r_0_from0toPWA = computeVectorFromPoints(repmat(P_G_0,size(P_PWA_C,1),1),P_PWA_C).*1e-3;% positions in mm
+        
         
         len = size(P_G_1,1);
         %z_1_0 = repmat((R_G_0*[0,0,1]')',len,1);
@@ -123,6 +126,7 @@ for subjectID = 1:length(subjectList)
         plot(temp.t_vicon(:,1:pSelec),ddq2.*(180/pi));
         legend('ddq_1','ddq_2');
         axis tight;
+        
         subplot(2,1,2);
         plot(temp.t_vicon(:,1:pSelec),sgolayfilt_wrapper(ddq1.*(180/pi),3,57),'r'); hold on;
         xlabel('Time t(sec)');
@@ -133,33 +137,58 @@ for subjectID = 1:length(subjectList)
         axis tight;
        
         % computing R_G_imu
+        [R_G_imuini,P_G_imuini] = computeInitialIMURotation(P_G_imuA,P_G_imuB,P_G_imuC);
         
-        [R_G_imu0,P_G_imu0] = computeInitialIMURotation(P_G_imuA,P_G_imuB,P_G_imuC);
+        R_G_PWA = [1 0 0 ;0 -1 0;0 0 -1]; 
+        %CLA: rotation matrix from PWA to G frame
         
+        R_0_PWA = R_0_G * R_G_PWA; 
+        %CLA: rotation matrix from PWA to 0 frame as the composition of two
+        %R matrices
+        
+        r_0_from0toPWA = computeVectorFromPoints(repmat(P_G_0,size(P_PWA_C,1),1),P_PWA_C).*1e-3;% positions in mm
         
         fx_0_1 = zeros(size(fx_PWAPWA_1));
+        a_2_imulin = zeros(size(fx_PWAPWA_1,1),3);%
+        v_2_imurot = zeros(size(fx_PWAPWA_1,1),3);%
         
-        a_2_imulin = zeros(size(fx_PWAPWA_1,1),3);
-        v_2_imurot = zeros(size(fx_PWAPWA_1,1),3);
         
-        for i = 1:length(temp.t_vicon)
-           
-            R_0_1{i} = euler2dcm([0,q1(i),0]);
-            R_1_2{i} = euler2dcm([0,q2(i),0]);
-            
-            R_G_2{i} = R_G_0 * R_0_1{i}  * R_1_2{i};
-            R_2_imu{i} = R_G_2{i}'*R_G_imu0;
-            
-            a_2_imulin(i,:) =  (R_2_imu{i}*temp.a_imu_imulin(i,:)')';
-            v_2_imurot(i,:) =  (R_2_imu{i}*temp.v_imu_imurot(i,:)')'; 
-           
-            adjT_0_PWA{i} = [ R_0_G , zeros(3) ; -skew(r_0_from0toPWA(i,:)') * R_0_G , R_0_G]; 
-            %CLA: the notation for force transformation is modified because
-            %whe use the notation linear-angular in 6d vectors and not
-            %angular-linear like in the Featherstone.
-            
-            fx_0_1(i,:) = (adjT_0_PWA{i}' * fx_PWAPWA_1(i,:)')';
-        end
+       % R_G_imu0fake = [0 -1 0; 0 0 -1;1 0 0];
+        R_0_1ini = euler2dcm([0,mean(q1(1:10)),0]);
+                %R_0_1cla{i} = computeRy(q1(i));
+         
+        R_1_2ini = euler2dcm([0,mean(q2(1:10)),0]);
+                %R_1_2cla{i} = computeRy(q2(i));
+
+        R_G_2ini = R_G_0 * R_0_1ini * R_1_2ini;
+        R_2_imuini = R_G_2ini'* R_G_imuini;
+       
+        
+          for i = 1:length(temp.t_vicon)   
+                a_2_imulin(i,:) =  (R_2_imu{i}*temp.a_imu_imulin(i,:)')'; %
+                v_2_imurot(i,:) =  (R_2_imu{i}*temp.v_imu_imurot(i,:)')'; %
+
+                adjT_0_PWA{i} = [ R_0_PWA , zeros(3) ; -skew(r_0_from0toPWA(i,:)') * R_0_PWA , R_0_PWA]; 
+                %CLA: the notation for force transformation is modified because
+                %whe use the notation linear-angular in 6d vectors and not
+                %angular-linear like in the Featherstone.
+
+                fx_0_1(i,:) = (-(adjT_0_PWA{i}') * fx_PWAPWA_1(i,:)')';
+          end
+        
+%         R_0_1CELL = cell2mat(R_0_1);
+%         R_0_1claCELL = cell2mat(R_0_1cla);
+%         if (sum(R_0_1CELL-R_0_1claCELL) ~= 0);
+%         disp('Something wrong!');
+%         else disp('Two methods for R computation are equivalent.');
+%         end
+%         
+%         R_1_2CELL = cell2mat(R_1_2);
+%         R_1_2claCELL = cell2mat(R_1_2cla);
+%         if (sum(R_1_2CELL-R_1_2claCELL) ~= 0);
+%         disp('Something wrong!');
+%         else disp('Two methods for R computation are equivalent.');
+%         end
         
         figure;
         subplot(2,1,1);
@@ -170,10 +199,10 @@ for subjectID = 1:length(subjectList)
         title('Acceleration of link2');
         subplot(2,1,2);
         plot(temp.t_vicon,v_2_imurot);  axis tight;
-        title('AngularVelocity of link2');
         xlabel('time (sec)');
         ylabel('rad/sec');
         legend('x','y','z');
+        title('Angular Velocity of link2');
         
         figure;
         subplot(2,1,1);
@@ -185,7 +214,7 @@ for subjectID = 1:length(subjectList)
         subplot(2,1,2);
         plot(temp.t_vicon,fx_PWAPWA_1(:,4:6)); axis tight;
         xlabel('time (sec)');
-        ylabel('Wrench Moments(Nm)');
+        ylabel('Wrench Moments measured (Nm)');
         legend('x','y','z');
         
         figure;
@@ -202,24 +231,24 @@ for subjectID = 1:length(subjectList)
         legend('x','y','z');
         
         processedSensorData(subjectID,trialID).R_G_0 = R_G_0;
+        processedSensorData(subjectID,trialID).R_0_1 = R_0_1
         processedSensorData(subjectID,trialID).R_2_imu = R_2_imu;
         processedSensorData(subjectID,trialID).R_G_imu0 = R_G_imu0;
         processedSensorData(subjectID,trialID).R_G_2 = R_G_2;
+        processedSensorData(subjectID,trialID).R_G_PWA = R_G_PWA;
+        processedSensorData(subjectID,trialID).R_0_PWA = R_0_PWA;
         processedSensorData(subjectID,trialID).q1 = q1;
         processedSensorData(subjectID,trialID).q2 = q2;
         processedSensorData(subjectID,trialID).dq1 = dq1;
         processedSensorData(subjectID,trialID).dq2 = dq2;
         processedSensorData(subjectID,trialID).ddq1 = ddq1;
         processedSensorData(subjectID,trialID).ddq2 = ddq2;
-        
         processedSensorData(subjectID,trialID).a_2_imulin = a_2_imulin;
         processedSensorData(subjectID,trialID).v_2_imurot = v_2_imurot;
         processedSensorData(subjectID,trialID).adjT_0_PWA = adjT_0_PWA;
         processedSensorData(subjectID,trialID).f_x_1 = fx_0_1';
-
-        processedSensorData(subjectID,trialID).a_2_imulin = a_2_imulin;
-        processedSensorData(subjectID,trialID).v_2_imurot = v_2_imurot;
-        
+%         processedSensorData(subjectID,trialID).a_2_imulin = a_2_imulin;
+%         processedSensorData(subjectID,trialID).v_2_imurot = v_2_imurot;
         processedSensorData(subjectID,trialID).t = temp.t_vicon;
         processedSensorData(subjectID,trialID).imu = [a_2_imulin v_2_imurot]';
         %processedSensorData(subjectID,trialID).imu = 
@@ -232,3 +261,4 @@ end
 if(strcmp(isTest,'true')~=1)
     save('./experiments/humanFixedBase/preProcessedSensorData.mat','processedSensorData');%a_2_imulin
 end
+
