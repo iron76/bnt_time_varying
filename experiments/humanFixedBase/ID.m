@@ -39,5 +39,6 @@ for i = model.NB:-1:1
   end
 end
     fBase =  zeros(size(f{1}));%model.FootI *(-a_grav) + 
-    fBase = fBase + (Xup{1}\eye(6,6))'*f{1} ;
+    fBase = fBase + -(Xup{1}\eye(6,6))'*f{1} ;
+    fBase;
 end

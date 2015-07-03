@@ -4,15 +4,15 @@ load('IMU_VICON_ShiftedData.mat');
 
 isTest = 'false';
 
-%subjectList = 1:3;
-%trialList = 1:2 ; 
+subjectList = 1:3;
+trialList = 1:2 ; 
 
-subjectList = 3;
-trialList = 1 ; 
+%subjectList = 3;
+%trialList = 1 ; 
 
-for subjectID = 1:length(subjectList)
+for subjectID = subjectList
     fprintf('\n---------\nSubject : %d\nTrial : ',subjectID);
-    for trialID = 1:length(trialList)
+    for trialID = trialList
         fprintf('%d, ',trialID);
         figure;
         temp = imu_vicon_shiftedData(subjectID,trialID);
@@ -51,19 +51,26 @@ for subjectID = 1:length(subjectList)
         R_0_G = R_G_0';
         R_G_1 = R_G_0;     
        
-        
+        R_1_G = R_G_1';
         
         len = size(P_G_1,1);
-        %z_1_0 = repmat((R_G_0*[0,0,1]')',len,1);
-        z_1_0 = repmat([0,0,1],len,1);
-         %q1 = computeAngleBetweenVectors(z_1_0,(R_G_1*(P_G_2-P_G_1)')');
-        q1 = computeAngleBetweenVectors(z_1_0,(P_G_2-P_G_1));
+        %x_1 = repmat([1,0,0],len,1);
+        x_1 = repmat([1,0,0],len,1);
+        %% recomputing wrt to x-axis of frame1 to obtain both positive and negative angles
+        
+        %y_1_0 = repmat([0,-1,0],len,1);
+        q1 = computeAngleBetweenVectors(x_1,(R_1_G*(P_G_2-P_G_1)')');
+        q1 = repmat(1.5*pi,size(q1))-q1;
+         %q1 = computeAngleBetweenVectors(y_1_0,(P_G_2-P_G_1));
         subplot(2,1,1);
         plot(temp.t_vicon(:,1:pSelec),q1.*(180/pi),'r'); hold on;
         xlabel('Time t(sec)');
         ylabel('q_1 and q_2 (degrees)');
+        P_2_3 = recomputeVectorInFrame2(q1,R_1_G,(P_G_3-P_G_2));
         %q2 = computeAngleBetweenVectors((R_G_1*(P_G_2-P_G_1)')',(R_G_1*(P_G_3-P_G_2)')');
-        q2 = computeAngleBetweenVectors((P_G_2-P_G_1),(P_G_3-P_G_2));
+        x_2 = repmat([0,1,0],len,1);%x_1;
+        q2 = computeAngleBetweenVectors(x_2,(P_G_3-P_G_2));
+        q2 =  repmat(0.5*pi,size(q2)) + q2;
         plot(temp.t_vicon(:,1:pSelec),q2.*(180/pi));
         legend('q_1','q_2');
         axis tight;
@@ -146,7 +153,7 @@ for subjectID = 1:length(subjectList)
         %CLA: rotation matrix from PWA to 0 frame as the composition of two
         %R matrices
         
-        r_0_from0toPWA = computeVectorFromPoints(repmat(P_G_0,size(P_PWA_C,1),1),P_PWA_C).*1e-3;% positions in mm
+        r_0_from0toPWA = computeVectorFromPoints(repmat(P_G_0,size(P_PWA_C,1),1),P_PWA_C)*1e-3;% positions in mm
         
         fx_0_1 = zeros(size(fx_PWAPWA_1));
         a_2_imulin = zeros(size(fx_PWAPWA_1,1),3);%
@@ -161,19 +168,40 @@ for subjectID = 1:length(subjectList)
                 %R_1_2cla{i} = computeRy(q2(i));
 
         R_G_2ini = R_G_0 * R_0_1ini * R_1_2ini;
+       % R_G_imuinifake = [0 0 1; 0 -1 0; -1 0 0];
         R_2_imuini = R_G_2ini'* R_G_imuini;
-       
+        %R_2_imuini = R_G_2ini'* R_G_imuinifake;
+        
+       % R_G_0
+        
+       % R_0_1ini
+       % R_1_2ini
+        
+        figure;
+        subplot(2,1,1);
+        plot(temp.t_imu,temp.a_imu_imulin');axis tight;
+        xlabel('time (sec)');
+        ylabel('m/sec^2');
+        legend('x','y','z');
+        title('Raw Acceleration of link2 (imuframe)');
+        subplot(2,1,2);
+        plot(temp.t_imu,temp.v_imu_imurot');  axis tight;
+        xlabel('time (sec)');
+        ylabel('rad/sec');
+        legend('x','y','z');
+        title('Raw Angular Velocity of link2 (imuframe)');
+        
         
           for i = 1:length(temp.t_vicon)   
-                a_2_imulin(i,:) =  (R_2_imu{i}*temp.a_imu_imulin(i,:)')'; %
-                v_2_imurot(i,:) =  (R_2_imu{i}*temp.v_imu_imurot(i,:)')'; %
+                a_2_imulin(i,:) =  (R_2_imuini*temp.a_imu_imulin(i,:)')'; %
+                v_2_imurot(i,:) =  (R_2_imuini*temp.v_imu_imurot(i,:)')'; %
 
                 adjT_0_PWA{i} = [ R_0_PWA , zeros(3) ; -skew(r_0_from0toPWA(i,:)') * R_0_PWA , R_0_PWA]; 
                 %CLA: the notation for force transformation is modified because
                 %whe use the notation linear-angular in 6d vectors and not
                 %angular-linear like in the Featherstone.
 
-                fx_0_1(i,:) = (-(adjT_0_PWA{i}') * fx_PWAPWA_1(i,:)')';
+                fx_0_1(i,:) = ((adjT_0_PWA{i}) * fx_PWAPWA_1(i,:)')';
           end
         
 %         R_0_1CELL = cell2mat(R_0_1);
@@ -231,10 +259,10 @@ for subjectID = 1:length(subjectList)
         legend('x','y','z');
         
         processedSensorData(subjectID,trialID).R_G_0 = R_G_0;
-        processedSensorData(subjectID,trialID).R_0_1 = R_0_1
-        processedSensorData(subjectID,trialID).R_2_imu = R_2_imu;
-        processedSensorData(subjectID,trialID).R_G_imu0 = R_G_imu0;
-        processedSensorData(subjectID,trialID).R_G_2 = R_G_2;
+        processedSensorData(subjectID,trialID).R_0_1 = R_0_1ini;
+        processedSensorData(subjectID,trialID).R_2_imu = R_2_imuini;
+        processedSensorData(subjectID,trialID).R_G_imu0 = R_G_imuini;
+        processedSensorData(subjectID,trialID).R_G_2 = R_G_2ini;
         processedSensorData(subjectID,trialID).R_G_PWA = R_G_PWA;
         processedSensorData(subjectID,trialID).R_0_PWA = R_0_PWA;
         processedSensorData(subjectID,trialID).q1 = q1;

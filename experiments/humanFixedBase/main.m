@@ -11,15 +11,12 @@ clc
  % data.diff_imu  = 1;    %derivate the angular velocity of the IMUs
  % data.diff_q    = 1;    %derivate the angular velocity of the IMUs
 
-subjectID = 1;
+subjectID = 3;
 trialID = 1;
 %    %%strucutre from files
 data.path        = './experiments/humanFixedBase/processedSensorData.mat';
 %    % data.path        = '/home/pegua/Documents/Papers/2015-01-rss/data';
-data.parts = {'foot','torso'};
-data.labels = {'fts','imu'};
-data.ndof = {6,6};
-data.index = {'1:6','1:6'};
+
 
 %    data.parts       = {'inertial'                                 , 'left_arm_accelerometers', 'left_foot_inertial'        , 'left_hand_inertial'                  , 'right_arm_accelerometers', 'right_foot_inertial'       , 'right_hand_inertial'                 , 'torso_accelerometers'                    , 'l_arm_ft_sensor:o', 'r_arm_ft_sensor:o', 'l_leg_ft_sensor:o', 'r_leg_ft_sensor:o', 'l_foot_ft_sensor:o'        , 'r_foot_ft_sensor:o'        , 'head'      , 'left_arm'  , 'right_arm' , 'left_leg'  , 'right_leg' , 'torso'     };
     %    data.labels      = {'imu'                                      , 'la_acc'                 , 'lf_acc'                    , 'lh_imu'                              , 'ra_acc'                  , 'rf_acc'                    , 'rh_imu'                              , 'to_acc'                                  , 'la_fts'           , 'ra_fts'           , 'll_fts'           , 'rl_fts'           , 'lf_fts'                    , 'rf_fts'                    , 'h'         , 'la'        , 'ra'        , 'll'        , 'rl'        , 'to'        };
@@ -72,6 +69,11 @@ else
     sensorFrameExtraction
     [ data ] = organiseBERDYCompatibleSensorData( data, subjectID, trialID );
 end
+
+data.parts = {'foot','torso'};
+data.labels = {'fts','imu'};
+data.ndof = {6,6};
+data.index = {'1:6','1:6'};
 
 [ data ] = organiseBERDYCompatibleSensorData( data, subjectID,trialID );
 label_to_plot = {'fts','imu'};
@@ -249,7 +251,7 @@ for i = 1 : NB
    end
 end
 
-save('./experiments/humanFixedBase/savedBERDYresult.mat','res','data','myPNEA');
+save(sprintf('./experiments/humanFixedBase/savedBERDYresult_subj%d_trial%d.mat',subjectID,trialID),'res','data','myPNEA');
 
 tempT = data.time;%data.time(1:10:end-3);
 figure;plot(tempT,res.tau_foot,'b',tempT,res.tau_leg,'r');
