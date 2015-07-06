@@ -6,7 +6,7 @@ load(sprintf('./experiments/humanFixedBase/savedBERDYresult_subj%d_trial%d.mat',
 
 %% plot joint angles
 figure(1);
-plot(data.time,(180/pi)*data.q1-180,'r',data.time,(180/pi)*data.q2-180,'b','lineWidth',2.0);
+plot(data.time,(180/pi)*data.q1,'r',data.time,(180/pi)*data.q2,'b','lineWidth',2.0);
 legend('\theta_1','\theta_2');
 xlabel('Time t(sec)');
 ylabel('Joint Angle (degs)');
@@ -15,7 +15,7 @@ axis tight;
 
 %% plot joint velocities
 figure(2);
-plot(data.time,(180/pi)*data.dq1-180,'r',data.time,(180/pi)*data.dq2-180,'b','lineWidth',2.0);
+plot(data.time,(180/pi)*data.dq1,'r',data.time,(180/pi)*data.dq2,'b','lineWidth',2.0);
 legend('\theta_1','\theta_2');
 xlabel('Time t(sec)');
 ylabel('Joint Velocity (degs/sec)');

@@ -1,4 +1,4 @@
-function  [tau, a, fB, f, v,fBase] = ID( model, q, qd, qdd, f_ext)
+function  [tau, a, fB, f, v,fReactionBase] = ID( model, q, qd, qdd, f_ext)
 
 % ID  Inverse Dynamics via Recursive Newton-Euler Algorithm
 % ID(model,q,qd,qdd,f_ext) calculates the inverse dynamics of a kinematic
@@ -35,10 +35,10 @@ end
 for i = model.NB:-1:1
   tau(i,1) = S{i}' * f{i};
   if model.parent(i) ~= 0
-    f{model.parent(i)} = f{model.parent(i)} + Xup{i}'*f{i};
+    f{model.parent(i)} = fB{i} + Xup{i}'*f{i};
   end
 end
-    fBase =  zeros(size(f{1}));%model.FootI *(-a_grav) + 
-    fBase = fBase + -(Xup{1}\eye(6,6))'*f{1} ;
-    fBase;
+   % fBase =  zeros(size(f{1}));%model.FootI *(-a_grav) + 
+    fReactionBase = f{1} ;%+ Xup{1}'*f{1} ;
+    fReactionBase;
 end

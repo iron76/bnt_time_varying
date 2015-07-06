@@ -60,7 +60,7 @@ for subjectID = subjectList
         
         %y_1_0 = repmat([0,-1,0],len,1);
         q1 = computeAngleBetweenVectors(x_1,(R_1_G*(P_G_2-P_G_1)')');
-        q1 = repmat(1.5*pi,size(q1))-q1;
+        q1 = repmat(0.5*pi,size(q1))-q1;
          %q1 = computeAngleBetweenVectors(y_1_0,(P_G_2-P_G_1));
         subplot(2,1,1);
         plot(temp.t_vicon(:,1:pSelec),q1.*(180/pi),'r'); hold on;
@@ -70,7 +70,7 @@ for subjectID = subjectList
         %q2 = computeAngleBetweenVectors((R_G_1*(P_G_2-P_G_1)')',(R_G_1*(P_G_3-P_G_2)')');
         x_2 = repmat([0,1,0],len,1);%x_1;
         q2 = computeAngleBetweenVectors(x_2,(P_G_3-P_G_2));
-        q2 =  repmat(0.5*pi,size(q2)) + q2;
+        q2 =  -repmat(0.5*pi,size(q2)) + q2;
         plot(temp.t_vicon(:,1:pSelec),q2.*(180/pi));
         legend('q_1','q_2');
         axis tight;
@@ -153,7 +153,8 @@ for subjectID = subjectList
         %CLA: rotation matrix from PWA to 0 frame as the composition of two
         %R matrices
         
-        r_0_from0toPWA = computeVectorFromPoints(repmat(P_G_0,size(P_PWA_C,1),1),P_PWA_C)*1e-3;% positions in mm
+        r_G_from0toPWA = computeVectorFromPoints(repmat(-P_G_0,size(P_PWA_C,1),1),(R_G_PWA*P_PWA_C')')*1e-3;% positions in mm
+        r_0_from0toPWA = (R_0_G * r_G_from0toPWA')'; 
         
         fx_0_1 = zeros(size(fx_PWAPWA_1));
         a_2_imulin = zeros(size(fx_PWAPWA_1,1),3);%
@@ -196,7 +197,8 @@ for subjectID = subjectList
                 a_2_imulin(i,:) =  (R_2_imuini*temp.a_imu_imulin(i,:)')'; %
                 v_2_imurot(i,:) =  (R_2_imuini*temp.v_imu_imurot(i,:)')'; %
 
-                adjT_0_PWA{i} = [ R_0_PWA , zeros(3) ; -skew(r_0_from0toPWA(i,:)') * R_0_PWA , R_0_PWA]; 
+               % adjT_0_PWA{i} = [ R_0_PWA , zeros(3) ; -skew(r_0_from0toPWA(i,:)') * R_0_PWA , R_0_PWA]; 
+                adjT_0_PWA{i} = [  R_0_PWA , -skew(r_0_from0toPWA(i,:)') * R_0_PWA ; zeros(3) , R_0_PWA  ]; 
                 %CLA: the notation for force transformation is modified because
                 %whe use the notation linear-angular in 6d vectors and not
                 %angular-linear like in the Featherstone.

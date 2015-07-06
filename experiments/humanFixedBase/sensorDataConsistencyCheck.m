@@ -39,11 +39,15 @@ fBase = zeros(size(q,1),6);
 %f_2 = zeros(size(q,1),6);
 
 R_D_G = eye(3);%[ 0 -1 0; 0 0 -1; 1 0 0];
+%tau = zeros(size(q,1),2);
 
 %a = cell (size(q));
 for i = 1:size(q)
      ftx_sens{1} = sensor_ftx(i,:)';
      ftx_sens{2} = zeros(6,1);
+     %q(i,:) = zeros(1,2);
+     %dq(i,:) = zeros(1,2);
+     %ddq(i,:) = zeros(1,2);
       [tau_i, a_i, fB_i, f_i, v_i,fBase_i] = ID( humanThreeLink_dmodel, q(i,:), dq(i,:), ddq(i,:));
       tau(i,:) = tau_i';      
       %a_1(i,:) = a_i{1}';
@@ -66,7 +70,7 @@ RNEA_ftx = [fBase(:,4:6) fBase(:,1:3)];
 %legend('\tau_1','\tau_2');
 %axis tight;
 
-if(strcmp(plots,'noplots'~=1))
+if(strcmp(plots,'noplots')~=1)
 
     figure(1);
     subplot(2,1,1);
@@ -112,13 +116,34 @@ if(strcmp(plots,'noplots'~=1))
     axis tight;
 
     subplot(2,1,2);
-    plot(t,-sensor_ftx(:,1:3));
+    plot(t,sensor_ftx(:,1:3));
     xlabel('time (sec)');
     ylabel('actual fBase (N)');
     legend('f_x','f_y','f_z');
     axis tight;
+    
+    figure(4);
+    subplot(2,1,1);
+    plot(t,fBase(:,1:3));
+    title('Base Momment');
+    xlabel('time (sec)');
+    ylabel('predicted MuBase (Nm)');
+    legend('\mu_x','\mu_y','\mu_z');
+    axis tight;
 
-    %figure;
+    subplot(2,1,2);
+    plot(t,sensor_ftx(:,4:6));
+    xlabel('time (sec)');
+    ylabel('actual fBase (N)');
+    legend('\mu_x','\mu_y','\mu_z');
+    axis tight;
+
+    figure(5);
+    plot(t,tau);
+    xlabel('time (sec)');
+    ylabel('Torrque (Nm)');
+    legend('\tau_1','\tau_2');
+    axis tight;
     %subplot(2,1,1);
 
     %subplot(2,1,2);

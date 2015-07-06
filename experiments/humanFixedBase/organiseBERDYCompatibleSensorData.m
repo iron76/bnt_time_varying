@@ -65,8 +65,9 @@ data.q_t = data.q2; data.dq_t = data.dq2; data.ddq_t = data.ddq2;
 data.q = [data.q1 data.q2]';
 data.dq = [data.dq1 data.dq2]';
 
-data.y_ftx = processedSensorData(subjectID,trialID).ftx(:,(tminIndex:tmaxIndex));
-data.y_fts = data.y_ftx;
+%% FUCKING FORCE PLATE MEASURES AN ACTION
+data.y_ftx = -processedSensorData(subjectID,trialID).ftx(:,(tminIndex:tmaxIndex));
+data.y_fts = -data.y_ftx;
 data.y_imu = processedSensorData(subjectID,trialID).imu(:,(tminIndex:tmaxIndex));
 
 data.ys_fts = data.y_fts;
