@@ -50,7 +50,7 @@ title('Force Plate sensor readings');
 subplot(2,1,2);
 plot(tempT,data.y_ftx(4:6,:),'LineWidth',2);
 xlabel('Time (sec)');
-ylabel('Momments (Nm)');
+ylabel('Torques (Nm)');
 legend('\mu_x','\mu_y','\mu_z');
 axis tight; hold on;   
 

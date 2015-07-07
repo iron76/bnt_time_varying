@@ -1,4 +1,4 @@
-% load data
+cl% load data
 
 load('IMU_VICON_ShiftedData.mat');
 
@@ -72,7 +72,7 @@ for subjectID = subjectList
         q2 = computeAngleBetweenVectors(x_2,(P_G_3-P_G_2));
         q2 =  -repmat(0.5*pi,size(q2)) + q2;
         plot(temp.t_vicon(:,1:pSelec),q2.*(180/pi));
-        legend('q_1','q_2');
+        legend('q_1 angle','q_2 angle');
         axis tight;
         
         subplot(2,1,2);
@@ -81,7 +81,7 @@ for subjectID = subjectList
         xlabel('Time t(sec)');
         ylabel('q_1 and q_2 (degrees)');
         plot(temp.t_vicon(:,1:pSelec),sgolayfilt_wrapper(q2.*(180/pi),3,57));
-        legend('q_1','q_2');
+        legend('q_1 angle','q_2 angle');
         axis tight;
         
         q1 = sgolayfilt_wrapper(q1,3,57);

@@ -64,14 +64,32 @@ end
 RNEA_imu = [a_2_2 v_2_2 ];
 RNEA_ftx = [fBase(:,4:6) fBase(:,1:3)];
 
-%figure;
-%plot(t,tau); hold on;
-%xlabel('time (sec)');
-%ylabel('torque (Nm)');
-%legend('\tau_1','\tau_2');
-%axis tight;
+% 
+% figure;
+% plot(t,tau(:,1)); hold on;
+% xlabel('time (sec)');
+% ylabel('torque (Nm)');
+% legend('\tau_1','\tau_2');
+% axis tight;
+
+tau2 = zeros(size(q));
+for i = 1:size(q)
+     ftx_sens{1} = sensor_ftx(i,:)';
+     ftx_sens{2} = zeros(6,1);
+      [tau2_i, a_i, fB_i, f_i, v_i,fBase_i] = ID( humanThreeLink_dmodel, q(i,:),0.* dq(i,:), 0.*ddq(i,:));
+      tau2(i,:) = tau2_i';      
+      %a_1(i,:) = a_i{1}';
+      a_2_2(i,:) = a_i{2}(4:6)';% + [0 0 -9.8];
+      %v_1(i,:) = v_i{1}';
+      v_2_2(i,:) = v_i{2}(1:3)';
+      %fB_1(i,:)= fB_i{1}';
+      fBase(i,:)= fBase_i';
+      %f_1(i,:)= f_i{1}';
+      %f_G_2(i,:)= (R_G_2{i}*f_i{2}(1:3))';
+end
 
 if(strcmp(plots,'noplots')~=1)
+
 
     figure(1);
     subplot(2,1,1);

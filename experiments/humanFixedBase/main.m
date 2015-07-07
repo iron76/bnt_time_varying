@@ -203,6 +203,7 @@ Sd = zeros(26*NB, 26*NB, n);
 for i = 1 : n
    myPNEA = myPNEA.setState(data.q(:,i), data.dq(:,i));
    myPNEA = myPNEA.setY(data.y(:,i));
+   
    myPNEA = myPNEA.solveID();
    
    Y = cell2mat(myPNEA.IDsens.sensorsParams.Y);
@@ -253,11 +254,11 @@ for i = 1 : NB
 end
 
 save(sprintf('./experiments/humanFixedBase/savedBERDYresult_subj%d_trial%d.mat',subjectID,trialID),'res','data','myPNEA');
-
-tempT = data.time;%data.time(1:10:end-3);
-figure;plot(tempT,res.tau_foot,'b',tempT,res.tau_leg,'r');
-xlabel('Time (sec)');
-ylabel('Torques (Nm)');
-axis tight; hold on;   
-legend('\tau_1 (ankle)','\tau_2 (hip)');
-title('Torque Estimates');
+% 
+% tempT = data.time;%data.time(1:10:end-3);
+% figure;plot(tempT,res.tau_foot,'b',tempT,res.tau_leg,'r');
+% xlabel('Time (sec)');
+% ylabel('Torques (Nm)');
+% axis tight; hold on;   
+% legend('\tau_1 (ankle)','\tau_2 (hip)');
+% title('Torque Estimates');
