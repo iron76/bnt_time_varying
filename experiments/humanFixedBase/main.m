@@ -77,6 +77,7 @@ data.index = {'1:6','1:6'};
 
 [ data ] = organiseBERDYCompatibleSensorData( data, subjectID,trialID );
 label_to_plot = {'fts','imu'};
+humanThreeLink_dmodel.gravity = [+0;9.81;0];
 
 %% Process raw sensor data and bring it in the desired reference frames
 acc_gain = 1.0;%5.9855e-04;

@@ -41,6 +41,7 @@ fBase = zeros(size(q,1),6);
 R_D_G = eye(3);%[ 0 -1 0; 0 0 -1; 1 0 0];
 %tau = zeros(size(q,1),2);
 
+humanThreeLink_dmodel.gravity = [+0;9.81;0];
 %a = cell (size(q));
 for i = 1:size(q)
      ftx_sens{1} = sensor_ftx(i,:)';
