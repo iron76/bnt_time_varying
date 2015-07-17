@@ -6,8 +6,16 @@ The modifications allow to estimate the variance matrices $\Simga_i$
 by assuming that $B_i$ is known but time-varying in the sense that
 its value is a function of t, i.e. B_{i,t} in equation (1).
 
- DEPENDENCIES
+DEPENDENCIES
  
  Currently the dependencies are (a) BNT toolbox and (b) FEATHERSTONE toolbox:
 (0.a) https://bnt.googlecode.com/files/FullBNT-1.0.7.zip
 (0.b) http://royfeatherstone.org/spatial/v2/spatial_v2.zip
+
+DOCUMENTATION 
+
+If you want to understand the code in bnt_time_varying, you should understand
+how to use the BNT and SpatialV2 libraries, that are used in all the code. 
+Nice entry points for this libraries are: 
+ * SpatialV2 : http://royfeatherstone.org/spatial/v2/index.html
+ * BNT       : http://bnt.googlecode.com/svn/trunk/docs/usage.html
