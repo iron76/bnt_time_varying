@@ -59,6 +59,8 @@ res = res || testSubmatrix;
 
 res = res || testSubmatrixSparse;
 
+res = res || testRegressors;
+
 res = res || testSNEA(dmodel_RNEA, ymodel_RNEA);
 
 res = res || testMRNEA(dmodel_RNEA, ymodel_RNEA);

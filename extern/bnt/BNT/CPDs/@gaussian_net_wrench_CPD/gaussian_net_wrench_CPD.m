@@ -67,17 +67,21 @@ psz = fam_sz(1:end-1);
 dpsz = prod(psz(CPD.dps));
 cpsz = sum(psz(CPD.cps));
 
+% this node is quite specific, and only support a single 
+% continuous parent of size 6
+assert(dpsz == 1);
+assert(cpsz == 0);
+
 % set default params
-CPD.mean = randn(ss, dpsz);
 CPD.cov = 100*repmat(eye(ss), [1 1 dpsz]);    
-CPD.weights = randn(ss, cpsz, dpsz);
 CPD.cov_type = 'full';
-CPD.tied_cov = 0;
-CPD.clamped_mean = 0;
 CPD.clamped_cov = 0;
-CPD.clamped_weights = 0;
 CPD.cov_prior_weight = 0.01;
 CPD.cov_prior_entropic = 0;
+CPD.twist = zeros(6,1);
+CPD.inertial_params = zeros(10,1);
+CPD.clamped_inertial_params = 0;
+
 nargs = length(args);
 if nargs > 0
   CPD = set_fields(CPD, args{:});
@@ -113,24 +117,21 @@ CPD.nsamples = 0;
 switch CPD.cov_type
  case 'full',
   % since symmetric 
-    %ncov_params = ss*(ss-1)/2; 
     ncov_params = ss*(ss+1)/2; 
   case 'diag',
     ncov_params = ss;
   otherwise
     error(['unrecognized cov_type ' cov_type]);
 end
-% params = weights + mean + cov
-if CPD.tied_cov
-  CPD.nparams = ss*cpsz*dpsz + ss*dpsz + ncov_params;
-else
-  CPD.nparams = ss*cpsz*dpsz + ss*dpsz + dpsz*ncov_params;
-end
 
+% params = cov + inertial parameters 
+nr_of_inertial_params = 10
+CPD.nparams = ncov_params + nr_of_inertial_params;
+  
 % for speeding up maximize_params
 CPD.useC = exist('rep_mult');
 
-clamped = CPD.clamped_mean & CPD.clamped_cov & CPD.clamped_weights;
+clamped = CPD.clamped_inertial_params & CPD.clamped_cov;
 CPD = set_clamped(CPD, clamped);
 
 %%%%%%%%%%%
@@ -143,10 +144,11 @@ function CPD = init_fields()
 CPD.self = [];
 CPD.sizes = [];
 CPD.twist = [];
+CPD.inertial_params = [];
+CPD.clamped_inertial_params = [];
 CPD.cov = [];
 CPD.clamped_cov = [];
 CPD.cov_type = [];
-CPD.tied_cov = [];
 CPD.Wsum = [];
 CPD.WYsum = [];
 CPD.WXsum = [];
