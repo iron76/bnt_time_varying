@@ -70,7 +70,11 @@ cpsz = sum(psz(CPD.cps));
 % this node is quite specific, and only support a single 
 % continuous parent of size 6
 assert(dpsz == 1);
-assert(cpsz == 0);
+assert(cpsz == 6);
+
+% We are not saving weight, so we have to save dpsz,cpsz in the CPD
+CPD.cpsz = cpsz;
+CPD.dpsz = dpsz;
 
 % set default params
 CPD.cov = 100*repmat(eye(ss), [1 1 dpsz]);    
@@ -89,9 +93,7 @@ end
 
 % Make sure the matrices have 1 dimension per discrete parent.
 % Bug fix due to Xuejing Sun 3/6/01
-CPD.mean = myreshape(CPD.mean, [ss ns(dps)]);
 CPD.cov = myreshape(CPD.cov, [ss ss ns(dps)]);
-CPD.weights = myreshape(CPD.weights, [ss cpsz ns(dps)]);
 
 % Precompute indices into block structured  matrices
 % to speed up CPD_to_lambda_msg and CPD_to_pi
