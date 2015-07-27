@@ -53,7 +53,7 @@ for i = 1:obj.IDmodel.modelParams.NB
    W = cell2mat(Wa);
    % substitute this with the gaussian_new_wrench_CPD  
    % obj.bnt.bnet.CPD{fBi} = gaussian_CPD(obj.bnt.bnet, fBi, 'mean', crf(obj.v(:,i))*obj.IDmodel.modelParams.I{i}*obj.v(:,i), 'cov', SfB, 'weights', W, 'clamp_mean', 1, 'clamp_weights', 1, 'clamp_cov', 1);
-   obj.bnt.bnet.CPD{fBi} = guassian_new_wrench_CPD(obj.bnt.bnet, fBi, 'twist', obj.v(:,i), 'cov', SfB, 'clamp_cov', 1);
+   obj.bnt.bnet.CPD{fBi} = guassian_net_wrench_CPD(obj.bnt.bnet, fBi, 'twist', obj.v(:,i), 'cov', SfB, 'clamp_cov', 1);
 end
 
 for i = obj.IDmodel.modelParams.NB:-1:1

@@ -53,36 +53,52 @@ end
 dmodel_BNEA    = autoTreeStochastic(dmodel_SNEA);
 ymodel_BNEA    = autoSensStochastic(ymodel_SNEA);
 
+disp('Running testRNEA')
 res = res || testRNEA(dmodel_RNEA, ymodel_RNEA);
 
+disp('Running testSubmatrix')
 res = res || testSubmatrix;
 
+disp('Running testSubmatrixSparse')
 res = res || testSubmatrixSparse;
 
+disp('Running testRegressors')
 res = res || testRegressors;
 
+disp('Running testSNEA')
 res = res || testSNEA(dmodel_RNEA, ymodel_RNEA);
 
+disp('Running testMRNEA')
 res = res || testMRNEA(dmodel_RNEA, ymodel_RNEA);
 
+disp('Running testPNEA')
 res = res || testPNEA(dmodel_SNEA, ymodel_SNEA);
 
+disp('Running testMNEA')
 res = res || testMNEA(dmodel_SNEA, ymodel_SNEA);
 
+disp('Running testLearnBNEA')
 res = res || testLearnBNEA(dmodel_SNEA, ymodel_SNEA);
 
+disp('Running testBNEA')
 res = res || testBNEA(dmodel_BNEA, ymodel_BNEA);
 
+disp('Running testDerivatives')
 res = res || testDerivatives(dmodel_DNEA, ymodel_DNEA);
 
+disp('Running testDNEA')
 res = res || testDNEA(dmodel_DNEA, ymodel_DNEA, dmodel_SNEA, ymodel_SNEA, S_dmodel);
 
+disp('Running testCalibration')
 res = res || testCalibration(dmodel_DNEA, ymodel_DNEA, dmodel_SNEA, ymodel_SNEA, S_dmodel);
 
+disp('Running testANEA')
 res = res || testANEA(dmodel_RNEA, ymodel_RNEA, dmodel_ANEA, ymodel_ANEA);
 
+disp('Running testDANEA')
 res = res || testDANEA(dmodel_ANEA, ymodel_ANEA);
 
+disp('Running testDANEACalibration')
 res = res || testDANEACalibration(dmodel_ANEA, ymodel_DANEA, dmodel_SNEA, ymodel_SNEA, S_dmodel);
 
 

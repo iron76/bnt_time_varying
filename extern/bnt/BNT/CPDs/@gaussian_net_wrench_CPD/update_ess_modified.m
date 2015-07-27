@@ -150,6 +150,7 @@ end
 % ESS for inertial parameters estimation
 SAA = fullm.Sigma(xi, xi, 1);
 muA = fullm.mu(xi, 1);
+muAnotWeighted = diag(1./CPD.acceleration_weights)*muA;
 EAA = SAA + muA*muA';
 invSigma_fiB = inv(CPD.cov);
 % we can move this outside the samples loop to improve perforamnce
@@ -171,9 +172,13 @@ for i = 1:10
     BquadFormSum(i) = trace(BquadForm{i}*EAF);
 end
 
-coriolisRegressor = crf(CPD.twist)*inertiaRegressor(twist);
+wrench_weights_diag = diag(CPD.wrench_weights);
 
-CPD.Asum = CPD.Asum + AquadFormSum  + (coriolisRegressor)'*invSigma_fiB*inertiaRegressor(muA) + ...
-            inertiaRegressor(muA)'*invSigma_fiB*coriolisRegressor + coriolisRegressor'*invSigma_fiB*coriolisRegressor;
-CPD.Bsum = CPD.Bsum + BquadFormSum  + (coriolisRegressor)'*invSigma_fiB*fullm.mu(yi, i);
+coriolisRegressor = crf(CPD.twist)*inertiaRegressor(twist);
+coriolisRegressorWeighted = wrench_weights_diag*coriolisRegressor;
+inertiaRegressorAccWeighted =  wrench_weights_diag*inertiaRegressor(muAnotWeighted);
+
+CPD.Asum = CPD.Asum + AquadFormSum  + (coriolisRegressorWeighted)'*invSigma_fiB*inertiaRegressorAccWeighted + ...
+          inertiaRegressorAccWeighted'*invSigma_fiB*coriolisRegressorWeighted + coriolisRegressorWeighted'*invSigma_fiB*coriolisRegressorWeighted;
+CPD.Bsum = CPD.Bsum + BquadFormSum  + (coriolisRegressorWeighted)'*invSigma_fiB*fullm.mu(yi, i);
 

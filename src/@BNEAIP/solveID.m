@@ -1,5 +1,5 @@
 function obj = solveID(obj)
-%solveID Inverse Dynamics with Bayesian networks (BNEA)
+%solveID Inverse Dynamics with Bayesian networks with Inertial Parameters (BNEAIP)
 %   This function solves the inverse dynamics problem with the a Bayesian
 %   network representation, as described in the paper "BERDY: Bayesian
 %   Estimation for Robot Dynamics. A Probabilistic Estimation of Whole-Body
@@ -22,9 +22,13 @@ function obj = solveID(obj)
 %
 %   The relationship between d and y is given by Y(q, dq) d = y where the
 %   matrix Y(q, dq), is represented as a Bayesian network, implemented
-%   using the Matlab toolbox provided by Kevin Muprhy. Moreover, the
+%   using the Matlab toolbox provided by Kevin Murohy. Moreover, the
 %   variables d should satisfy the Newton-Euler equations represented as
 %   D(q,dq) d + b(q, dq) = 0, again represented as a Bayesian network.
+%
+%   BNEAIP is like the BNEA, but with additional support for inertial
+%   parameters EM learning
+%  
 %
 % Author: Francesco Nori
 % Genova, Dec 2014

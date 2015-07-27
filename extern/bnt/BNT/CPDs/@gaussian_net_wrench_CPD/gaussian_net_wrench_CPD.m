@@ -26,6 +26,12 @@ function CPD = gaussian_net_wrench_CPD(bnet, self, varargin)
 % clamp_cov  - if 1, we do not adjust Sigma(:,:) during learning [0]
 % cov_prior_weight - weight given to I prior for estimating Sigma [0.01]
 % cov_prior_entropic - if 1, we also use an entropic prior for Sigma [0]
+% force_weights - vector of weights for the output of the node (used for
+%                 normalization) [ ones(6,1) ]
+% acceleration_weights - vector of weights for the input of the node (used 
+%                        for normalization) [ ones(6,1) ] 
+% 
+
 %
 % e.g., CPD = gaussian_net_wrench_CPD(bnet, i, 'twist', [0.4,0.5,0.5,1.3,5.6,5.6])
 
@@ -85,6 +91,9 @@ CPD.cov_prior_entropic = 0;
 CPD.twist = zeros(6,1);
 CPD.inertial_params = zeros(10,1);
 CPD.clamped_inertial_params = 0;
+CPD.force_weights = ones(6,1);
+CPD.acceleration_weights = ones(6,1);
+
 
 nargs = length(args);
 if nargs > 0
@@ -127,7 +136,7 @@ switch CPD.cov_type
 end
 
 % params = cov + inertial parameters 
-nr_of_inertial_params = 10
+nr_of_inertial_params = 10;
 CPD.nparams = ncov_params + nr_of_inertial_params;
   
 % for speeding up maximize_params
@@ -163,3 +172,5 @@ CPD.cov_prior_weight = [];
 CPD.cov_prior_entropic = [];
 CPD.useC = [];
 CPD.cps_block_ndx = [];
+CPD.force_weights = [];
+CPD.acceleration_weights = [];

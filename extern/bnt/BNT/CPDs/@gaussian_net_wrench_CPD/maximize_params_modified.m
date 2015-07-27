@@ -16,9 +16,9 @@ else
 end
 
 
-[ssz psz Q] = size(CPD.weights);
+% [ssz psz Q] = size(CPD.weights);
 
-[ss cpsz dpsz] = size(CPD.weights); % ss = self size = ssz
+% [ss cpsz dpsz] = size(CPD.weights); % ss = self size = ssz
 
 ss = 6;
 ssz = 6;
