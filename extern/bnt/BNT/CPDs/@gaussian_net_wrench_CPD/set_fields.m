@@ -22,14 +22,11 @@ args = varargin;
 nargs = length(args);
 for i=1:2:nargs
   switch args{i},
-   case 'mean',        CPD.mean = args{i+1}; 
+   case 'twist',        CPD.twist = args{i+1}; 
    case 'cov',         CPD.cov = args{i+1}; 
-   case 'weights',     CPD.weights = args{i+1}; 
    case 'cov_type',    CPD.cov_type = args{i+1}; 
    case 'tied_cov',    CPD.tied_cov = args{i+1};
-   case 'clamp_mean',  CPD.clamped_mean = args{i+1};
    case 'clamp_cov',   CPD.clamped_cov = args{i+1};
-   case 'clamp_weights',  CPD.clamped_weights = args{i+1};
    case 'clamp',  clamp = args{i+1};
     CPD.clamped_mean = clamp;
     CPD.clamped_cov = clamp;
@@ -37,8 +34,9 @@ for i=1:2:nargs
    case 'cov_prior_weight',  CPD.cov_prior_weight = args{i+1};
    case 'cov_prior_entropic',  CPD.cov_prior_entropic = args{i+1};
    case 'inertial_params', CPD.inertial_params = args{i+1};
-   case 'clamp_inertial_params', CPD.clamp_inertial_params = args{i+1};
-   case 'force_weights', CPD.force_weights = args{i+1};
+   case 'clamp_inertial_params', CPD.clamped_inertial_params = args{i+1};
+   case 'wrench_weights', CPD.wrench_weights = args{i+1};
+   case 'force_weights', CPD.wrench_weights = args{i+1};
    case 'acceleration_weights', CPD.acceleration_weights = args{i+1}; 
    otherwise,  
     error(['invalid argument name ' args{i}]);

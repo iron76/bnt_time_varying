@@ -91,7 +91,7 @@ CPD.cov_prior_entropic = 0;
 CPD.twist = zeros(6,1);
 CPD.inertial_params = zeros(10,1);
 CPD.clamped_inertial_params = 0;
-CPD.force_weights = ones(6,1);
+CPD.wrench_weights = ones(6,1);
 CPD.acceleration_weights = ones(6,1);
 
 
@@ -152,8 +152,13 @@ function CPD = init_fields()
 % no matter whether we load an object from a file,
 % or create it from scratch. (Matlab requires this.)
 
+
 CPD.self = [];
 CPD.sizes = [];
+CPD.cps = [];
+CPD.dps = [];
+CPD.cpsz = [];
+CPD.dpsz = [];
 CPD.twist = [];
 CPD.inertial_params = [];
 CPD.clamped_inertial_params = [];
@@ -172,5 +177,5 @@ CPD.cov_prior_weight = [];
 CPD.cov_prior_entropic = [];
 CPD.useC = [];
 CPD.cps_block_ndx = [];
-CPD.force_weights = [];
+CPD.wrench_weights = [];
 CPD.acceleration_weights = [];

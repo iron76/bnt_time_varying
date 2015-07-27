@@ -3,6 +3,7 @@ export SPATIAL_FOLDER='put here the folder containing the SPATIAL_V2 distributio
 export BNT_TIME_VARYING_FOLDER=./
 
 mkdir -p $BNT_FOLDER/BNT/CPDs/@gaussian_CPD
+mkdir -p $BNT_FOLDER/BNT/CPDs/@gaussian_net_wrench_CPD
 mkdir -p $BNT_FOLDER/BNT/inference/@inf_engine
 mkdir -p $BNT_FOLDER/KPMstats
 mkdir -p $BNT_FOLDER/modifiedEM
@@ -40,3 +41,23 @@ cp -v  $BNT_TIME_VARYING_FOLDER/extern/featherstone/spatial/traslxderiv.m $SPATI
 cp -v  $BNT_TIME_VARYING_FOLDER/extern/featherstone/spatial/traslyderiv.m $SPATIAL_FOLDER/spatial/traslyderiv.m
 
 cp -v  $BNT_TIME_VARYING_FOLDER/extern/featherstone/spatial/traslzderiv.m $SPATIAL_FOLDER/spatial/traslzderiv.m
+
+cp -v  $BNT_TIME_VARYING_FOLDER/extern/bnt/BNT/CPDs/@gaussian_net_wrench_CPD/convert_to_pot.m $BNT_FOLDER/BNT/CPDs/@gaussian_net_wrench_CPD/convert_to_pot.m
+
+cp -v  $BNT_TIME_VARYING_FOLDER/extern/bnt/BNT/CPDs/@gaussian_net_wrench_CPD/gaussian_CPD_params_given_dps.m $BNT_FOLDER/BNT/CPDs/@gaussian_net_wrench_CPD/gaussian_CPD_params_given_dps.m
+
+cp -v  $BNT_TIME_VARYING_FOLDER/extern/bnt/BNT/CPDs/@gaussian_net_wrench_CPD/gaussian_net_wrench_get_canonical_parameters.m $BNT_FOLDER/BNT/CPDs/@gaussian_net_wrench_CPD/gaussian_net_wrench_get_canonical_parameters.m
+
+cp -v  $BNT_TIME_VARYING_FOLDER/extern/bnt/BNT/CPDs/@gaussian_net_wrench_CPD/get_field.m $BNT_FOLDER/BNT/CPDs/@gaussian_net_wrench_CPD/get_field.m
+
+cp -v  $BNT_TIME_VARYING_FOLDER/extern/bnt/BNT/CPDs/@gaussian_net_wrench_CPD/gaussian_net_wrench_CPD.m $BNT_FOLDER/BNT/CPDs/@gaussian_net_wrench_CPD/gaussian_net_wrench_CPD.m
+
+cp -v  $BNT_TIME_VARYING_FOLDER/extern/bnt/BNT/CPDs/@gaussian_net_wrench_CPD/getQuadraticFormsForInertialParamsAESS.m $BNT_FOLDER/BNT/CPDs/@gaussian_net_wrench_CPD/getQuadraticFormsForInertialParamsAESS.m
+
+cp -v  $BNT_TIME_VARYING_FOLDER/extern/bnt/BNT/CPDs/@gaussian_net_wrench_CPD/getQuadraticFormsForInertialParamsBESS.m $BNT_FOLDER/BNT/CPDs/@gaussian_net_wrench_CPD/getQuadraticFormsForInertialParamsBESS.m
+
+cp -v  $BNT_TIME_VARYING_FOLDER/extern/bnt/BNT/CPDs/@gaussian_net_wrench_CPD/maximize_params_modified.m $BNT_FOLDER/BNT/CPDs/@gaussian_net_wrench_CPD/maximize_params_modified.m
+
+cp -v  $BNT_TIME_VARYING_FOLDER/extern/bnt/BNT/CPDs/@gaussian_net_wrench_CPD/set_fields.m $BNT_FOLDER/BNT/CPDs/@gaussian_net_wrench_CPD/set_fields.m
+
+cp -v  $BNT_TIME_VARYING_FOLDER/extern/bnt/BNT/CPDs/@gaussian_net_wrench_CPD/update_ess_modified.m $BNT_FOLDER/BNT/CPDs/@gaussian_net_wrench_CPD/update_ess_modified.m

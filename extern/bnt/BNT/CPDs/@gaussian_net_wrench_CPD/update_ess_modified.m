@@ -64,7 +64,8 @@ end
 % The weights with respect to the parent (spatial acceleration)
 % are just the inertia matrix in link frame, that can be obtained from 
 % inertial parameters
-% B was CPD.weigths 
+% B was CPD.weigths
+% TODO \TODO check effect of weights  
 B = inertiaMatrixFromInertialParams(CPD.inertial_params);
 
 % currentMean was CPD.mean 

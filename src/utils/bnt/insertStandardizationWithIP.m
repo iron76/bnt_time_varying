@@ -2,7 +2,9 @@ function bnetStd = insertStandardizationWithIP(bnet, muStd, covStd, i_cov_learn,
 
 bnetStd = bnet;
 for i = 1 : length(muStd)
-   muY_X = struct(bnet.CPD{i}).mean;
+   if( ~isa(bnet.CPD{i}, 'gaussian_net_wrench_CPD') )
+       muY_X = struct(bnet.CPD{i}).mean;
+   end
    SY_X = struct(bnet.CPD{i}).cov;
    
    i_prts = bnet.parents{i};
@@ -37,12 +39,12 @@ for i = 1 : length(muStd)
         inertial_params = struct(bnet.CPD{i}).inertial_params;
         if nargin == 5
             if (~isempty(find(i==i_cov_learn,1)))
-                bnetStd.CPD{i} = gaussian_CPD_net_wrench(bnetStd, i, 'twist', twist , 'force_weights', sY, 'acceleration_weights', sX, 'inertial_params', inertial_params, 'cov',  SY*SY_X*SY', 'cov_prior_weight', covPriorWeight);
+                bnetStd.CPD{i} = gaussian_net_wrench_CPD(bnetStd, i, 'twist', twist , 'wrench_weights', sY, 'acceleration_weights', sX, 'inertial_params', inertial_params, 'cov',  SY*SY_X*SY', 'cov_prior_weight', covPriorWeight);
             else
-                bnetStd.CPD{i} = gaussian_CPD_new_wrench(bnetStd, i, 'twist', twist , 'force_weights', sY, 'acceleration_weights', sX, 'inertial_params', inertial_params, 'cov',  SY*SY_X*SY', 'clamp_inertial_params', 1, 'clamp_cov', 1);
+                bnetStd.CPD{i} = gaussian_net_wrench_CPD(bnetStd, i, 'twist', twist , 'wrench_weights', sY, 'acceleration_weights', sX, 'inertial_params', inertial_params, 'cov',  SY*SY_X*SY', 'clamp_inertial_params', 1, 'clamp_cov', 1);
             end
         elseif nargin == 3
-            bnetStd.CPD{i} = gaussian_CPD_net_wrench(bnetStd, i, 'twist', twist , 'force_weights', sY, 'acceleration_weights', sX, 'inertial_params', inertial_params, 'cov',  SY*SY_X*SY');
+            bnetStd.CPD{i} = gaussian_net_wrench_CPD(bnetStd, i, 'twist', twist , 'wrench_weights', sY, 'acceleration_weights', sX, 'inertial_params', inertial_params, 'cov',  SY*SY_X*SY');
         end
       end
    else
