@@ -8,8 +8,8 @@ function y = sample_node(CPD, pev)
 wrench_weights_diag = diag(CPD.wrench_weights);
 inv_acc_weights_diag = diag(1./CPD.acceleration_weights);
 
-isempty(CPD.dps)
-assert( ~(isempty(CPD.cps)) ) 
+isempty(CPD.dps);
+assert( ~(isempty(CPD.cps)) );
   pev = pev(:);
   x = pev{1};
   B = inertiaMatrixFromInertialParams(CPD.inertial_params);

@@ -18,7 +18,7 @@ I = mcI(m,com,Icom);
 % test that conversion from and to inertial parameters are consistent
 Iconv = inertiaMatrixFromInertialParams(inertialParamsFromInertiaMatrix(I));
 
-if( not(isalmost(I,Iconv,tol)) )
+if( not(all(isalmost(I,Iconv,tol))) )
     disp('Something wrong in inertial parameters/matrix conversions')
     res = 1;
 end
@@ -27,7 +27,7 @@ end
 momentumDir = I*v;
 momentumRegr = inertiaRegressor(v)*inertialParamsFromInertiaMatrix(I);
 
-if( not(isalmost(momentumDir,momentumRegr,tol)) ) 
+if( not(all(isalmost(momentumDir,momentumRegr,tol))) ) 
     disp('Something wrong in inertiaRegressor')
     res = 1;
 end
@@ -36,7 +36,7 @@ end
 momentumDotDir =  I*a + crf(v)*I*v;
 momentumDotRegr = netWrenchRegressor(a,v)*inertialParamsFromInertiaMatrix(I);
 
-if( not(isalmost(momentumDotDir,momentumDotRegr,tol)) )
+if( not(all(isalmost(momentumDotDir,momentumDotRegr,tol))) )
     disp('Something wrong in inertiaRegressor')
     res = 1;
 end

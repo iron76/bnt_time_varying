@@ -8,17 +8,25 @@ NB = dmodel.NB;  %number of links
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 myModel = model(dmodel);
 mySens  = sensors(ymodel);
+ymodel
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % this is the "real model", used to generate the training data
 realBNEAIP  = BNEAIP(myModel, mySens);
 realBNEAIP  = realBNEAIP.setEngine('jtree_inf_engine');
 
+
+fprintf('Total mass of original model : %f \n',getTotalMass(myModel.modelParams))
+
 % this is the "training model", on which the EM is run. 
 % To check that the inertia parameters are estimated, we see that 
 % the total estimated mass is converging on the real values as the EM
 % goes on
 trainingModel = model(doubleAllMasses(myModel.modelParams));
+
+fprintf('Total mass of initial model for training : %f \n',getTotalMass(trainingModel.modelParams))
+
+
 trainingBNEAIP = BNEAIP(trainingModel, mySens);
 trainingBNEAIP = trainingBNEAIP.setEngine('jtree_inf_engine');
 
@@ -57,6 +65,7 @@ end
 
 dir_ind = cell2mat(realBNEAIP.bnt.nodes.index);
 inv_ind(dir_ind) = 1:length(dir_ind);
+total_estimated_mass = 0.0;
 
 for i = 1 : length(dir_ind(1:NB*6))
    cov_ini = get_field(realBNEAIP.bnt.bnet.CPD{dir_ind(i)}, 'cov');
@@ -66,7 +75,18 @@ for i = 1 : length(dir_ind(1:NB*6))
       fprintf('[ERROR] Something wrong with clamped covariance! \n')
       return;
    end
+   
+   % Get total estimated mass
+   if( isa(bnetHat.CPD{dir_ind(i)},'gaussian_net_wrench_CPD') )
+       fprintf('Inertial parameters : ');
+       inParams = get_field(bnetHat.CPD{dir_ind(i)}, 'inertial_params');
+       disp(inParams);
+       total_estimated_mass = total_estimated_mass + inParams(1);
+   end
 end
+fprintf('Total mass of trained model : %f \n',total_estimated_mass)
+
+
 
 % Depending on the number of samples 'n' the updates can
 % be quite relevant. With increasing 'n' the magnitude of

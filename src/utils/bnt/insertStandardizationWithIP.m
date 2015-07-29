@@ -41,7 +41,7 @@ for i = 1 : length(muStd)
             if (~isempty(find(i==i_cov_learn,1)))
                 bnetStd.CPD{i} = gaussian_net_wrench_CPD(bnetStd, i, 'twist', twist , 'wrench_weights', sY, 'acceleration_weights', sX, 'inertial_params', inertial_params, 'cov',  SY*SY_X*SY', 'cov_prior_weight', covPriorWeight);
             else
-                bnetStd.CPD{i} = gaussian_net_wrench_CPD(bnetStd, i, 'twist', twist , 'wrench_weights', sY, 'acceleration_weights', sX, 'inertial_params', inertial_params, 'cov',  SY*SY_X*SY', 'clamp_inertial_params', 1, 'clamp_cov', 1);
+                bnetStd.CPD{i} = gaussian_net_wrench_CPD(bnetStd, i, 'twist', twist , 'wrench_weights', sY, 'acceleration_weights', sX, 'inertial_params', inertial_params, 'cov',  SY*SY_X*SY', 'clamp_cov', 1);
             end
         elseif nargin == 3
             bnetStd.CPD{i} = gaussian_net_wrench_CPD(bnetStd, i, 'twist', twist , 'wrench_weights', sY, 'acceleration_weights', sX, 'inertial_params', inertial_params, 'cov',  SY*SY_X*SY');

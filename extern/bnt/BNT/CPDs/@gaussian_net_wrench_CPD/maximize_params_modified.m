@@ -3,7 +3,6 @@ function CPD = maximize_params_modified(CPD, temp)
 % CPD = maximize_params(CPD, temperature)
 %
 % Temperature is currently ignored.
-
 if ~adjustable_CPD(CPD), return; end
 
 cl_mean = zeros(6,1);
@@ -34,11 +33,17 @@ prior =  repmat(CPD.cov_prior_weight*eye(ssz,ssz), [1 1 Q]);
     clg_Mstep_modified(CPD.Wsum, CPD.WYsum, CPD.WYYsum, [], CPD.WXsum, CPD.WXXsum, CPD.WXYsum, ...
 	      'cov_type', CPD.cov_type, 'clamped_mean', cl_mean, ...
 	      'clamped_cov', cl_cov, 'clamped_weights', cl_weights, ...
-	      'tied_cov', CPD.tied_cov, ...
 	      'cov_prior', prior);
       
 % Estimate inertial parameters
+%disp('Maximizing inertial parameters')
+%disp('CPD.Asum ')
+%disp(CPD.Asum)
+%disp('CPD.Bsum ')
+%disp(CPD.Bsum)
 CPD.inertial_params = CPD.Asum\CPD.Bsum;
+%disp('CPD.inertial_params ')
+%disp(CPD.inertial_params)
 
 % Bug fix 11 May 2003 KPM
 % clg_Mstep collapses all discrete parents into one mega-node

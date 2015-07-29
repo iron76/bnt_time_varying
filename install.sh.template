@@ -52,12 +52,16 @@ cp -v  $BNT_TIME_VARYING_FOLDER/extern/bnt/BNT/CPDs/@gaussian_net_wrench_CPD/get
 
 cp -v  $BNT_TIME_VARYING_FOLDER/extern/bnt/BNT/CPDs/@gaussian_net_wrench_CPD/gaussian_net_wrench_CPD.m $BNT_FOLDER/BNT/CPDs/@gaussian_net_wrench_CPD/gaussian_net_wrench_CPD.m
 
-cp -v  $BNT_TIME_VARYING_FOLDER/extern/bnt/BNT/CPDs/@gaussian_net_wrench_CPD/getQuadraticFormsForInertialParamsAESS.m $BNT_FOLDER/BNT/CPDs/@gaussian_net_wrench_CPD/getQuadraticFormsForInertialParamsAESS.m
+cp -v  $BNT_TIME_VARYING_FOLDER/extern/bnt/modifiedEM/getQuadraticFormsForInertialParamsAESS.m $BNT_FOLDER/modifiedEM/getQuadraticFormsForInertialParamsAESS.m
 
-cp -v  $BNT_TIME_VARYING_FOLDER/extern/bnt/BNT/CPDs/@gaussian_net_wrench_CPD/getQuadraticFormsForInertialParamsBESS.m $BNT_FOLDER/BNT/CPDs/@gaussian_net_wrench_CPD/getQuadraticFormsForInertialParamsBESS.m
+cp -v  $BNT_TIME_VARYING_FOLDER/extern/bnt/modifiedEM/getQuadraticFormsForInertialParamsBESS.m $BNT_FOLDER/modifiedEM/getQuadraticFormsForInertialParamsBESS.m
 
 cp -v  $BNT_TIME_VARYING_FOLDER/extern/bnt/BNT/CPDs/@gaussian_net_wrench_CPD/maximize_params_modified.m $BNT_FOLDER/BNT/CPDs/@gaussian_net_wrench_CPD/maximize_params_modified.m
 
 cp -v  $BNT_TIME_VARYING_FOLDER/extern/bnt/BNT/CPDs/@gaussian_net_wrench_CPD/set_fields.m $BNT_FOLDER/BNT/CPDs/@gaussian_net_wrench_CPD/set_fields.m
 
 cp -v  $BNT_TIME_VARYING_FOLDER/extern/bnt/BNT/CPDs/@gaussian_net_wrench_CPD/update_ess_modified.m $BNT_FOLDER/BNT/CPDs/@gaussian_net_wrench_CPD/update_ess_modified.m
+
+cp -v  $BNT_TIME_VARYING_FOLDER/extern/bnt/BNT/CPDs/@gaussian_net_wrench_CPD/updateCov_modified.m $BNT_FOLDER/BNT/CPDs/@gaussian_net_wrench_CPD/updateCov_modified.m
+
+cp -v  $BNT_TIME_VARYING_FOLDER/extern/bnt/BNT/CPDs/@gaussian_net_wrench_CPD/reset_ess.m $BNT_FOLDER/BNT/CPDs/@gaussian_net_wrench_CPD/reset_ess.m

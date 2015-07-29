@@ -42,17 +42,21 @@ if (~any(any(CPDp.WXYsum)) && ~isempty(CPDp.WXYsum))
 end
 
 % create data structure for inertial parameters ess
-if (~any(any(CPD.Asum)) && ~isempty(CPD.Asum))
+if ~(any(any(CPD.Asum)) && ~isempty(CPD.Asum))
+    %disp('resetting CPD.Asum');
     CPD.Asum  = zeros(10,10);
 end
-if (~any(any(CPD.Bsum)) && ~isempty(CPD.Bsum))
+if ~(any(any(CPD.Bsum)) && ~isempty(CPD.Bsum))
+    %disp('resetting CPD.Bsum');
     CPD.Bsum = zeros(10,1);
 end
 
 if (~any(any(CPDp.Asum)) && ~isempty(CPDp.Asum))
+    %disp('resetting CPDp.Asum');
     CPDp.Asum  = zeros(10,10);
 end
 if (~any(any(CPDp.Bsum)) && ~isempty(CPDp.Bsum))
+    %disp('resetting CPDp.Bsum');
     CPDp.Bsum = zeros(10,1);
 end
 
@@ -153,9 +157,11 @@ SAA = fullm.Sigma(xi, xi, 1);
 muA = fullm.mu(xi, 1);
 muAnotWeighted = diag(1./CPD.acceleration_weights)*muA;
 EAA = SAA + muA*muA';
+wrench_weights_diag = diag(CPD.wrench_weights);
+
 invSigma_fiB = inv(CPD.cov);
 % we can move this outside the samples loop to improve perforamnce
-AquadForm = getQuadraticFormsForInertialParamsAEE(invSigma_fiB);
+AquadForm = getQuadraticFormsForInertialParamsAESS(invSigma_fiB,wrench_weights_diag);
 AquadFormSum = zeros(10,10);
 for row =1:10
     for col = 1:10
@@ -163,23 +169,29 @@ for row =1:10
     end
 end
 
-SAF = fullm.Sigma(xi, yi, 1);
+SFA = fullm.Sigma(yi, xi, 1);
 muF = fullm.mu(yi, 1);
-EAF = SAF + muA*muF';
+EFA = SFA + muF*muA';
+
 % we can move this outside the samples loop to improve perforamnce
-BquadForm = getQuadraticFormsForInertialParamsBEE(invSigma_fiB);
+BquadForm = getQuadraticFormsForInertialParamsBESS(invSigma_fiB,wrench_weights_diag);
 BquadFormSum = zeros(10,1);
 for i = 1:10
-    BquadFormSum(i) = trace(BquadForm{i}*EAF);
+    BquadFormSum(i) = trace(BquadForm{i}*EFA);
 end
 
-wrench_weights_diag = diag(CPD.wrench_weights);
 
-coriolisRegressor = crf(CPD.twist)*inertiaRegressor(twist);
+coriolisRegressor = crf(CPD.twist)*inertiaRegressor(CPD.twist);
 coriolisRegressorWeighted = wrench_weights_diag*coriolisRegressor;
-inertiaRegressorAccWeighted =  wrench_weights_diag*inertiaRegressor(muAnotWeighted);
+inertiaRegressorAccWeighted =  wrench_weights_diag*inertiaRegressor(muA);
 
-CPD.Asum = CPD.Asum + AquadFormSum  + (coriolisRegressorWeighted)'*invSigma_fiB*inertiaRegressorAccWeighted + ...
+CPD.Asum = CPDp.Asum + AquadFormSum  + (coriolisRegressorWeighted)'*invSigma_fiB*inertiaRegressorAccWeighted + ...
           inertiaRegressorAccWeighted'*invSigma_fiB*coriolisRegressorWeighted + coriolisRegressorWeighted'*invSigma_fiB*coriolisRegressorWeighted;
-CPD.Bsum = CPD.Bsum + BquadFormSum  + (coriolisRegressorWeighted)'*invSigma_fiB*fullm.mu(yi, i);
+%fprintf('CPDp.Bsum\n')
+%display(CPDp.Bsum)
+CPD.Bsum = CPDp.Bsum + BquadFormSum  + (coriolisRegressorWeighted)'*invSigma_fiB*muF;
+%fprintf('BquadFormSum\n')
+%display(BquadFormSum)
+%fprintf('Other parts\n')
+%display((coriolisRegressorWeighted)'*invSigma_fiB*muF)
 

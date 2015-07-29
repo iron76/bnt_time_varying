@@ -1,5 +1,6 @@
 function obj = updateNet(obj)
 
+%disp('BNEAIP updateNet called')
 NB     = obj.IDmodel.modelParams.NB;
 
 for i = 1:obj.IDmodel.modelParams.NB
@@ -54,7 +55,8 @@ for i = 1:obj.IDmodel.modelParams.NB
    W = cell2mat(Wa);
    % substitute this with the gaussian_new_wrench_CPD  
    % obj.bnt.bnet.CPD{fBi} = gaussian_CPD(obj.bnt.bnet, fBi, 'mean', crf(obj.v(:,i))*obj.IDmodel.modelParams.I{i}*obj.v(:,i), 'cov', SfB, 'weights', W, 'clamp_mean', 1, 'clamp_weights', 1, 'clamp_cov', 1);
-   obj.bnt.bnet.CPD{fBi} = gaussian_net_wrench_CPD(obj.bnt.bnet, fBi, 'twist', obj.v(:,i), 'inertial_params', inertial_params ,'cov', SfB, 'clamp_cov', 1, 'clamp_inertial_params', 1);
+   %disp('BNEAIP::updateNet : creating custom fB node for inertial parameter estimation')
+   obj.bnt.bnet.CPD{fBi} = gaussian_net_wrench_CPD(obj.bnt.bnet, fBi, 'twist', obj.v(:,i), 'inertial_params', inertial_params ,'cov', SfB, 'clamp_cov', 1);
 end
 
 for i = obj.IDmodel.modelParams.NB:-1:1
@@ -86,6 +88,7 @@ for i = obj.IDmodel.modelParams.NB:-1:1
    end
    W = cell2mat(Wa);
    
+   %disp('BNEAIP::updateNet : creating gaussian node for fi')
    obj.bnt.bnet.CPD{fi} = gaussian_CPD(obj.bnt.bnet, fi, 'mean', zeros(nfi,1), 'cov', Sf, 'weights', W, 'clamp_mean', 1, 'clamp_weights', 1, 'clamp_cov', 1);
    
    % tau(i,1) = S{i}' * f{i};
@@ -99,16 +102,19 @@ for i = obj.IDmodel.modelParams.NB:-1:1
       end
    end
    W = cell2mat(Wa);
+   %disp('BNEAIP::updateNet : creating gaussian node for taui')
    obj.bnt.bnet.CPD{taui} = gaussian_CPD(obj.bnt.bnet, taui, 'mean', zeros(ntaui, 1), 'cov', Stau, 'weights', W, 'clamp_mean', 1, 'clamp_weights', 1, 'clamp_cov', 1);
    
    % fxi
    fxi  = obj.bnt.nodes.index{i}(5);
    nfxi = obj.bnt.nodes.sizes{i,1}(5);
+   %disp('BNEAIP::updateNet : creating gaussian node for fxi')
    obj.bnt.bnet.CPD{fxi} = gaussian_CPD(obj.bnt.bnet, fxi, 'mean', zeros(nfxi, 1), 'cov', Sfx, 'clamp_mean', 1, 'clamp_weights', 1, 'clamp_cov', 1);
    
    % d2qi
    d2qi  = obj.bnt.nodes.index{i}(6);
    nd2qi = obj.bnt.nodes.sizes{i,1}(6);
+   %disp('BNEAIP::updateNet : creating gaussian node for d2qi')
    obj.bnt.bnet.CPD{d2qi} = gaussian_CPD(obj.bnt.bnet, d2qi, 'mean', zeros(nd2qi, 1), 'cov', Sd2q, 'clamp_mean', 1, 'clamp_weights', 1, 'clamp_cov', 1);
    
 end
@@ -116,5 +122,6 @@ end
 for i = 1 : obj.IDsens.sensorsParams.ny
    yi  = obj.bnt.nodes.index{NB + i};
    nyi = obj.bnt.nodes.sizes{NB + i};
+   %disp('BNEAIP::updateNet : creating gaussian node for sensor')
    obj.bnt.bnet.CPD{yi} = gaussian_CPD(obj.bnt.bnet, yi, 'mean', zeros(nyi, 1), 'cov', obj.IDsens.sensorsParams.Sy(i,i), 'weights', obj.bnt.Wy{i,1}, 'clamp_mean', 1, 'clamp_weights', 1, 'cov_prior_weight', obj.covPriorWeight);
 end
