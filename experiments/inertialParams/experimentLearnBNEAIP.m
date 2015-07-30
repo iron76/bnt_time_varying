@@ -1,4 +1,4 @@
-function res = experimentLearnBNEAIP(dmodel, ymodel, seed, nrOfSamples)
+function [identifiableError,nonIdentifiableError,initialIdentifiableError,initialNotIdentifiableError] = experimentLearnBNEAIP(dmodel, ymodel, seed, nrOfSamples)
 
 rng(seed)
 
@@ -33,6 +33,9 @@ fprintf('Norm of the initial error in base parameters : %f\n', norm(baseError))
 fprintf('Norm of the initial error in not identifiable space : %f\n', norm(notIdentifiableError))
 fprintf('Norm of the initial error in inertial space (1) : %f\n', norm(inertialParametersFromModel(myModel.modelParams)-inertialParametersFromModel(trainingModel.modelParams)))
 fprintf('Norm of the initial error in inertial space (2) : %f\n', norm([baseError;notIdentifiableError]))
+
+initialIdentifiableError = norm(baseError);
+initialNotIdentifiableError = norm(notIdentifiableError);
 
 
 trainingBNEAIP = BNEAIP(trainingModel, mySens);
@@ -101,6 +104,9 @@ notIdentifiableError = notIdentifiableSubspaceBasis'*(inertialParametersFromMode
 
 fprintf('Norm of the final error in base parameters : %f\n', norm(baseError))
 fprintf('Norm of the final error in not identifiable space : %f\n', norm(notIdentifiableError))
+identifiableError = norm(baseError);
+nonIdentifiableError = norm(baseError);
+
 
 % Depending on the number of samples 'n' the updates can
 % be quite relevant. With increasing 'n' the magnitude of
