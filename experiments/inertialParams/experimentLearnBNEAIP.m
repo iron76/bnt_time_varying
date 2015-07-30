@@ -1,21 +1,20 @@
-function res = testLearnBNEAIP(dmodel, ymodel)
+function res = experimentLearnBNEAIP(dmodel, ymodel, seed, nrOfSamples)
 
-res = 0;
+rng(seed)
 
-n  = 100;         %number of samples
+n  = nrOfSamples;         %number of samples
 NB = dmodel.NB;  %number of links
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 myModel = model(dmodel);
 mySens  = sensors(ymodel);
-ymodel
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % this is the "real model", used to generate the training data
 realBNEAIP  = BNEAIP(myModel, mySens);
 realBNEAIP  = realBNEAIP.setEngine('jtree_inf_engine');
 
-disp('Computing identifiable subspace');
+%disp('Computing identifiable subspace');
 [identifiableSubspaceBasis,notIdentifiableSubspaceBasis] = getBaseWrenchIdentifiableSubspace(dmodel);
 
 fprintf('Total mass of original model : %f \n',getTotalMass(myModel.modelParams))
