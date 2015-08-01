@@ -1,4 +1,4 @@
-function [identifiableError,nonIdentifiableError,initialIdentifiableError,initialNotIdentifiableError] = experimentLearnBNEAIP(dmodel, ymodel, seed, nrOfSamples)
+function [identifiableError,nonIdentifiableError,initialIdentifiableError,initialNotIdentifiableError] = experimentLearnBNEAIP(dmodel, ymodel, seed, nrOfSamples, nrOfIterations)
 
 rng(seed)
 
@@ -67,7 +67,7 @@ end
 % as to have non-decresing EM steps.
 
 cov_prior_weight = 1e-15;
-[bnetHat, ll] = EM_bnet_learn_IP(bnet, sample, cov_prior_weight);
+[bnetHat, ll] = EM_bnet_learn_IP(bnet, sample, cov_prior_weight, nrOfIterations);
 
 if (sum(diff(ll) < 0) ~= 0) && (norm(ll(end-1)-ll(end)) > 1e-3)
    disp('Something wrong with the EM algorithm. Declaring the test failed!')
@@ -105,7 +105,7 @@ notIdentifiableError = notIdentifiableSubspaceBasis'*(inertialParametersFromMode
 fprintf('Norm of the final error in base parameters : %f\n', norm(baseError))
 fprintf('Norm of the final error in not identifiable space : %f\n', norm(notIdentifiableError))
 identifiableError = norm(baseError);
-nonIdentifiableError = norm(baseError);
+nonIdentifiableError = norm(notIdentifiableError);
 
 
 % Depending on the number of samples 'n' the updates can

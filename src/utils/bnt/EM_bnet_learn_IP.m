@@ -1,4 +1,4 @@
-function [bnetHat, ll] = EM_bnet_learn_IP(bnet, sample, cov_prior_weight, i_obs)
+function [bnetHat, ll] = EM_bnet_learn_IP(bnet, sample, cov_prior_weight, nrOfIterations, i_obs)
 
 [~,n] = size(sample);
 
@@ -6,7 +6,7 @@ bnetStd    = cell(1,n);
 engineStd  = cell(1,n);
 samStd     = cell(size(sample));
 
-if nargin < 4
+if nargin < 5
    i_obs   = find(~cellfun(@isempty,(sample(:,1))));
 end  
 
@@ -37,5 +37,5 @@ for i=1:n
     % [~, ll] = enter_evidence(engineStd{i}, samStd(:, i));
 end
 
-[bnetHat, ll] = learn_params_em_modified(engineStd, samStd, 20, 1e-4);
+[bnetHat, ll] = learn_params_em_modified(engineStd, samStd, nrOfIterations, 1e-4);
 bnetHat       = removeStandardizationWithIP(bnetHat{n}, M, S, i_obs, cov_prior_weight);
