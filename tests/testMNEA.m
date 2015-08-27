@@ -31,12 +31,12 @@ t_MNEA = toc;
 disp(['Computation time for MNEA is: ' num2str(t_MNEA) '[sec]']);
 
 disp(['Diff d  between PNEA and MNEA is ' num2str(norm(myMNEA.d-myPNEA.d))]);
-if norm(myMNEA.d-myPNEA.d) ~=0
+if norm(myMNEA.d-myPNEA.d) > 1e-9
    disp('Result is excessively inaccurate. Test is declared failed!');
    res = 1;
 end
 disp(['Diff Sd between PNEA and MNEA is ' num2str(norm(myMNEA.Sd-myPNEA.Sd))]);
-if norm(myMNEA.d-myPNEA.d) ~=0
+if norm(myMNEA.Sd-myPNEA.Sd) ~=0
    disp('Result is excessively inaccurate. Test is declared failed!');
    res = 1;
 end
