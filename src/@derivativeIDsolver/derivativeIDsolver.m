@@ -45,6 +45,8 @@ classdef derivativeIDsolver < stochasticIDsolver
       % otherwise it contains \frac{\partial v_1}{\partial \dot{q}_{h-n}}
       ant    %% ant(h,i) == 1 if h is ancestor of i
       
+      dDdq   %% Cell array of mdl.n elements.  dDdq{i} contains
+      %  \frac{\partial D(q)}{\partial q_i}
       dXupdq %% Cell array of mdl.n elements.  dXupdq{i} contains
       %  \frac{\partial {}^{i}X_{\lambda(i)}}{\partial q_i}
       dDb %% Matrix representing the derivative of D d + b with respect 
@@ -92,6 +94,7 @@ classdef derivativeIDsolver < stochasticIDsolver
          b = b@stochasticIDsolver(mdl,sns);
          
          %% Initialize own properties
+         b.dDdq  = cell(mdl.n, 1);
          b.dXupdq  = cell(mdl.n, 1);
          b.dvdx    = cell(mdl.n, 2*mdl.n);
          for i = 1 : mdl.n
@@ -284,6 +287,26 @@ classdef derivativeIDsolver < stochasticIDsolver
          res = res && isequal(obj1.d, obj2.d);
          if ~isequal(obj1.d, obj2.d)
             disp('d are different')
+         end
+         
+      end
+      
+      %% Compute the derivative of D with respect to qi (i-th element of q)
+      function obj = compute_dDdq(obj)
+         for i = 1 : obj.IDstate.n
+            obj.dDdq{i} = submatrix(obj.iD, obj.jD);
+         end
+         
+         for i = 1 : obj.IDstate.n
+            j = obj.IDmodel.modelParams.parent(i);
+            if j > 0 
+               obj.dDdq{i} = set(obj.dDdq{i}, obj.dXupdq{i}, (i-1)*4+1, (j-1)*6+1);
+            end
+            
+            for j = obj.IDmodel.sparseParams.ind_j{i}
+               obj.dDdq{j} = set(obj.dDdq{j}, obj.dXupdq{j}', (i-1)*4+3, (j-1)*6+3);
+            end
+            
          end
          
       end

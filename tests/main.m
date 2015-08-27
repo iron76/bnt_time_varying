@@ -82,6 +82,8 @@ res = res || testLearnBNEA(dmodel_SNEA, ymodel_SNEA);
 
 disp('Running testBNEA')
 res = res || testBNEA(dmodel_BNEA, ymodel_BNEA);
+ 
+res = res || testDerivativesD(dmodel_RNEA, ymodel_RNEA, dmodel_DNEA, ymodel_DNEA);
 
 disp('Running testDerivatives')
 res = res || testDerivatives(dmodel_DNEA, ymodel_DNEA);
@@ -101,9 +103,12 @@ res = res || testDANEA(dmodel_ANEA, ymodel_ANEA);
 disp('Running testDANEACalibration')
 res = res || testDANEACalibration(dmodel_ANEA, ymodel_DANEA, dmodel_SNEA, ymodel_SNEA, S_dmodel);
 
-
-if res ~= 0
-   return
+if res ~=0 
+   disp('[ERROR] One of the tests failed!')
+else
+   disp('------------------------------------')
+   disp('REPORT: All tests ended successfully!')
+   disp('------------------------------------')
 end
 
 S_dmodel  = 1e-1;
@@ -127,6 +132,8 @@ res = res || testMNEA(dmodel_SNEA, ymodel_SNEA);
 res = res || testBNEA(dmodel_SNEA, ymodel_SNEA);
 
 res = res || testLearnBNEA(dmodel_SNEA, ymodel_SNEA);
+
+res = res || testDerivativesD(dmodel_SNEA, ymodel_SNEA, dmodel_DNEA, ymodel_DNEA);
 
 res = res || testDerivatives(dmodel_DNEA, ymodel_DNEA);
 
