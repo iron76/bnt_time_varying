@@ -36,7 +36,7 @@ for j = 1 : num_of_tests
       dDdqi  = deriv(f, q(i,1));
       
       if norm(myDNEA.dDdq{i}.matrix - dDdqi(:, myDNEA.id)) > 1e-7
-         disp(['dD numerical derivative is quite different: ' num2str(norm(myDNEA.dDdq{i}.matrix - dDdqi))])
+         disp(['[DERIVATIVES] dD numerical derivative is quite different: ' num2str(norm(myDNEA.dDdq{i}.matrix - dDdqi))])
          res = 1;
       end
       
@@ -74,7 +74,7 @@ for j = 1 : num_of_tests
       % dDinv = (D'*S_Dinv*dDi + dDi'*S_Dinv*D);
       
       if norm( dDinv - dDdqi) > 1e-4
-         disp(['D numerical derivative is quite different: ' num2str(norm(dDinv - dDdqi))])
+         disp(['[DERIVATIVES] D numerical derivative is quite different: ' num2str(norm(dDinv - dDdqi))])
          res = 1;
       end
 %       figure(1)

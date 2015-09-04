@@ -20,14 +20,14 @@ Ass = set(Ass, A3, 2, 2);
 for i = 1 : 3
    for j = 1 : 2
       if(norm(Ass(i,j)-As(i,j)) ~=0 )
-         disp('Something wrong with submatrix access')
+         disp('[SUBMATRIX] Something wrong with submatrix access')
          res = 1;
       end
    end
 end
 
 if(norm(Ass.matrix-As.matrix) ~=0 )
-   disp('Something wrong with the whole access')
+   disp('[SUBMATRIX] Something wrong with the whole access')
    res = 1;
 end
 

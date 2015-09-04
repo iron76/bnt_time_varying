@@ -85,7 +85,7 @@ for i = 1 : T
    x_bar  = [q; dq] + [eq; edq];
    x_pri  = x_bar + dx;
    
-   disp(['Distance from real x is: ' num2str(norm(x_pri - x))]);
+   disp(['[CALIBRATION] Distance from real x is: ' num2str(norm(x_pri - x))]);
       
    myDNEA = myDNEA.setState(x(1:NB ,1),x(NB+1:end,1));
    y      = myDNEA.simY(d,  x(1:NB ,1),x(NB+1:end,1));
@@ -109,13 +109,13 @@ for i = 1 : T
    errdx(i) = norm(dx+[eq; edq]);
       
    if i > 1 && errDNEAq(i) - errDNEAq(i-1) > 1
-      disp(['No improvement in estimating dx, therefore exiting. Increase is: ' num2str(errDNEAq(i-1)-errDNEAq(i))]);
+      disp(['[CALIBRATION] No improvement in estimating dx, therefore exiting. Increase is: ' num2str(errDNEAq(i-1)-errDNEAq(i))]);
       if errdx(i) > 0.02
          disp(['Estimation of dx did not converged! Error was ' num2str(norm([eq; edq])) ' is ' num2str(errdx(i))]);
          res = 1;
          return;
       else
-         disp(['Estimation of dx converged. Error was ' num2str(norm([eq; edq])) ' is ' num2str(errdx(i))]);
+         disp(['[CALIBRATION] Estimation of dx converged. Error was ' num2str(norm([eq; edq])) ' is ' num2str(errdx(i))]);
          return;
       end
    end
@@ -128,11 +128,11 @@ for i = 1 : T
 end
 
 if errdx(end) > 0.02
-   disp(['Estimation of dx did not converged! Error was ' num2str(norm([eq; edq])) ' is ' num2str(errdx(i))]);
+   disp(['[CALIBRATION] Estimation of dx did not converged! Error was ' num2str(norm([eq; edq])) ' is ' num2str(errdx(i))]);
    res = 1;
    return;
 else
-   disp(['Estimation of dx converged. Error was ' num2str(norm([eq; edq])) ' is ' num2str(errdx(i))]);
+   disp(['[CALIBRATION] Estimation of dx converged. Error was ' num2str(norm([eq; edq])) ' is ' num2str(errdx(i))]);
    return;
 end
 

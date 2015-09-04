@@ -40,7 +40,7 @@ cov_prior_weight = 1e-15;
 [bnetHat, ll] = EM_bnet_learn(bnet, sample, cov_prior_weight);
 
 if (sum(diff(ll) < 0) ~= 0) && (norm(ll(end-1)-ll(end)) > 1e-3)
-   disp('Something wrong with the EM algorithm. Declaring the test failed!')
+   disp('[LearnBNEA] Something wrong with the EM algorithm. Declaring the test failed!')
    res = 1;
 end
 
@@ -52,7 +52,7 @@ for i = 1 : length(dir_ind(1:NB*6))
    cov_est = get_field(bnetHat.CPD{dir_ind(i)},         'cov');
    cov_upd = cov_est - cov_ini;
    if cov_upd
-      fprintf('[ERROR] Something wrong with clamped covariance! \n')
+      fprintf('[LearnBNEA] [ERROR] Something wrong with clamped covariance! \n')
       return;
    end
 end
@@ -65,5 +65,5 @@ for i = length(dir_ind(1:NB*6))+1 : length(dir_ind)
    cov_ini = get_field(myBNEA.bnt.bnet.CPD{dir_ind(i)}, 'cov');
    cov_est = get_field(bnetHat.CPD{dir_ind(i)},         'cov');
    cov_upd = cov_est - cov_ini;
-   fprintf('[INFO] %s was updated by %f \n', myBNEA.bnt.nodes.labels{i}, norm(cov_upd)./norm(cov_ini));
+   fprintf('[LearnBNEA] [INFO] %s was updated by %f \n', myBNEA.bnt.nodes.labels{i}, norm(cov_upd)./norm(cov_ini));
 end

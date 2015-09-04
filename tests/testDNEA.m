@@ -96,12 +96,12 @@ dD2    = myDNEA.dDb_s.matrix;
 
 if (norm(d1-d2) ~= 0)
    res = 1;
-   disp('Something wrong with d computed in repetitive calls')
+   disp('[DNEA] Something wrong with d computed in repetitive calls')
 end
 
 if (norm(full(dD1-dD2)) ~= 0)
    res = 1;
-   disp('Something wrong with dD computed in repetitive calls')
+   disp('[DNEA] Something wrong with dD computed in repetitive calls')
 end
 
 
@@ -112,7 +112,7 @@ Ys(:,(end-2*dmodel.NB+1):end) = Ys(:,(end-2*dmodel.NB+1):end) + myDNEA.dby_s.mat
 DY  = [D dDb; Ys];
 
 if rank(full(DY)) < 26*dmodel.NB + 2*dmodel.NB
-   disp([ 'The extended matrix [D;Y] is not full rank! Rank is: ', num2str(rank(full(DY))), ' should be ', num2str(26*dmodel.NB + 2*dmodel.NB)]);
+   disp([ '[DNEA] The extended matrix [D;Y] is not full rank! Rank is: ', num2str(rank(full(DY))), ' should be ', num2str(26*dmodel.NB + 2*dmodel.NB)]);
    res = 1;
 else
    
@@ -125,21 +125,21 @@ else
    errq  = norm(eq);
    errdq = norm(edq);
    
-   disp(['Diff between d.DNEA and d was ' num2str(errd) ' is ' num2str(errDNEAd)]);
+   disp(['[DNEA] Diff between d.DNEA and d was ' num2str(errd) ' is ' num2str(errDNEAd)]);
    %       if errDNEAd > errd
    %          disp('Result is excessively inaccurate. Test is declared failed!');
    %          res = 1;
    %       end
    
-   disp(['Diff between q.DNEA and q was ' num2str(errq) ' is ' num2str(errDNEAq)]);
+   disp(['[DNEA] Diff between q.DNEA and q was ' num2str(errq) ' is ' num2str(errDNEAq)]);
    if errDNEAq > errq
       disp('Result is excessively inaccurate. Test is declared failed!');
       res = 1;
    end
    
-   disp(['Diff between dq.DNEA and dq was ' num2str(errdq) ' is ' num2str(errDNEAdq)]);
+   disp(['[DNEA] Diff between dq.DNEA and dq was ' num2str(errdq) ' is ' num2str(errDNEAdq)]);
    if errDNEAdq > errdq
-      disp('Result is excessively inaccurate. Test is declared failed!');
+      disp('[DNEA] Result is excessively inaccurate. Test is declared failed!');
       res = 1;
    end
    

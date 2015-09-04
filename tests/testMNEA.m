@@ -21,23 +21,23 @@ myPNEA = myPNEA.setState(q, dq);
 myPNEA = myPNEA.setY(y);
 myPNEA = myPNEA.solveID();
 t_PNEA = toc;
-disp(['Computation time for PNEA is: ' num2str(t_PNEA) '[sec]']);
+disp(['[MNEA] Computation time for PNEA is: ' num2str(t_PNEA) '[sec]']);
 
 tic;
 myMNEA = myMNEA.setState(q, dq);
 myMNEA = myMNEA.setY(y);
 myMNEA = myMNEA.solveID();
 t_MNEA = toc;
-disp(['Computation time for MNEA is: ' num2str(t_MNEA) '[sec]']);
+disp(['[MNEA] Computation time for MNEA is: ' num2str(t_MNEA) '[sec]']);
 
-disp(['Diff d  between PNEA and MNEA is ' num2str(norm(myMNEA.d-myPNEA.d))]);
+disp(['[MNEA] Diff d  between PNEA and MNEA is ' num2str(norm(myMNEA.d-myPNEA.d))]);
 if norm(myMNEA.d-myPNEA.d) > 1e-9
-   disp('Result is excessively inaccurate. Test is declared failed!');
+   disp('[MNEA] Result is excessively inaccurate. Test is declared failed!');
    res = 1;
 end
-disp(['Diff Sd between PNEA and MNEA is ' num2str(norm(myMNEA.Sd-myPNEA.Sd))]);
+disp(['[MNEA] Diff Sd between PNEA and MNEA is ' num2str(norm(myMNEA.Sd-myPNEA.Sd))]);
 if norm(myMNEA.Sd-myPNEA.Sd) ~=0
-   disp('Result is excessively inaccurate. Test is declared failed!');
+   disp('[MNEA] Result is excessively inaccurate. Test is declared failed!');
    res = 1;
 end
 

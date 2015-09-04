@@ -20,19 +20,18 @@ myPNEA = myPNEA.setState(q, dq);
 myPNEA = myPNEA.setY(y);
 myPNEA = myPNEA.solveID();
 t_PNEA = toc;
-disp(['[1st] CPU time for PNEA is: ' num2str(t_PNEA) '[sec]']);
+disp(['[PNEA] [1st] CPU time for PNEA is: ' num2str(t_PNEA) '[sec]']);
 
 tic;
 mySNEA = mySNEA.setState(q,dq);
 mySNEA = mySNEA.setY(y);
 mySNEA = mySNEA.solveID();
 t_SNEA = toc;
-disp(['[1st] CPU time for SNEA is: ' num2str(t_SNEA) '[sec]']);
-disp(['[1st] Diff SNEA and PNEA is ' num2str(norm(myPNEA.d-mySNEA.d))]);
-disp('/\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ ')
+disp(['[PNEA] [1st] CPU time for SNEA is: ' num2str(t_SNEA) '[sec]']);
+disp(['[PNEA] [1st] Diff SNEA and PNEA is ' num2str(norm(myPNEA.d-mySNEA.d))]);
 
 if norm(myPNEA.d-mySNEA.d) ~= 0
-   disp('Result is excessively inaccurate. Test is declared failed!');
+   disp('[PNEA] Result is excessively inaccurate. Test is declared failed!');
    res = 1;
 end
 
@@ -45,19 +44,18 @@ myPNEA = myPNEA.setState(q, dq);
 myPNEA = myPNEA.setY(y);
 myPNEA = myPNEA.solveID();
 t_PNEA = toc;
-disp(['[2st] CPU time for PNEA is: ' num2str(t_PNEA) '[sec]']);
+disp(['[PNEA] [2st] CPU time for PNEA is: ' num2str(t_PNEA) '[sec]']);
 
 tic;
 mySNEA = mySNEA.setState(q,dq);
 mySNEA = mySNEA.setY(y);
 mySNEA = mySNEA.solveID();
 t_SNEA = toc;
-disp(['[2st] CPU time for SNEA is: ' num2str(t_SNEA) '[sec]']);
-disp(['[2st] Diff SNEA and PNEA is ' num2str(norm(myPNEA.d-mySNEA.d))]);
-disp('/\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ ')
+disp(['[PNEA] [2st] CPU time for SNEA is: ' num2str(t_SNEA) '[sec]']);
+disp(['[PNEA] [2st] Diff SNEA and PNEA is ' num2str(norm(myPNEA.d-mySNEA.d))]);
 
 if norm(myPNEA.d-mySNEA.d) ~= 0
-   disp('Result is excessively inaccurate. Test is declared failed!');
+   disp('[PNEA] Result is excessively inaccurate. Test is declared failed!');
    res = 1;
 end
 
@@ -70,18 +68,17 @@ myPNEA = myPNEA.setState(q, dq);
 myPNEA = myPNEA.setY(y);
 myPNEA = myPNEA.solveID();
 t_PNEA = toc;
-disp(['[3st] CPU time for PNEA is: ' num2str(t_PNEA) '[sec]']);
+disp(['[PNEA] [3st] CPU time for PNEA is: ' num2str(t_PNEA) '[sec]']);
 
 tic;
 mySNEA = mySNEA.setState(q,dq);
 mySNEA = mySNEA.setY(y);
 mySNEA = mySNEA.solveID();
 t_SNEA = toc;
-disp(['[3st] CPU time for SNEA is: ' num2str(t_SNEA) '[sec]']);
-disp(['[3st] Diff SNEA and PNEA is ' num2str(norm(myPNEA.d-mySNEA.d))]);
-disp('/\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ ')
+disp(['[PNEA] [3st] CPU time for SNEA is: ' num2str(t_SNEA) '[sec]']);
+disp(['[PNEA] [3st] Diff SNEA and PNEA is ' num2str(norm(myPNEA.d-mySNEA.d))]);
 
 if norm(myPNEA.d-mySNEA.d) ~= 0
-   disp('Result is excessively inaccurate. Test is declared failed!');
+   disp('[PNEA] Result is excessively inaccurate. Test is declared failed!');
    res = 1;
 end

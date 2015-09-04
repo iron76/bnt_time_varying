@@ -21,19 +21,18 @@ myMRNEA = myMRNEA.setState(q, dq);
 myMRNEA = myMRNEA.setY(y);
 myMRNEA = myMRNEA.solveID();
 t_MRNEA = toc;
-disp(['[1st] CPU time for MRNEA is: ' num2str(t_MRNEA) '[sec]']);
+disp(['[MRNEA] [1st] CPU time for MRNEA is: ' num2str(t_MRNEA) '[sec]']);
 
 tic;
 myRNEA = myRNEA.setState(q,dq);
 myRNEA = myRNEA.setY(y);
 myRNEA = myRNEA.solveID();
 t_RNEA = toc;
-disp(['[1st] CPU time for RNEA is: ' num2str(t_RNEA) '[sec]']);
-disp(['[1st] Diff RNEA and MRNEA is ' num2str(norm(myMRNEA.d-myRNEA.d))]);
-disp('/\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ ')
+disp(['[MRNEA] [1st] CPU time for RNEA is: ' num2str(t_RNEA) '[sec]']);
+disp(['[MRNEA] [1st] Diff RNEA and MRNEA is ' num2str(norm(myMRNEA.d-myRNEA.d))]);
 
 if norm(norm(myMRNEA.d-myRNEA.d)) > 1e-10
-   disp('Result is excessively inaccurate. Test is declared failed!');
+   disp('[MRNEA] Result is excessively inaccurate. Test is declared failed!');
    res = 1;
 end
 
@@ -46,19 +45,18 @@ myMRNEA = myMRNEA.setState(q, dq);
 myMRNEA = myMRNEA.setY(y);
 myMRNEA = myMRNEA.solveID();
 t_MRNEA = toc;
-disp(['[2st] CPU time for MRNEA is: ' num2str(t_MRNEA) '[sec]']);
+disp(['[MRNEA] [2st] CPU time for MRNEA is: ' num2str(t_MRNEA) '[sec]']);
 
 tic;
 myRNEA = myRNEA.setState(q,dq);
 myRNEA = myRNEA.setY(y);
 myRNEA = myRNEA.solveID();
 t_RNEA = toc;
-disp(['[2st] CPU time for RNEA is: ' num2str(t_RNEA) '[sec]']);
-disp(['[2st] Diff RNEA and MRNEA is ' num2str(norm(myMRNEA.d-myRNEA.d))]);
-disp('/\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ ')
+disp(['[MRNEA] [2st] CPU time for RNEA is: ' num2str(t_RNEA) '[sec]']);
+disp(['[MRNEA] [2st] Diff RNEA and MRNEA is ' num2str(norm(myMRNEA.d-myRNEA.d))]);
 
 if norm(norm(myMRNEA.d-myRNEA.d)) > 1e-10
-   disp('Result is excessively inaccurate. Test is declared failed!');
+   disp('[MRNEA] Result is excessively inaccurate. Test is declared failed!');
    res = 1;
 end
 
@@ -71,18 +69,17 @@ myMRNEA = myMRNEA.setState(q, dq);
 myMRNEA = myMRNEA.setY(y);
 myMRNEA = myMRNEA.solveID();
 t_MRNEA = toc;
-disp(['[3st] CPU time for MRNEA is: ' num2str(t_MRNEA) '[sec]']);
+disp(['[MRNEA] [3st] CPU time for MRNEA is: ' num2str(t_MRNEA) '[sec]']);
 
 tic;
 myRNEA = myRNEA.setState(q,dq);
 myRNEA = myRNEA.setY(y);
 myRNEA = myRNEA.solveID();
 t_RNEA = toc;
-disp(['[3st] CPU time for RNEA is: ' num2str(t_RNEA) '[sec]']);
-disp(['[3st] Diff RNEA and MRNEA is ' num2str(norm(myMRNEA.d-myRNEA.d))]);
-disp('/\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ ')
+disp(['[MRNEA] [3st] CPU time for RNEA is: ' num2str(t_RNEA) '[sec]']);
+disp(['[MRNEA] [3st] Diff RNEA and MRNEA is ' num2str(norm(myMRNEA.d-myRNEA.d))]);
 
 if norm(norm(myMRNEA.d-myRNEA.d)) > 1e-10
-   disp('Result is excessively inaccurate. Test is declared failed!');
+   disp('[MRNEA] Result is excessively inaccurate. Test is declared failed!');
    res = 1;
 end

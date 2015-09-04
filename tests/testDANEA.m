@@ -29,7 +29,7 @@ for i = 1 : num_of_tests
    Yx  = myANEA.IDsens.sensorsParams.Ys(:,(end-2*dmodel.NB+1):end);
    dby = myANEA.dby_s.matrix + Yx;
    if norm( dby - dy) > 1e-6
-      disp(['dy numerical derivative is quite different: ' num2str(norm(dby - dy))])
+      disp(['[DANEA] dy numerical derivative is quite different: ' num2str(norm(dby - dy))])
       imagesc([dby, dy])
       colorbar
       res = 1;
@@ -51,22 +51,22 @@ for i = 1 : num_of_tests
    myANEA = myANEA.setXprior([q; dq]);
    myANEA = myANEA.setXvariance(Sx);
    if norm(myANEA.dDb_s.matrix - dD) > 1e-3
-      disp(['dD numerical derivative is quite different: ' num2str(norm(myDNEA.dDb_s.matrix - dD))])
+      disp(['[DANEA] dD numerical derivative is quite different: ' num2str(norm(myDNEA.dDb_s.matrix - dD))])
       res = 1;
    end
 
    if norm(myANEA.dDb.matrix - dD) > 1e-3
-      disp(['dD numerical derivative is quite different: ' num2str(norm(myDNEA.dDb.matrix - dD))])
+      disp(['[DANEA] dD numerical derivative is quite different: ' num2str(norm(myDNEA.dDb.matrix - dD))])
       res = 1;
    end
    
    if norm(full(myANEA.Sx_inv.matrix) - inv(Sx)) ~= 0
-      disp('Sx_inv was not properly set!')
+      disp('[DANEA] Sx_inv was not properly set!')
       res = 1;
    end
    
    if norm(full(myANEA.Sx.matrix) - Sx) ~= 0
-      disp('Sx was not properly set!')
+      disp('[DANEA] Sx was not properly set!')
       res = 1;
    end
 

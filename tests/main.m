@@ -1,4 +1,4 @@
-clear all
+% clear all
 close all
 clc
 
@@ -68,6 +68,9 @@ res = res || testRegressors;
 disp('Running testSNEA')
 res = res || testSNEA(dmodel_RNEA, ymodel_RNEA);
 
+disp('Running testConditioning')
+res = res || testConditioning(dmodel_SNEA, ymodel_SNEA);
+
 disp('Running testMRNEA')
 res = res || testMRNEA(dmodel_RNEA, ymodel_RNEA);
 
@@ -83,6 +86,7 @@ res = res || testLearnBNEA(dmodel_SNEA, ymodel_SNEA);
 disp('Running testBNEA')
 res = res || testBNEA(dmodel_BNEA, ymodel_BNEA);
  
+disp('Running testDerivativesD')
 res = res || testDerivativesD(dmodel_RNEA, ymodel_RNEA, dmodel_DNEA, ymodel_DNEA);
 
 disp('Running testDerivatives')

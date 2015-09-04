@@ -39,17 +39,17 @@ myANEA    = myANEA.setY(y_ANEA);
 myANEA    = myANEA.solveID();
 
 if (sum(q-myANEA.IDstate.q))
-   disp('Something wrong with the setQ method');
+   disp('[ANEA] Something wrong with the setQ method');
    res = 1;
 end
 
 if (sum(dq-myANEA.IDstate.dq))
-   disp('Something wrong with the setDq method');
+   disp('[ANEA] Something wrong with the setDq method');
    res = 1;
 end
 
 if (sum(y_ANEA-myANEA.IDmeas.y))
-   disp('Something wrong with the setY method');
+   disp('[ANEA] Something wrong with the setY method');
    res = 1;
 end
 
@@ -60,13 +60,13 @@ for i = 1 : NB
    d2q_ANEA = myANEA.d((i-1)*7+7 : (i-1)*7+7, 1);
    % disp(['Diff a between RNEA and ANEA is ' num2str(norm(a_ANEA-a_RNEA{i}))]);
    if norm(a_ANEA-a_RNEA{i}) > 0.01
-      disp(['Result a_ANEA-a_RNEA is excessively inaccurate. Test is declared failed! Error is: ' num2str(norm(a_ANEA-a_RNEA{i}))]);
+      disp(['[ANEA] Result a_ANEA-a_RNEA is excessively inaccurate. Test is declared failed! Error is: ' num2str(norm(a_ANEA-a_RNEA{i}))]);
       res = 1;
       
    end
    % disp(['Diff d2q between RNEA and ANEA is ' num2str(norm(d2q_ANEA-d2q_RNEA(i)))]);
    if norm(d2q_ANEA-d2q_RNEA(i)) > 0.01
-      disp(['Result a_ANEA-a_RNEA is excessively inaccurate. Test is declared failed! Error is: ' num2str(norm(d2q_ANEA-d2q_RNEA(i)))]);
+      disp(['[ANEA] Result a_ANEA-a_RNEA is excessively inaccurate. Test is declared failed! Error is: ' num2str(norm(d2q_ANEA-d2q_RNEA(i)))]);
       res = 1;      
    end
 end
