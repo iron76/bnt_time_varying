@@ -397,7 +397,152 @@ mx
 [Ex_y(3:4,1); Ex_y(1:2,1)]
 mx + (Sx^(-1)+Y'*Sy^(-1)*Y)^(-1)*Y'*Sy^(-1)*((ym-my)-Y*mx) 
 
+%%%%%%%%%%%%%%%%%%%
+% EIGTH  EXAMPLE  %
+%%%%%%%%%%%%%%%%%%%
+
+clear all
+
+N = 3;
+ d = 1;  e = 2;   y = 3;
+sd = 4; se = 3;  sy = 2;
+dag = zeros(N,N);
+dag(d,e) = 1;
+dag(d,y) = 1;
+
+ns = [sd se sy];   % vector-valued
+
+dnodes = [];  % no discrete nodes
+bnet = mk_bnet(dag, ns, 'discrete', dnodes);
+
+%  We consider the case:
+%                  d ~ N(md, Sd)
+%  D d + bD      = v ~ N(me, Se)
+%  Y d + bY - y  = w ~ N(my, Sy)
+%
+%  The analytic solution is:
+%  d|y ~ (mu, S)
+%  S  = (Sd_inv + D' SD_inv D + Y' SY_inv Y)^-1
+%  mu = S(Y' SY_inv (y-bY) + Sd_inv md + D' SD_inv (mD - bD))
+
+md  = [ 1 2 3 4]';
+me  = [ 1 2 3 ]';
+my  = [ 5 6 ]';
+Sd  = blkdiag([ 2 1; 1 2], [ 1 0; 1 2]);
+Se  = [ 100 10 10 ; 10 200 0; 10 0 20];
+Sy  = eye(2);
+
+D   = [ 1 2  0 1 ; 4 5 1 0; -1 0 0 1];
+Y   = [ 0 2  0 1 ; 1 2 1 0];
+
+bD  = [ 1; -1; 0];
+bY  = [-1; -2];
+
+ym  = [1; 1];
+
+bnet.CPD{d}  = gaussian_CPD(bnet, d, 'mean',    md, 'cov', Sd);
+bnet.CPD{e}  = gaussian_CPD(bnet, e, 'mean', me+bD, 'cov', Se, 'weights', D);
+bnet.CPD{y}  = gaussian_CPD(bnet, y, 'mean', my+bY, 'cov', Sy, 'weights', Y);
 
 
+engine = jtree_inf_engine(bnet);
 
+evidence     = cell(1,N);
+evidence{y}  = ym;
+evidence{e}  = zeros(se, 1);
+
+
+[engine, ll] = enter_evidence(engine, evidence);
+
+marg = marginal_nodes(engine, d);
+Ed_y = marg.mu;
+Sd_y = marg.Sigma;
+
+
+Sd_y
+(Sd^(-1) + D' * Se^(-1) * D + Y' * Sy^(-1) * Y)^(-1)
+Ed_y
+Sd_y * (Y' * Sy^(-1) * (ym-my-bY) + Sd^(-1) * md + D'* Se^(-1) * (- me - bD))
+
+%%%%%%%%%%%%%%%%%%%
+% NINETH  EXAMPLE %
+%%%%%%%%%%%%%%%%%%%
+
+clear all
+
+N = 3;
+ dy = 1;  dx = 2;   y = 3;
+sdy = 1; sdx = 3;  sy = 2;
+dag = zeros(N,N);
+dag(dy,dx) = 1;
+dag(dy,y)  = 1;
+dag(dx,y)  = 1;
+
+ns = [sdy sdx sy];   % vector-valued
+
+dnodes = [];  % no discrete nodes
+bnet = mk_bnet(dag, ns, 'discrete', dnodes);
+
+%  We consider the case:
+%
+%  d = [dx dy]              dy ~ N(mdy, Sdy)
+%  Dx dx + Dy dy + bD      = v ~ N(me, Se)
+%  Yx dx + Yy dy + bY - y  = w ~ N(my, Sy)
+%
+%  The analytic solution is:
+%  d|y ~ (mu, S)
+%  S  = (Sd_inv + D' SD_inv D + Y' SY_inv Y)^-1
+%  mu = S(Y' SY_inv (y-bY) + Sd_inv md + D' SD_inv (mD - bD))
+%
+%  In a Bayesian network, it can be represented as follows:
+%
+%  d = [dx dy]                          dy ~ N(mdy, Sdy)
+%     dx + Dx^-1 Dy dy + Dx^-1 bD      = v ~ N(Dx^-1 me, Dx^-1 Se Dx^-T)
+%  Yx dx +       Yy dy +       bY - y  = w ~ N(my, Sy)
+%
+
+mdy = 4;
+me  = [ 1 2 3 ]';
+my  = [ 5 6 ]';
+Sdy = 2;
+Se  = [ 100 10 10 ; 10 200 0; 10 0 20];
+Sy  = eye(2);
+
+Sd_inv  = blkdiag(zeros(sdx,sdx), inv(Sdy));
+md      = [zeros(sdx,1); mdy];
+
+D   = [ 1 2  0 1 ; 4 5 1 0; -1 0 0 1];
+Y   = [ 0 2  0 1 ; 1 2 1 0];
+
+Dx  = D(:,     1:sdx);
+Dy  = D(:, sdx+1:end);
+Yx  = Y(:,     1:sdx);
+Yy  = Y(:, sdx+1:end);
+
+bD  = [ 1; -1; 0];
+bY  = [-1; -2];
+
+ym  = [1; 1];
+
+bnet.CPD{dy}  = gaussian_CPD(bnet, dy, 'mean',   mdy, 'cov', Sdy);
+bnet.CPD{dx}  = gaussian_CPD(bnet, dx, 'mean', inv(Dx) * (-me-bD), 'cov', inv(Dx) * Se * inv(Dx'), 'weights', - inv(Dx) * Dy);
+bnet.CPD{y}   = gaussian_CPD(bnet,  y, 'mean', my+bY, 'cov', Sy, 'weights', [Yy Yx]);
+
+
+engine = jtree_inf_engine(bnet);
+
+evidence     = cell(1,N);
+evidence{y}  = ym;
+
+[engine, ll] = enter_evidence(engine, evidence);
+
+marg = marginal_nodes(engine, [dy dx]);
+Ed_y = marg.mu;
+Sd_y = marg.Sigma;
+
+
+Sd_y([sdy+(1:sdx) 1:sdy], [sdy+(1:sdx) 1:sdy])
+(Sd_inv + D' * Se^(-1) * D + Y' * Sy^(-1) * Y)^(-1)
+Ed_y([sdy+(1:sdx) 1:sdy])
+(Sd_inv + D' * Se^(-1) * D + Y' * Sy^(-1) * Y)^(-1) * (Y' * Sy^(-1) * (ym-my-bY) + Sd_inv * md + D'* Se^(-1) * (- me - bD))
 
