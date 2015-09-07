@@ -1,4 +1,4 @@
-% clear all
+clear all
 close all
 clc
 
@@ -50,8 +50,8 @@ for i = 1 : ymodel_DNEA.ny
    end   
 end
 
-dmodel_BNEA    = autoTreeStochastic(dmodel_SNEA);
-ymodel_BNEA    = autoSensStochastic(ymodel_SNEA);
+dmodel_BNEA    = autoTreeStochastic(dmodel_SNEA, 1, 1);
+ymodel_BNEA    = autoSensStochastic(ymodel_SNEA, 1);
 
 disp('Running testRNEA')
 res = res || testRNEA(dmodel_RNEA, ymodel_RNEA);
@@ -140,6 +140,8 @@ res = res || testLearnBNEA(dmodel_SNEA, ymodel_SNEA);
 res = res || testDerivativesD(dmodel_SNEA, ymodel_SNEA, dmodel_DNEA, ymodel_DNEA);
 
 res = res || testDerivatives(dmodel_DNEA, ymodel_DNEA);
+
+res = res || testConditioning(dmodel_SNEA, ymodel_SNEA);
 
 res = res || testDNEA(dmodel_DNEA, ymodel_DNEA, dmodel_SNEA, ymodel_SNEA, S_dmodel);
 

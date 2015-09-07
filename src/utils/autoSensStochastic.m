@@ -11,7 +11,10 @@ function [ model ] = autoSensStochastic( model , sMeas)
 %   equation.
 
 if nargin == 1
-   sMeas   = 1;
+   sMeas     = 1;
+   generateS = @(n)eye(n);
+else
+   generateS = @(n)generateSPDmatrix(n);
 end
 
 iSy_s = cell2mat(model.sizes);
@@ -23,7 +26,7 @@ for i = 1 : model.ny
    dy = model.sizes{i,1};
    % model.Sy{i,1} = sMeas.*generateSPDmatrix(dy);
    % S = inv(model.Sy{i,1});
-   S = sMeas.*generateSPDmatrix(dy);
+   S = sMeas.*generateS(dy);
    model.Sy_inv = set(model.Sy_inv, inv(S), i, i);
    model.Sy     = set(model.Sy    ,     S , i, i);
 end
