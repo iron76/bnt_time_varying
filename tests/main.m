@@ -66,7 +66,7 @@ disp('Running testRegressors')
 res = res || testRegressors;
 
 disp('Running testSNEA')
-res = res || testSNEA(dmodel_RNEA, ymodel_RNEA);
+res = res || testSNEA(dmodel_RNEA);
 
 disp('Running testConditioning')
 res = res || testConditioning(dmodel_SNEA, ymodel_SNEA);

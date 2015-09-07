@@ -32,40 +32,11 @@ function obj = solveID(obj)
 %
 
 NB = obj.IDmodel.modelParams.NB;
-b  = sparse(obj.ibs, ones(length(obj.ibs),1), obj.bs, 19*NB, 1);
+D = sparse(obj.iDs, obj.jDs, obj.Ds, 19*NB, 26*NB);
+b = sparse(obj.ibs, ones(size(obj.ibs)), obj.bs, 19*NB, 1);
 
-% [Dx Dy] = D
-Dx = sparse(obj.iDs(obj.kDx), obj.jDs(obj.kDx)      , obj.Ds(obj.kDx), 19*NB, 19*NB); 
-Dy = sparse(obj.iDs(obj.kDy), obj.jDs(obj.kDy)-19*NB, obj.Ds(obj.kDy), 19*NB,  7*NB); 
-
-% We write the estimation problem as:
-%
-%     [Dx Dy]*[dx; dy] = v
-%
-% z - [Yx Yy]*[dx; dy] = w
-%
-%    dy   ~ N(             muy, Sy);
-%     v   ~ N(               0, Sv);
-% z|dx,dy ~ N([Yx Yy]*[dx; dy], Sw);
-%
-% With easy substitutions:
-%
-%     dx + Dx^(-1)*Dy*dy] = Dx^(-1)v
-%
-%    z - [Yx Yy]*[dx; dy] = w
-%
-%   dy    ~ N(             muy, Sy);
-%dx|dy    ~ N(               0, Dx^(-1)*Sv*Dx^(-1)');
-% z|dx,dy ~ N([Yx Yy]*[dx; dy], Sw);
-%
-% which is totally equivalent to 'SIXTH  EXAMPLE'
-% in gaussSumImplicit.m Some simplifications using`
-% the Shur complement inversion have been used to
-% reduce the computational cost.
-%
-%  S      = [Sy, -Sy*Dy'; -Dy*Sy, Sv + Dy*Sy*Dy'];
-%  S^(-1) = [Sy^(-1)+Dy'*Sv^(-1)*Dy, Sv^(-1)*Dy; Dy'*Sv^(-1), Sv^(-1)];
-% (S^(-1)+[Yy Yx]'*Sw^(-1)*[Yy Yx])^(-1)
+% Dx = D(1:19*NB, 1:19*NB);
+% Dy = D(1:19*NB, 19*NB+1:26*NB);
 
 % Sv_inv = eye(19*NB)./sModel;
 Sv_inv = obj.IDmodel.modelParams.Sv_inv.matrix;
@@ -75,35 +46,17 @@ Sw_inv = obj.IDmodel.modelParams.Sw_inv.matrix;
 % Sy_inv = eye(my)   ./sMeas;
 Sy_inv = obj.IDsens.sensorsParams.Sy_inv.matrix;
 
-Sinv   = [Dx'*Sv_inv*Dx Dx'*Sv_inv*Dy; Dy'*Sv_inv*Dx, Sw_inv+ Dy'*Sv_inv*Dy];
-% Dx_inv = Dx\sparse(1:19*NB, 1:19*NB, 1);
 Y = obj.IDsens.sensorsParams.Ys;
 
-Ss = Sinv+Y'*Sy_inv*Y;
-% L = chol(S1'*Ss*S1, 'lower');    % S1'*W*S1 = L*L'
-% PWinv1 = S1*inv_chol(L)*S1';
-% Ls = S1*L;
+y      = obj.IDmeas.y;
+S_Dinv = Sv_inv;
+S_dinv = blkdiag(zeros(size(Sv_inv)), Sw_inv);
+S_Yinv = Sy_inv;
+bY     = zeros(size(y));
+bD     = b;
+muD    = zeros(length(S_dinv), 1);
+d      = (D'*S_Dinv*D + S_dinv + Y'*S_Yinv*Y)\(Y'*S_Yinv*(y-bY) - D'*S_Dinv*bD + S_dinv * muD);
 
-% Sxy = [Sv + Dy*Sy*Dy', -Dy*Sy; -Sy*Dy', Sy];
-% mxy = -Sxy*[ -Sv^(-1)*mx; -Dy'*Sv^(-1)*mx - Sy^(-1)*my]
-
-% Sxy = S = [Dx^(-1)*inv(Sv_inv)*Dx^(-1)' + Dx^(-1)*Dy*inv(Sw_inv)*Dy'*Dx^(-1)', -Dx^(-1)*Dy*inv(Sw_inv); -inv(Sw_inv)*Dy'*Dx^(-1)', inv(Sw_inv)],1)
-% Sxy = [Dx_inv + Dx_inv*Dy*Sw*Dy'*Sv_inv, -Dx_inv*Dy*Sw; -Sw*Dy'*Sv_inv, Sw];
-mx  = -b;
-my  = zeros(7*NB,1);
-% mxy = -Sxy*[-mx; -Dy'*Sv_inv*mx - Sw_inv*my];
-mxy = [Dx\(mx-Dy*my); my];
-
-if ~obj.sparsified 
-   [~,~,obj.S] = chol(Ss, 'lower');
-   % obj.S1 = symamd(Ss);
-   obj.sparsified = 1;
-end
-% d   = mxy + Ss\Y'*Sy_inv*(obj.IDmeas.y-Y*mxy);
-d   = mxy +obj.S*((obj.S'*Ss*obj.S)\(obj.S'*(Y'*Sy_inv*(obj.IDmeas.y-Y*mxy))));
-
-% shuffle from [dx dy] to d
-obj.d = d(obj.id,1);
-
+obj.d  = d(obj.id,1);
 
 end % solveID

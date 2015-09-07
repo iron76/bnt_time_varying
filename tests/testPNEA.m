@@ -30,7 +30,7 @@ t_SNEA = toc;
 disp(['[PNEA] [1st] CPU time for SNEA is: ' num2str(t_SNEA) '[sec]']);
 disp(['[PNEA] [1st] Diff SNEA and PNEA is ' num2str(norm(myPNEA.d-mySNEA.d))]);
 
-if norm(myPNEA.d-mySNEA.d) ~= 0
+if norm(myPNEA.d-mySNEA.d) > 1e-9
    disp('[PNEA] Result is excessively inaccurate. Test is declared failed!');
    res = 1;
 end
@@ -54,7 +54,7 @@ t_SNEA = toc;
 disp(['[PNEA] [2st] CPU time for SNEA is: ' num2str(t_SNEA) '[sec]']);
 disp(['[PNEA] [2st] Diff SNEA and PNEA is ' num2str(norm(myPNEA.d-mySNEA.d))]);
 
-if norm(myPNEA.d-mySNEA.d) ~= 0
+if norm(myPNEA.d-mySNEA.d) > 1e-9
    disp('[PNEA] Result is excessively inaccurate. Test is declared failed!');
    res = 1;
 end
@@ -78,7 +78,7 @@ t_SNEA = toc;
 disp(['[PNEA] [3st] CPU time for SNEA is: ' num2str(t_SNEA) '[sec]']);
 disp(['[PNEA] [3st] Diff SNEA and PNEA is ' num2str(norm(myPNEA.d-mySNEA.d))]);
 
-if norm(myPNEA.d-mySNEA.d) ~= 0
+if norm(myPNEA.d-mySNEA.d) > 1e-9
    disp('[PNEA] Result is excessively inaccurate. Test is declared failed!');
    res = 1;
 end
