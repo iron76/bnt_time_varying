@@ -87,7 +87,7 @@ disp('Running testBNEA')
 res = res || testBNEA(dmodel_BNEA, ymodel_BNEA);
  
 disp('Running testDerivativesD')
-res = res || testDerivativesD(dmodel_RNEA, ymodel_RNEA, dmodel_DNEA, ymodel_DNEA);
+res = res || testDerivativesD(dmodel_RNEA, ymodel_RNEA);
 
 disp('Running testDerivatives')
 res = res || testDerivatives(dmodel_DNEA, ymodel_DNEA);
