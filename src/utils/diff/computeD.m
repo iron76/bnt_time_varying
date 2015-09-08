@@ -7,5 +7,9 @@ end
 
 dq     = zeros(size(q));
 myNEA  = myNEA.setState(q, dq);
-D      = sparse(myNEA.iDs, myNEA.jDs, myNEA.Ds, 19*myNEA.IDmodel.modelParams.NB, 26*myNEA.IDmodel.modelParams.NB);
+if isa(myNEA, 'DANEA') || isa(myNEA, 'ANEA')
+   D = myNEA.D.matrix;
+else
+   D = sparse(myNEA.iDs, myNEA.jDs, myNEA.Ds, 19*myNEA.IDmodel.modelParams.NB, 26*myNEA.IDmodel.modelParams.NB);
+end
 end

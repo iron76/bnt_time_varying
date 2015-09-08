@@ -55,8 +55,11 @@ classdef derivativeACsolver < stochasticACsolver
       dDb_s %% Matrix representing the derivative of D d + b with respect 
       %  to x = [q; dq] \frac{D d + b}{\partial x}, sparse version
       iDb_s %% indeces to access the dDb submatrix, sparse version
-      jDb_s %% indeces to access the dDb submatrix, sparse version  
-
+      jDb_s %% indeces to access the dDb submatrix, sparse version
+      
+      dDdq   %% Cell array of mdl.n elements.  dDdq{i} contains
+      %  \frac{\partial D(q)}{\partial q_i}
+      
       by_s  %% Matrix representing by(x)
       iby   %% indeces to access the by(x) submatrix
       jby   %% indeces to access the by(x) submatrix
@@ -92,6 +95,7 @@ classdef derivativeACsolver < stochasticACsolver
          b = b@stochasticACsolver(mdl,sns);
          
          %% Initialize own properties
+         b.dDdq    = cell(mdl.n, 1);
          b.dXupdq  = cell(mdl.n, 1);
          b.dvdx    = cell(mdl.n, 2*mdl.n);
          for i = 1 : mdl.n
@@ -287,8 +291,68 @@ classdef derivativeACsolver < stochasticACsolver
          end
          
       end
+      %% Compute the derivative of D with respect to qi (i-th element of q)
+      function obj = compute_dDdq(obj)
+         for i = 1 : obj.IDstate.n
+            obj.dDdq{i} = submatrix(obj.iD, obj.jD);
+         end
+         
+         for i = 1 : obj.IDstate.n
+            j = obj.IDmodel.modelParams.parent(i);
+            if j > 0
+               obj.dDdq{i} = set(obj.dDdq{i}, obj.dXupdq{i}, (i-1)+1, (j-1)*2+1);
+            end
+            
+         end
+         
+      end
       
-      
+      %% Compute the derivative of d with respect to q
+      function dd_dq = compute_dq(obj, d)
+         NB = obj.IDmodel.modelParams.NB;
+         
+         % fwdPerm          = myDANEA.id;
+         % bckPerm(fwdPerm) = 1:length(fwdPerm);
+
+         D = obj.D.matrix;
+         b = obj.b.matrix;
+         Sv_inv = obj.IDmodel.modelParams.Sv_inv.matrix;
+         Sw_inv = obj.IDmodel.modelParams.Sw_inv.matrix;
+         Sy_inv = obj.IDsens.sensorsParams.Sy_inv.matrix;
+         Y      = obj.IDsens.sensorsParams.Ys;
+         Y      = Y(1:obj.IDmeas.m, 1:7*NB);
+         Y      = Y(:, obj.id);
+         
+         S_Dinv = Sv_inv;
+         S_dinv = blkdiag(zeros(size(Sv_inv)), Sw_inv);
+         S_Yinv = Sy_inv;
+         bY     = zeros(obj.IDmeas.m,1);
+         bD     = b;
+         S_dinv = S_dinv(obj.id,obj.id);
+         
+         dbY    = zeros(obj.IDmeas.m, 2*NB);
+         
+         % Compute dbD setting d_bar=0
+         obj = updateStateDerivativeSubMatrix(obj, zeros(size(obj.d_bar)));
+         dbD = obj.dDb_s.matrix;
+         obj = updateStateDerivativeSubMatrix(obj, obj.d_bar);
+         % end
+         
+         % Update dDdq, derivative of D w.r.t. q
+         obj = compute_dDdq(obj);
+         % end
+         
+         dd_1  = zeros(7*NB, 2*NB);
+         dd_2  = ((D'*S_Dinv*D + S_dinv + Y'*S_Yinv*Y)\(-Y'*S_Yinv*dbY - D'*S_Dinv*dbD));
+         for j = 1 : NB
+            dDj   = obj.dDdq{j}.matrix;
+            
+            dd_1(:,j) = -inv(S_dinv + Y'*S_Yinv*Y + D'*S_Dinv*D)*(D'*S_Dinv*dDj + dDj'*S_Dinv*D)*d;
+            dd_1(:,j) = dd_1(:,j) + ((D'*S_Dinv*D + S_dinv + Y'*S_Yinv*Y)\(- dDj'*S_Dinv*bD));
+         end
+         dd_dq = dd_1 + dd_2;
+         
+      end
    end % methods
 end % classdef
 

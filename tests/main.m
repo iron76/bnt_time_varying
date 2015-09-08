@@ -107,6 +107,9 @@ res = res || testDANEA(dmodel_ANEA, ymodel_ANEA);
 disp('Running testDANEACalibration')
 res = res || testDANEACalibration(dmodel_ANEA, ymodel_DANEA, dmodel_SNEA, ymodel_SNEA, S_dmodel);
 
+disp('Running testDerivativesANEA')
+res = res || testDerivativesANEA(dmodel_ANEA, ymodel_ANEA);
+
 if res ~=0 
    disp('[ERROR] One of the tests failed!')
 else
