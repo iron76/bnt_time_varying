@@ -137,7 +137,7 @@ res = res || testBNEA(dmodel_SNEA, ymodel_SNEA);
 
 res = res || testLearnBNEA(dmodel_SNEA, ymodel_SNEA);
 
-res = res || testDerivativesD(dmodel_SNEA, ymodel_SNEA, dmodel_DNEA, ymodel_DNEA);
+res = res || testDerivativesD(dmodel_SNEA, ymodel_SNEA);
 
 res = res || testDerivatives(dmodel_DNEA, ymodel_DNEA);
 
