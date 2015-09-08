@@ -43,7 +43,7 @@ Sdq      = 0.1   * pi/180;
 Sx0      = 1e2*diag([Sx*Sq, Sx*Sdq]);
 
 %% iCub model
-ymdl    = iCubSens(dmodel, sens);
+ymdl    = iCubSensANEA(dmodel, sens);
 ymodel  = iCubSensDANEA(dmodel, ymdl, sens, mask_q, mask_dq);
 dmodel  = autoTreeStochasticANEA(dmodel, 1e-2, 1e4);
 ymodel  = iCubSensStochastic(ymodel);

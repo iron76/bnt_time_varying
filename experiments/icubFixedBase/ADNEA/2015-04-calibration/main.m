@@ -53,7 +53,7 @@ if ~exist('preprocess.mat', 'file')
    %    iCubVisualize(data.q(:,i), R)
    % end
    
-   ymdl    = iCubSens(dmodel, sens);
+   ymdl    = iCubSensANEA(dmodel, sens);
    ymodel  = iCubSensDANEA(dmodel, ymdl, sens, mask_q, mask_dq);
    
    dmodel  = autoTreeStochastic(dmodel, 1e-1, 1e4);

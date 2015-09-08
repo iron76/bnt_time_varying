@@ -1,4 +1,4 @@
-function [ ymodel ] = iCubSens( dmodel , sens)
+function [ ymodel ] = iCubSensANEA( dmodel , sens)
 %AUTOSENSSNEA Generates a random sensor distribution articulated rigid body.
 %   This function generates a structure that contains all measurements
 %   needed to perform sparse inverse dynanmic compuations on the supplied
