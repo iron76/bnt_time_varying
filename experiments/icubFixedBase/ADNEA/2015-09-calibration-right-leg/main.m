@@ -2,41 +2,7 @@ clear all
 close all
 clc
 
-if ~exist('preprocess.mat', 'file')
-   
-   data.nsamples  = 100; %number of samples
-   data.plot      = 0;
-   data.ini       = 50;   %seconds to be skipped at the start
-   data.end       = 100;  %seconds to reach the end of the movement
-   data.diff_imu  = 1;    %derivate the angular velocity of the IMUs
-   data.diff_q    = 1;    %derivate the angular velocity of the IMUs
-
-
-   %%strucutre from files
-   data.path        = './data';
-   data.parts       = {};
-   data.labels      = {};
-   data.ndof        = {};
-   data.index       = {};
-   data.type        = {};
-   data.visualize   = {};
-   %%strucutre for urdf
-   sens.parts       = {};
-   sens.labels      = {};
-   sens.ndof        = {};
-   sens.type        = {};
-   sens.transforms  = {};
-   
-   %% add ft sensors 
-   data = addSensToData(data, 'r_leg_ft_sensor:o' , 'rl_fts'  , 6, '1:6', ''           , 1*data.plot);
-   sens = addSensToSens(sens, 'r_upper_leg'       , 'rl_fts'  , 6,        ''           ,'drake_r_upper_leg_X_urdf_r_upper_leg');
-   data = addSensToData(data, 'r_foot_ft_sensor:o', 'rf_fts'  , 6, '1:6', ''           , 1*data.plot);
-   sens = addSensToSens(sens, 'r_upper_leg'       , 'rf_fts'  , 6,        ''           ,'drake_r_foot_X_urdf_r_foot');
-   
-   % add mtb sensors 
-       
-   
-   mtbSensorCodes =  {'11B1','11B2', ...
+ mtbSensorCodes =  {'11B1','11B2', ...
                       '11B3','11B4', ...
                       '11B5', ...
                       '11B6', '11B7', ...
@@ -56,7 +22,7 @@ if ~exist('preprocess.mat', 'file')
    nrOfMTBAccs = length(mtbSensorLink);
    mtbIndices = {};
    for i = 1:nrOfMTBAccs
-       mtbIndices{i} = strcat(num2str(6*(i-1)+4),':',num2str(6*i));
+       mtbIndices{i} = strcat(num2str(2+6*(i-1)+4),':',num2str(2+6*i));
    end
        
    mtbSensorFrames = {};
@@ -65,8 +31,8 @@ if ~exist('preprocess.mat', 'file')
    end    
   
    mtbSensorLabel = {};
-   for i = 1:nrOFMTBAccs
-       mtbSensorLabel{i} = strcat(mtbSensorCodes{i}'_acc');
+   for i = 1:nrOfMTBAccs
+       mtbSensorLabel{i} = strcat(mtbSensorCodes{i},'_acc');
    end    
 
 
@@ -80,9 +46,43 @@ if ~exist('preprocess.mat', 'file')
                         true,true,   ...
                         false,false};
 
-   for i = 1:nrOFMTBAccs
+
+
+if true %~exist('preprocess.mat', 'file')
+   
+   data.nsamples  = 10; %number of samples
+   data.plot      = 0;
+   data.ini       = 3;   %seconds to be skipped at the start
+   data.end       = 23;  %seconds to reach the end of the movement
+   data.diff_imu  = 1;    %derivate the angular velocity of the IMUs
+   data.diff_q    = 1;    %derivate the angular velocity of the IMUs
+
+
+   %%strucutre from files
+   data.path        = '/Users/traversaro/src/data/dumperYoga9Sep2915';
+   data.parts       = {};
+   data.labels      = {};
+   data.ndof        = {};
+   data.index       = {};
+   data.type        = {};
+   data.visualize   = {};
+   %%strucutre for urdf
+   sens.parts       = {};
+   sens.labels      = {};
+   sens.ndof        = {};
+   sens.type        = {};
+   sens.transform  = {};
+   
+   %% add ft sensors 
+   data = addSensToData(data, 'r_leg_ft_sensor:o' , 'rl_fts'  , 6, '1:6', ''           , 1*data.plot);
+   sens = addSensToSens(sens, 'r_upper_leg'       , 'rl_fts'  , 6,        ''           ,'drake_r_upper_leg_X_urdf_r_upper_leg');
+   data = addSensToData(data, 'r_foot_ft_sensor:o', 'rf_fts'  , 6, '1:6', ''           , 1*data.plot);
+   sens = addSensToSens(sens, 'r_foot'       , 'rf_fts'  , 6,        ''           ,'drake_r_foot_X_urdf_r_foot');
+   
+   % add mtb sensors 
+   for i = 1:nrOfMTBAccs
        sensorTransformName = strcat('drake_', mtbSensorLink{i},'_X_urdf_',mtbSensorFrames{i});
-       data = addSensToData(data, 'inertialMTB'    , mtbSensorLabel{i}  , 3, mtbIndices{i}, ''           , 1*data.plot);
+       data = addSensToData(data, 'right_leg/inertialMTB'    , mtbSensorLabel{i}  , 3, mtbIndices{i}, ''           , 1*data.plot);
        sens = addSensToSens(sens, mtbSensorLink{i} , mtbSensorLabel{i}  , 3,        ''           ,sensorTransformName);
    end
                                              
@@ -91,8 +91,7 @@ if ~exist('preprocess.mat', 'file')
    
    data = loadData(data);
    
-   % compute the necessary transforms from URDF 
-   computeURDFToDrakeTransforms
+
    
    
    %%
@@ -101,11 +100,15 @@ if ~exist('preprocess.mat', 'file')
    % end
    
    run('iCub.m')
+   
+   % compute the necessary transforms from URDF 
+   computeURDFToDrakeTransforms
+   
    dmodel  = iCub_dmodel;
    ymodel  = iCubSens(dmodel, sens);
-   
-   dmodel  = autoTreeStochastic(dmodel, 1e-5, 1e4);
+   dmodel  = autoTreeStochastic(dmodel, 1e-1, 1e4);
    ymodel  = iCubSensStochastic(ymodel);
+   
    myModel = model(dmodel);
    mySens  = sensors(ymodel);
    myPNEA  = PNEA(myModel, mySens);
@@ -141,17 +144,15 @@ if ~exist('preprocess.mat', 'file')
    save preprocess.mat
 end
 %% plot results
-load preprocess.mat
+%load preprocess.mat
 close all
-sens.transform   = {'X_chest_imu'                              , 'X_l_upper_arm_la_acc'   , 'X_l_upper_foot_lf_acc'     , 'X_l_forearm_lh_imu'                  , 'X_r_upper_arm_ra_acc'    , 'X_r_upper_foot_rf_acc'     , 'X_r_forearm_rh_imu'                  , 'X_chest_to_acc'                          , 'X_l_upper_arm_la_fts_force','X_r_upper_arm_ra_fts_force','X_l_thigh_ll_fts_force','X_r_thigh_rl_fts_force','X_l_upper_foot_lf_fts_force'     , 'X_r_upper_foot_rf_fts_force'     }; 
-sensorFrameExtraction
 
-
-label_to_plot = {'imu', 'la_acc', 'lf_acc', 'lh_imu', 'ra_acc', 'rf_acc', 'rh_imu', 'to_acc', 'la_fts', 'ra_fts', 'll_fts', 'rl_fts', 'lf_fts', 'rf_fts'};
-
+label_to_plot = mtbSensorLabel;
+%label_to_plot = {'11B13_acc'};
 
 %% Process raw sensor data and bring it in the desired reference frames
 acc_gain = 5.9855e-04;
+%acc_gain = 1.0;
 deg_to_rad = pi/180.0;
 gyro_gain = deg_to_rad*7.6274e-03;
 for l = 1 : length(label_to_plot)
@@ -176,14 +177,13 @@ for l = 1 : length(label_to_plot)
                    'acc_gain*data.ys_' data.labels{i} '(1:3,:);']);
              eval(['data.ys_' data.labels{i} ' = ' ...
                     sens.transform{i} '(1:3,1:3) * ' 'data.ys_' data.labels{i} ';']);
+             strcat('correcting ',(data.labels{i}),' measures')
+             
           end
          if( strcmp(data.labels{i}(end-2:end),'imu') )
              eval(['data.ys_' data.labels{i} ' = ' ...
                    sens.transform{i} ' * ' 'data.ys_' data.labels{i} ';']);
          % account for the wrong offset present in the input data                
-         elseif( strcmp(data.labels{i}(end-4:end),'f_fts') )
-             eval(['data.ys_' data.labels{i} '(3,:) = ' ...
-                    'data.ys_' data.labels{i} '(3,:) - 3.9;' ]);
          end
          if( strcmp(data.labels{i}(end-2:end),'fts') )
              eval(['data.ys_' data.labels{i} ' = ' ...
@@ -192,6 +192,8 @@ for l = 1 : length(label_to_plot)
       end
    end
 end
+
+fprintf('Processed raw sensors\n')
 
 %% Build data.y anda data.Sy from adjusted ys_label
 data.y  = [];
@@ -225,11 +227,23 @@ for l = 1 : length(label_to_plot)
             shadedErrorBar(data.time, data.y(I(j),:), sqrt(data.Sy(I(j), :)), {[colors(mod(j,3)+1) '--'] , 'LineWidth', 1}, 0);
             plot(data.time, y(I(j),:), colors(mod(j,3)+1) , 'LineWidth', 1);
 
-            title(strrep(myPNEA.IDsens.sensorsParams.labels{k}, '_', '~'));
+            title(strcat(strrep(myPNEA.IDsens.sensorsParams.labels{k}, '_', '~'),num2str(j)));
          end
       end
    end
 end
+
+%% Plot state 
+figure
+plot(data.time,data.q')
+title('Joint positions')
+figure
+plot(data.time,data.dq')
+title('Joint velocities')
+figure
+plot(data.time,data.d2q')
+title('Joint accelerations')
+
 
 %% Plot separated graphs
 % for l = 1 : length(label_to_plot)

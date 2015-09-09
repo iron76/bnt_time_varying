@@ -46,7 +46,7 @@ for i = 1:length(mtbSensorCodes)
     if( strcmp(mtbSensorLink{i},'r_upper_leg') )
         eval(strcat('drake_r_upper_leg_X_urdf_',mtbSensorFrames{i},' = aaXa{3}*linAng2AngLin(dynComp.getRelativeTransform(''root_link'',''', mtbSensorFrames{i} ,''').asAdjointTransform.toMatlab);'));
         if( mtbInvertedFrames{i} )
-            eval(strcat('drake_r_upper_X_urdf_',mtbSensorFrames{i},' = ', 'drake_r_upper_leg_X_urdf_',mtbSensorFrames{i},'*right_R_wrong;'));
+            eval(strcat('drake_r_upper_leg_X_urdf_',mtbSensorFrames{i},' = ', 'drake_r_upper_leg_X_urdf_',mtbSensorFrames{i},'*right_R_wrong;'));
         end
     end
 end
@@ -72,3 +72,5 @@ for i = 1:length(mtbSensorCodes)
         end
     end
 end
+
+drake_root_link_X_X_urdf_r_foot = aaXa{6};
