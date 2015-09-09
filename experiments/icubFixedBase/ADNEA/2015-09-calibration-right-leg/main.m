@@ -48,7 +48,7 @@ clc
 
 
 
-if true %~exist('preprocess.mat', 'file')
+if ~exist('preprocess.mat', 'file')
    
    data.nsamples  = 2000; %number of samples
    data.plot      = 0;
@@ -147,8 +147,8 @@ end
 %load preprocess.mat
 close all
 
-label_to_plot = {'rl_fts','rf_fts'}
-% label_to_plot = [mtbSensorLabel,{'rl_fts','rf_fts'}];
+%label_to_plot = {'rl_fts','rf_fts'}
+label_to_plot = [mtbSensorLabel,{'rl_fts','rf_fts'}];
 %label_to_plot = {'11B13_acc'};
 
 %% Process raw sensor data and bring it in the desired reference frames
@@ -235,16 +235,16 @@ for l = 1 : length(label_to_plot)
 end
 
 %% Plot state 
-figure
-plot(data.time,data.q')
-title('Joint positions')
-figure
-plot(data.time,data.dq')
-title('Joint velocities')
-figure
-plot(data.time,data.d2q')
-title('Joint accelerations')
-
+% figure
+% plot(data.time,data.q')
+% title('Joint positions')
+% figure
+% plot(data.time,data.dq')
+% title('Joint velocities')
+% figure
+% plot(data.time,data.d2q')
+% title('Joint accelerations')
+% 
 
 %% Plot separated graphs
 % for l = 1 : length(label_to_plot)
