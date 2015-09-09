@@ -12,7 +12,7 @@ for i = 1 : length(data.parts)
       dq   = ['dq_' data.labels{i}];
       d2q  = ['d2q_' data.labels{i}];
       t    = ['time_' data.labels{i}];
-      eval(['[data.' q ',data.' dq ',data.' d2q ',data.' t '] = readState(' num2str(data.ndof{i}) ',''' file ''');']);
+      eval(['[data.' q ',data.' dq ',data.' d2q ',data.' t '] = readStateExt(' num2str(data.ndof{i}) ',''' file ''');']);
       eval(['data.'  q  '= data.'   q '(' data.index{i} ',:);']);
       eval(['data.' dq  '= data.'  dq '(' data.index{i} ',:);']);
       eval(['data.' d2q '= data.' d2q '(' data.index{i} ',:);']);
@@ -27,7 +27,7 @@ for i = 1 : length(data.parts)
       y    = ['y_' data.labels{i}];
       t    = ['time_' data.labels{i}];
       eval(['[data.' y ',data.' t '] = readDataDumper(''' file ''');']);
-       data.labels{i}
+      fprintf('Loaded sensor %s\n',data.labels{i})
       eval(['data.' y '= data.' y '(:,' data.index{i} ');']);
       
 

@@ -50,10 +50,10 @@ clc
 
 if true %~exist('preprocess.mat', 'file')
    
-   data.nsamples  = 10; %number of samples
+   data.nsamples  = 2000; %number of samples
    data.plot      = 0;
-   data.ini       = 3;   %seconds to be skipped at the start
-   data.end       = 23;  %seconds to reach the end of the movement
+   data.ini       = 2;   %seconds to be skipped at the start
+   data.end       = 22;  %seconds to reach the end of the movement
    data.diff_imu  = 1;    %derivate the angular velocity of the IMUs
    data.diff_q    = 1;    %derivate the angular velocity of the IMUs
 
@@ -75,7 +75,7 @@ if true %~exist('preprocess.mat', 'file')
    
    %% add ft sensors 
    data = addSensToData(data, 'r_leg_ft_sensor:o' , 'rl_fts'  , 6, '1:6', ''           , 1*data.plot);
-   sens = addSensToSens(sens, 'r_upper_leg'       , 'rl_fts'  , 6,        ''           ,'drake_r_upper_leg_X_urdf_r_upper_leg');
+   sens = addSensToSens(sens, 'r_upper_leg'       , 'rl_fts'  , 6,        ''           ,'drake_r_upper_leg_X_urdf_r_hip_3');
    data = addSensToData(data, 'r_foot_ft_sensor:o', 'rf_fts'  , 6, '1:6', ''           , 1*data.plot);
    sens = addSensToSens(sens, 'r_foot'       , 'rf_fts'  , 6,        ''           ,'drake_r_foot_X_urdf_r_foot');
    
@@ -147,7 +147,8 @@ end
 %load preprocess.mat
 close all
 
-label_to_plot = mtbSensorLabel;
+label_to_plot = {'rl_fts','rf_fts'}
+% label_to_plot = [mtbSensorLabel,{'rl_fts','rf_fts'}];
 %label_to_plot = {'11B13_acc'};
 
 %% Process raw sensor data and bring it in the desired reference frames
@@ -186,8 +187,8 @@ for l = 1 : length(label_to_plot)
          % account for the wrong offset present in the input data                
          end
          if( strcmp(data.labels{i}(end-2:end),'fts') )
-             eval(['data.ys_' data.labels{i} ' = ' ...
-                   sens.transform{i} ' * ' 'data.ys_' data.labels{i} ';']);
+             eval(['data.ys_' data.labels{i} ' = -normalToStart(' ...
+                    sens.transform{i} ') * ' 'data.ys_' data.labels{i} ';']);
          end
       end
    end

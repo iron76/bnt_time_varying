@@ -1,0 +1,1 @@
+./yarpdatadumperAppGenerator.py --name rightLegInertialMTBDump --host localhost --port '/icub/right_leg/stateExt:o' '/wholeBodyDynamicsTree/filtered/r_leg_ft_sensor:o' '/wholeBodyDynamicsTree/filtered/r_foot_ft_sensor:o' '/icub/right_leg/inertialMTB'
