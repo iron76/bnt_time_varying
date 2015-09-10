@@ -82,23 +82,28 @@ classdef submatrix
       end
       
       function [I, J] = indeces(obj, i, j)
-         I  = zeros(sum(obj.m(i)),1);
-         ii = [1 cumsum(obj.m(i)) + 1];
-         for h = 1 : length(i)
-            if i(h) < 0 || i(h) > length(obj.m)
-               error('Trying to access the sumatrix outside its definition')
-            else
-               I(ii(h) : ii(h+1)-1,1) = 1 + obj.cm(i(h)) : obj.cm(i(h)+1);
+         if (length(i)~=1) || (length(j)~=1)
+            I  = zeros(sum(obj.m(i)),1);
+            ii = [1 cumsum(obj.m(i)) + 1];
+            for h = 1 : length(i)
+               if i(h) < 0 || i(h) > length(obj.m)
+                  error('Trying to access the sumatrix outside its definition')
+               else
+                  I(ii(h) : ii(h+1)-1,1) = 1 + obj.cm(i(h)) : obj.cm(i(h)+1);
+               end
             end
-         end
-         J  = zeros(sum(obj.n(j)),1);
-         jj = [1 cumsum(obj.n(j)) + 1];
-         for k = 1 : length(j)
-            if j(k) < 0 || j(k) > length(obj.n)
-               error('Trying to access the sumatrix outside its definition')
-            else
-               J(jj(k) : jj(k+1)-1,1) = 1 + obj.cn(j(k)) : obj.cn(j(k)+1);
+            J  = zeros(sum(obj.n(j)),1);
+            jj = [1 cumsum(obj.n(j)) + 1];
+            for k = 1 : length(j)
+               if j(k) < 0 || j(k) > length(obj.n)
+                  error('Trying to access the sumatrix outside its definition')
+               else
+                  J(jj(k) : jj(k+1)-1,1) = 1 + obj.cn(j(k)) : obj.cn(j(k)+1);
+               end
             end
+         else
+            I = obj.cm(i)+1:obj.cm(i+1);
+            J = obj.cn(j)+1:obj.cn(j+1);
          end
       end
       

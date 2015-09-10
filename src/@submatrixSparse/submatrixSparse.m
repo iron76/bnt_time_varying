@@ -96,6 +96,7 @@ classdef submatrixSparse < submatrix
          if strcmp(S.type, '()') && length(S.subs) == 2
             I = S.subs{1};
             J = S.subs{2};
+            B = zeros(sum(b.m(I)), sum(b.n(J))); 
             if (length(I) ~= 1 || length(J) ~= 1)
                error('In calling As(i,j) the vaues i and j should be scalar.')
             end
@@ -106,12 +107,16 @@ classdef submatrixSparse < submatrix
                else
                   error('In calling As(i,j) the vaues for i and j should be in the valid range')
                end
-            else
+            elseif length(k) == 1
                I = b.is(b.ps(k)+1);
                J = b.js(b.ps(k)+1);
-               for h = b.ps(k)+1:b.ps(k+1)                  
-                  B(b.is(h) - I + 1, b.js(h) - J + 1) = b.As(h);
-               end
+%                for h = b.ps(k)+1:b.ps(k+1)                  
+%                   B(b.is(h) - I + 1, b.js(h) - J + 1) = b.As(h);
+%                end
+               h = b.ps(k)+1:b.ps(k+1);
+               B = full(sparse(b.is(h) - I + 1, b.js(h) - J + 1, b.As(h)));
+            else
+               error(['[ERROR] the submatrixsparse seems to have mutiple equivalent entries: ' int2str(I) ',' int2str(J)])
             end
          elseif strcmp(S.type, '.')
             b = b.allocate;
