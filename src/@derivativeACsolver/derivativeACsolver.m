@@ -337,7 +337,7 @@ classdef derivativeACsolver < stochasticACsolver
          dbY    = zeros(obj.IDmeas.m, 2*NB);
          
          % Compute dbD setting d_bar=0
-         obj = updateStateDerivativeSubMatrix(obj, zeros(size(obj.d_bar)));
+         obj = updateStateDerivativeSubMatrix(obj, zeros(size(d)));
          dbD = obj.dDb_s.matrix;
          obj = updateStateDerivativeSubMatrix(obj, obj.d_bar);
          % end
