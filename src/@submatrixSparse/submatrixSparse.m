@@ -42,12 +42,13 @@ classdef submatrixSparse < submatrix
       js     % the col indices of the sparse matrix
       ps     % ps(k) is such that is(ps(k)+1:ps(k+1)) and js(ps(k)+1:ps(k+1))
              % give the indices of the block i(k), j(k)
+      ks     % pointer to the k to reach the block i,j
       As     % As(ps(k)+1:ps(k+1)) conatins the values of the block i(k), j(k)
    end
    
    methods
       function b = submatrixSparse(m, n, i, j)
-         b   = b@submatrix(m,n);
+         b    = b@submatrix(m,n);
          [mi, ni] = size(i);
          [mj, nj] = size(j);
          if (ni ~= 1) || (nj ~= 1) || (mi ~= mj)
@@ -60,6 +61,7 @@ classdef submatrixSparse < submatrix
          b.is = [];
          b.js = [];
          b.ps = zeros(mi+1, 1);
+         b.ks = zeros(b.cm(end), b.cn(end));
          
          b.ps(1) = 0;
          for k = 1 : mi
@@ -70,13 +72,14 @@ classdef submatrixSparse < submatrix
             b.is = [b.is; A(:)];
             b.js = [b.js; B(:)];
             b.ps(k+1) = length(b.is);
+            b.ks(i(k), j(k)) = k;
          end
          b.As = zeros(size(b.is));
       end
       
       function b = set(b, Aij, i, j)
-         k = find(b.i == i & b.j == j);
-         if isempty(k)
+         k = b.ks(i,j);
+         if (k==0)
             error('In calling set(Aij, i,j) the vaues for i and j were not declared in the definition of submatrixSparse(m, n, i, j).')
          end
          b.As(b.ps(k)+1:b.ps(k+1)) = Aij(:);
@@ -96,27 +99,21 @@ classdef submatrixSparse < submatrix
          if strcmp(S.type, '()') && length(S.subs) == 2
             I = S.subs{1};
             J = S.subs{2};
-            B = zeros(sum(b.m(I)), sum(b.n(J))); 
             if (length(I) ~= 1 || length(J) ~= 1)
                error('In calling As(i,j) the vaues i and j should be scalar.')
             end
-            k = find(b.i == I & b.j == J);
-            if isempty(k)
+            if (b.ks(I,J)==0)
                if I <= length(b.m) && J <= length(b.n)
                   B = zeros(b.m(I), b.n(J));
                else
                   error('In calling As(i,j) the vaues for i and j should be in the valid range')
                end
-            elseif length(k) == 1
+            else
+               k = b.ks(I,J);
                I = b.is(b.ps(k)+1);
                J = b.js(b.ps(k)+1);
-%                for h = b.ps(k)+1:b.ps(k+1)                  
-%                   B(b.is(h) - I + 1, b.js(h) - J + 1) = b.As(h);
-%                end
                h = b.ps(k)+1:b.ps(k+1);
                B = full(sparse(b.is(h) - I + 1, b.js(h) - J + 1, b.As(h)));
-            else
-               error(['[ERROR] the submatrixsparse seems to have mutiple equivalent entries: ' int2str(I) ',' int2str(J)])
             end
          elseif strcmp(S.type, '.')
             b = b.allocate;
