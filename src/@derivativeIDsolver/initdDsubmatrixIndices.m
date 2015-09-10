@@ -33,12 +33,10 @@ for h = 1 : obj.IDstate.n
    %  with respect to q_h (x_h)
    for i = 1 : obj.IDstate.n
       % parenti = obj.IDmodel.modelParams.parent(i);
-      if obj.IDmodel.modelParams.parent(i) ~= 0;
-         if( h == i )
+      if (obj.IDmodel.modelParams.parent(i) ~= 0) && ( h == i )
             % obj.dDb = set(obj.dDb, obj.dXupdq{i} * a{parenti}, (i-1)*4+1,h);
             obj.iDb_s = [obj.iDb_s (i-1)*4+1];
             obj.jDb_s = [obj.jDb_s h];
-         end
       end
    end
    
@@ -49,14 +47,14 @@ for h = 1 : obj.IDstate.n
       
       % b vector
       % If i == 1 and we have only the term of gravitational acceleration
-      if (i == 1) && (h == 1)
+      if (i == h) && (obj.IDmodel.modelParams.parent(i) == 0)
          %obj.dDb = set(obj.dDb, obj.dDb((i-1)*4+1,h) + ...
          %   obj.dXupdq{1}*(-obj.IDmodel.g), (i-1)*4+1, h);
          obj.iDb_s = [obj.iDb_s (i-1)*4+1];
          obj.jDb_s = [obj.jDb_s h];
-      else
+      elseif (i ~= h) %(i ~= h) || (obj.IDmodel.modelParams.parent(i) ~= 0)
          %obj.dDb = set(obj.dDb, obj.dDb((i-1)*4+1,h) + ...
-         %   crm(obj.dvdx{i,h})*obj.vJ(:,i), (i-1)*4+1,h);
+         %   crm(obj.dvdx{i,h})*obj.vJ(:,i), (i-1)*4+1,h);         
          obj.iDb_s = [obj.iDb_s (i-1)*4+1];
          obj.jDb_s = [obj.jDb_s h];
       end
@@ -83,12 +81,14 @@ for h = 1 : obj.IDstate.n
          
          % if i == h, we have also to compute the derivative of
          % obj.vJ(:,i) wrt to q_i (that is simply S_i)
-         if( i == h )
+         if( i == h ) 
             % obj.dDb = set(obj.dDb, ...
             %    obj.dDb((i-1)*4+1,h+obj.IDstate.n) + ...
             %    crm(obj.v(:,i))* obj.IDmodel.S{i}, (i-1)*4+1,h+obj.IDstate.n);
-            obj.iDb_s = [obj.iDb_s (i-1)*4+1];
-            obj.jDb_s = [obj.jDb_s h+obj.IDstate.n];
+            
+            % Removed to avoid mutiple equivalent indexing
+            % obj.iDb_s = [obj.iDb_s (i-1)*4+1];
+            % obj.jDb_s = [obj.jDb_s h+obj.IDstate.n];
          end
       end
       % obj.b = set(obj.b, crf(obj.v(:,i))*obj.IDmodel.modelParams.I{i}*obj.v(:,i), I+2, 1);

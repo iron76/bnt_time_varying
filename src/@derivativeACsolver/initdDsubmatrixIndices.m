@@ -13,17 +13,15 @@ end
 obj.iDb_s = [];
 obj.jDb_s = [];
 
-for h = 1 : obj.IDstate.n   
+for h = 1 : obj.IDstate.n
    %% Compute D_{i,\lambda{i}}d_\lambda{i} subvector of Dd + b
    %  with respect to q_h (x_h)
    for i = 1 : obj.IDstate.n
       % parenti = obj.IDmodel.modelParams.parent(i);
-      if obj.IDmodel.modelParams.parent(i) ~= 0;
-         if( h == i )
-            % obj.dDb = set(obj.dDb, obj.dXupdq{i} * a{parenti}, (i-1)*4+1,h);
-            obj.iDb_s = [obj.iDb_s (i-1)*1+1];
-            obj.jDb_s = [obj.jDb_s h];
-         end
+      if (obj.IDmodel.modelParams.parent(i) ~= 0) && ( h == i )         
+         % obj.dDb = set(obj.dDb, obj.dXupdq{i} * a{parenti}, (i-1)*4+1,h);
+         obj.iDb_s = [obj.iDb_s (i-1)*1+1];
+         obj.jDb_s = [obj.jDb_s h];
       end
    end
    
@@ -34,12 +32,12 @@ for h = 1 : obj.IDstate.n
       
       % b vector
       % If i == 1 and we have only the term of gravitational acceleration
-      if (i == 1) && (h == 1)
+      if (i == h) && (obj.IDmodel.modelParams.parent(i) == 0)
          %obj.dDb = set(obj.dDb, obj.dDb((i-1)*4+1,h) + ...
          %   obj.dXupdq{1}*(-obj.IDmodel.g), (i-1)*4+1, h);
          obj.iDb_s = [obj.iDb_s (i-1)*1+1];
          obj.jDb_s = [obj.jDb_s h];
-      else
+      elseif (i ~= h) %(i ~= h) || (obj.IDmodel.modelParams.parent(i) ~= 0)
          %obj.dDb = set(obj.dDb, obj.dDb((i-1)*4+1,h) + ...
          %   crm(obj.dvdx{i,h})*obj.vJ(:,i), (i-1)*4+1,h);
          obj.iDb_s = [obj.iDb_s (i-1)*1+1];
@@ -49,7 +47,7 @@ for h = 1 : obj.IDstate.n
       % \frac{\partial v_i \times^{*} I_i v_i }{\partial q_j} =
       % \frac{\partial v_i}{\partial q_j} \times^{*} I_i v_i +
       % v_i \times^{*} I_i \frac{\partial v_i}{\partial q_j} +
-            
+      
       % If i == 1, this term of the b vector is always zero
       if i ~= 1
          % obj.b = set(obj.b, crm(obj.v(:,i))*obj.vJ(:,i), I+1, 1);
@@ -66,8 +64,10 @@ for h = 1 : obj.IDstate.n
             % obj.dDb = set(obj.dDb, ...
             %    obj.dDb((i-1)*4+1,h+obj.IDstate.n) + ...
             %    crm(obj.v(:,i))* obj.IDmodel.S{i}, (i-1)*4+1,h+obj.IDstate.n);
-            obj.iDb_s = [obj.iDb_s (i-1)*1+1];
-            obj.jDb_s = [obj.jDb_s h+obj.IDstate.n];
+            
+            % Removed to avoid mutiple equivalent indexing
+            % obj.iDb_s = [obj.iDb_s (i-1)*1+1];
+            % obj.jDb_s = [obj.jDb_s h+obj.IDstate.n];
          end
       end
    end
