@@ -339,7 +339,6 @@ classdef derivativeACsolver < stochasticACsolver
          % Compute dbD setting d_bar=0
          obj = updateStateDerivativeSubMatrix(obj, zeros(size(d)));
          dbD = obj.dDb_s.matrix;
-         obj = updateStateDerivativeSubMatrix(obj, obj.d_bar);
          % end
          
          % Update dDdq, derivative of D w.r.t. q
