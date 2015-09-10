@@ -18,10 +18,8 @@ for h = 1 : obj.IDstate.n
    %  with respect to q_h (x_h)
    for i = 1 : obj.IDstate.n
       parenti = obj.IDmodel.modelParams.parent(i);
-      if obj.IDmodel.modelParams.parent(i) ~= 0;
-         if( h == i )
-            obj.dDb = set(obj.dDb, obj.dXupdq{i} * a{parenti}, (i-1)*1+1,h);
-         end
+      if (obj.IDmodel.modelParams.parent(i) ~= 0) && ( h == i )
+         obj.dDb = set(obj.dDb, obj.dXupdq{i} * a{parenti}, (i-1)*1+1,h);
       end
    end
    
@@ -35,11 +33,11 @@ for h = 1 : obj.IDstate.n
       if (obj.IDmodel.modelParams.parent(i)==0) && (h == i)
          obj.dDb = set(obj.dDb, obj.dDb((i-1)*1+1,h) + ...
             obj.dXupdq{i}*(-obj.IDmodel.g) + crm(obj.dvdx{i,h})*obj.vJ(:,i), (i-1)*1+1, h);
-      else 
+      else
          obj.dDb = set(obj.dDb, obj.dDb((i-1)*1+1,h) + ...
             crm(obj.dvdx{i,h})*obj.vJ(:,i), (i-1)*1+1,h);
       end
-            
+      
       % If i == 1, this term of the b vector is always zero
       if i ~= 1
          % obj.b = set(obj.b, crm(obj.v(:,i))*obj.vJ(:,i), I+1, 1);
@@ -60,7 +58,7 @@ end
 %% Sparse submatrix
 obj.dDb_s.As = zeros(size(obj.dDb_s.As));
 
-for h = 1 : obj.IDstate.n   
+for h = 1 : obj.IDstate.n
    %% Compute D_{i,\lambda{i}}d_\lambda{i} subvector of Dd + b
    %  with respect to q_h (x_h)
    for i = 1 : obj.IDstate.n
@@ -88,7 +86,7 @@ for h = 1 : obj.IDstate.n
          obj.dDb_s = set(obj.dDb_s, obj.dDb_s((i-1)*1+1,h) + ...
             crm(obj.dvdx{i,h})*obj.vJ(:,i), (i-1)*1+1,h);
       end
-            
+      
       %% db1/dvq vector
       % If i == 1, this term of the b vector is always zero
       if i ~= 1
@@ -103,7 +101,7 @@ for h = 1 : obj.IDstate.n
                obj.dDb_s((i-1)*1+1,h+obj.IDstate.n) + ...
                crm(obj.v(:,i))* obj.IDmodel.S{i}, (i-1)*1+1,h+obj.IDstate.n);
          end
-      end      
+      end
    end
 end
 
