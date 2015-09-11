@@ -110,6 +110,13 @@ res = res || testDANEACalibration(dmodel_ANEA, ymodel_DANEA, dmodel_SNEA, ymodel
 disp('Running testDerivativesANEA')
 res = res || testDerivativesANEA(dmodel_ANEA, ymodel_ANEA);
 
+disp('Running testMAP')
+res = res || testMAP(dmodel_SNEA, ymodel_SNEA);
+
+disp('Running testdMAP')
+res = res || testdMAP(dmodel_SNEA, ymodel_SNEA);
+
+
 if res ~=0 
    disp('[ERROR] One of the tests failed!')
 else
@@ -149,6 +156,10 @@ res = res || testConditioning(dmodel_SNEA, ymodel_SNEA);
 res = res || testDNEA(dmodel_DNEA, ymodel_DNEA, dmodel_SNEA, ymodel_SNEA, S_dmodel);
 
 res = res || testCalibration(dmodel_DNEA, ymodel_DNEA, dmodel_SNEA, ymodel_SNEA, S_dmodel);
+
+res = res || testMAP(dmodel_SNEA, ymodel_SNEA);
+
+res = res || testdMAP(dmodel_SNEA, ymodel_SNEA);
 
 if res ~=0 
    disp('[ERROR] One of the tests failed!')
