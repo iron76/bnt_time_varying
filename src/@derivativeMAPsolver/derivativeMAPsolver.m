@@ -243,7 +243,7 @@ classdef derivativeMAPsolver < deterministicMAPsolver
          obj = updatedDsubmatrix(obj);
          
          S = inv(D'*S_Dinv*D + S_dinv + Y'*S_Yinv*Y);
-         dd_1  = zeros(26*NB, 2*NB);
+         dd_1  = zeros(26*NB, 2*NB);                     %derivative w.r.t. dq is null
          dd_2  = S*(-Y'*S_Yinv*dbY - D'*S_Dinv*dbD);
          for j = 1 : NB
             dDj   = obj.dDdq{j}.matrix;
