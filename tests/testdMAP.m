@@ -30,16 +30,16 @@ if norm(myMAP.dDd_s.matrix+myMAP.dbD_s.matrix - dD) > 1e-3
    res = 1;
 end
 
-subplot(131)
-imagesc(dd)
-colorbar
-subplot(132)
-imagesc(dd_dq)
-colorbar
-subplot(133)
-imagesc(dd-dd_dq)
-colorbar
-
-
-
-
+if norm(dd-dd_dq) > 1e-3
+   disp(['[DERIVATIVES] dD numerical derivative is quite different: ' num2str(norm(dd-dd_dq))])
+   subplot(131)
+   imagesc(dd)
+   colorbar
+   subplot(132)
+   imagesc(dd_dq)
+   colorbar
+   subplot(133)
+   imagesc(dd-dd_dq)
+   colorbar
+   res = 1;
+end
