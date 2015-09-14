@@ -94,8 +94,8 @@ for i = 1 : num_of_tests
    dd_dq  = myDNEA.compute_dq(mySNEA.d);
    
    
-   if(norm(dd - dd_dq) > 1e-3)
-      disp(['d numerical derivative is quite different: ' num2str(norm(dd - dd_dq))])
+   if(norm(dd - dd_dq) > 1e-2)
+      disp(['[DERIVATIVES] d numerical derivative is quite different: ' num2str(norm(dd - dd_dq))])
       
       subplot(131)
       imagesc(dd)

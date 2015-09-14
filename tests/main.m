@@ -9,12 +9,12 @@ S_ymodel  = 1e-4;
 
 
 dmodel_RNEA   = autoTree(NB);
-dmodel_RNEA   = autoTreeStochastic(dmodel_RNEA, S_dmodel);
+dmodel_RNEA   = autoTreeStochastic(dmodel_RNEA);
 dmodel_RNEA.gravity = [0; -9.81; 0];
 
 
 ymodel_RNEA   = autoSensRNEA(dmodel_RNEA);
-ymodel_RNEA   = autoSensStochastic(ymodel_RNEA, S_ymodel);
+ymodel_RNEA   = autoSensStochastic(ymodel_RNEA);
 
 dmodel_SNEA   = dmodel_RNEA;
 dmodel_SNEA.gravity = [0; -9.81; 0];
@@ -69,7 +69,7 @@ disp('Running testSNEA')
 res = res || testSNEA(dmodel_RNEA);
 
 disp('Running testConditioning')
-res = res || testConditioning(dmodel_SNEA, ymodel_SNEA);
+res = res || testConditioning(dmodel_RNEA, ymodel_RNEA);
 
 disp('Running testMRNEA')
 res = res || testMRNEA(dmodel_RNEA, ymodel_RNEA);
