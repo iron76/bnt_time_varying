@@ -50,7 +50,7 @@ mtbInvertedFrames   =  {true,true, ...
 
 if ~exist('preprocess.mat', 'file')
    
-   data.nsamples  = 2000; %number of samples
+   data.nsamples  = 100; %number of samples
    data.plot      = 0;
    data.ini       = 2;   %seconds to be skipped at the start
    data.end       = 22;  %seconds to reach the end of the movement
@@ -59,7 +59,7 @@ if ~exist('preprocess.mat', 'file')
    
    
    %%strucutre from files
-   data.path        = '/Users/traversaro/src/data/dumperYoga9Sep2915';
+   data.path        = '/Users/iron/Desktop/graph/data/09-11-2015';
    data.parts       = {};
    data.labels      = {};
    data.ndof        = {};
@@ -212,15 +212,16 @@ data.y  = [data.y; zeros(6*dmodel.NB, length(data.time))];
 % Add the d2q measurements
 data.y  = [data.y; data.d2q];
 
-% for i = 1 : length(data.time)
-%    myMAP = myMAP.setState(data.q(:,i), data.dq(:,i));
-%    myMAP = myMAP.setY(data.y(:,i));
-%    myMAP = myMAP.solveID();
-%    y(:,i) = myMAP.simY(myRNEA.d);
-%    if mod(i-1,100) == 0
-%       fprintf('Processing %d %% of the dataset\n', round(i/length(data.time)*100));
-%    end
-% end
+yMAP = zeros(size(y));
+for i = 1 : length(data.time)
+   myMAP     = myMAP.setState(data.q(:,i), data.dq(:,i));
+   myMAP     = myMAP.setY(data.y(:,i));
+   myMAP     = myMAP.solveID();
+   yMAP(:,i) = myMAP.simY(myMAP.d);
+   if mod(i-1,100) == 0
+      fprintf('Processing %d %% of the dataset\n', round(i/length(data.time)*100));
+   end
+end
 
 
 %% Plot overlapped plots
@@ -237,6 +238,7 @@ for l = 1 : length(label_to_plot)
             hold on;
             shadedErrorBar(data.time, data.y(I(j),:), sqrt(data.Sy(I(j), :)), {[colors(mod(j,3)+1) '--'] , 'LineWidth', 1}, 0);
             plot(data.time, y(I(j),:), colors(mod(j,3)+1) , 'LineWidth', 1);
+            plot(data.time, yMAP(I(j),:), [colors(mod(j,3)+1) , '.']);            
             
             title(strcat(strrep(myMAP.IDsens.sensorsParams.labels{k}, '_', '~'),num2str(j)));
          end
