@@ -100,9 +100,12 @@ if ~exist('preprocess.mat', 'file')
    % end
    
    run('iCub.m');
-   
-   % compute the necessary transforms from URDF
-   computeURDFToDrakeTransforms;
+
+   % load the necessary transforms from URDF
+   % this transforms are computed using the 
+   % computeURDFToDrakeTransforms script
+   %computeURDFToDrakeTransforms;
+   run('iCubSensTransforms.m');
    
    dmodel  = iCub_dmodel;
    ymodel  = iCubSens(dmodel, sens);

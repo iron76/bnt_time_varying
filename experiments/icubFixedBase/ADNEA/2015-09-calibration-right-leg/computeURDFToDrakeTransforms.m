@@ -76,3 +76,5 @@ for i = 1:length(mtbSensorCodes)
 end
 
 drake_root_link_X_X_urdf_r_foot = aaXa{6};
+
+Simulink.saveVars('iCubSensTransforms.m', '-regexp', 'drake_*')
