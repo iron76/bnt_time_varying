@@ -26,10 +26,8 @@ for h = 1 : obj.IDstate.n
    %  with respect to q_h (x_h)
    for i = 1 : obj.IDstate.n
       parenti = obj.IDmodel.modelParams.parent(i);
-      if obj.IDmodel.modelParams.parent(i) ~= 0;
-         if( h == i )
-            obj.dDb = set(obj.dDb, obj.dXupdq{i} * a{parenti}, (i-1)*4+1,h);
-         end
+      if (obj.IDmodel.modelParams.parent(i) ~= 0) && ( h == i )
+         obj.dDb = set(obj.dDb, obj.dXupdq{i} * a{parenti}, (i-1)*4+1,h);
       end
    end
    
@@ -43,7 +41,7 @@ for h = 1 : obj.IDstate.n
       if (obj.IDmodel.modelParams.parent(i)==0) && (h == i)
          obj.dDb = set(obj.dDb, obj.dDb((i-1)*4+1,h) + ...
             obj.dXupdq{i}*(-obj.IDmodel.g) + crm(obj.dvdx{i,h})*obj.vJ(:,i), (i-1)*4+1, h);
-      else 
+      else
          obj.dDb = set(obj.dDb, obj.dDb((i-1)*4+1,h) + ...
             crm(obj.dvdx{i,h})*obj.vJ(:,i), (i-1)*4+1,h);
       end

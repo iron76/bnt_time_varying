@@ -91,24 +91,21 @@ for i = 1 : num_of_tests
    mySNEA = mySNEA.solveID();
    
    myDNEA = myDNEA.setState(q,dq);
-   dd_3   = myDNEA.compute_dq(mySNEA.d);
-
-   subplot(131)
-   imagesc(dd)
-   colorbar
-   subplot(132)
-   imagesc(dd_3)
-   colorbar
-   subplot(133)
-   imagesc(dd-dd_3)
-   colorbar
+   dd_dq  = myDNEA.compute_dq(mySNEA.d);
    
-   % Removed until the numerical issues are fixed (currently the problem is
-   % bad conditioned since S_dinv is not yet a proper regularization term [
-   % prior is on a subpart of d])
-   %
-   % if(norm(dd - dd_1) > 1e-2)
-   %   disp(['d numerical derivative is quite different: ' num2str(norm(dd - dd_1))])
-   %    res = 1;
-   % end
+   
+   if(norm(dd - dd_dq) > 1e-2)
+      disp(['[DERIVATIVES] d numerical derivative is quite different: ' num2str(norm(dd - dd_dq))])
+      
+      subplot(131)
+      imagesc(dd)
+      colorbar
+      subplot(132)
+      imagesc(dd_dq)
+      colorbar
+      subplot(133)
+      imagesc(dd-dd_dq)
+      colorbar
+      res = 1;
+   end
 end

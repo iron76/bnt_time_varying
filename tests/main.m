@@ -9,12 +9,12 @@ S_ymodel  = 1e-4;
 
 
 dmodel_RNEA   = autoTree(NB);
-dmodel_RNEA   = autoTreeStochastic(dmodel_RNEA, S_dmodel);
+dmodel_RNEA   = autoTreeStochastic(dmodel_RNEA);
 dmodel_RNEA.gravity = [0; -9.81; 0];
 
 
 ymodel_RNEA   = autoSensRNEA(dmodel_RNEA);
-ymodel_RNEA   = autoSensStochastic(ymodel_RNEA, S_ymodel);
+ymodel_RNEA   = autoSensStochastic(ymodel_RNEA);
 
 dmodel_SNEA   = dmodel_RNEA;
 dmodel_SNEA.gravity = [0; -9.81; 0];
@@ -69,7 +69,7 @@ disp('Running testSNEA')
 res = res || testSNEA(dmodel_RNEA);
 
 disp('Running testConditioning')
-res = res || testConditioning(dmodel_SNEA, ymodel_SNEA);
+res = res || testConditioning(dmodel_RNEA, ymodel_RNEA);
 
 disp('Running testMRNEA')
 res = res || testMRNEA(dmodel_RNEA, ymodel_RNEA);
@@ -87,7 +87,7 @@ disp('Running testBNEA')
 res = res || testBNEA(dmodel_BNEA, ymodel_BNEA);
  
 disp('Running testDerivativesD')
-res = res || testDerivativesD(dmodel_RNEA, ymodel_RNEA);
+res = res || testDerivativesD(dmodel_SNEA, ymodel_SNEA);
 
 disp('Running testDerivatives')
 res = res || testDerivatives(dmodel_DNEA, ymodel_DNEA);
@@ -109,6 +109,13 @@ res = res || testDANEACalibration(dmodel_ANEA, ymodel_DANEA, dmodel_SNEA, ymodel
 
 disp('Running testDerivativesANEA')
 res = res || testDerivativesANEA(dmodel_ANEA, ymodel_ANEA);
+
+disp('Running testMAP')
+res = res || testMAP(dmodel_SNEA, ymodel_SNEA);
+
+disp('Running testdMAP')
+res = res || testdMAP(dmodel_SNEA, ymodel_SNEA);
+
 
 if res ~=0 
    disp('[ERROR] One of the tests failed!')
@@ -149,6 +156,10 @@ res = res || testConditioning(dmodel_SNEA, ymodel_SNEA);
 res = res || testDNEA(dmodel_DNEA, ymodel_DNEA, dmodel_SNEA, ymodel_SNEA, S_dmodel);
 
 res = res || testCalibration(dmodel_DNEA, ymodel_DNEA, dmodel_SNEA, ymodel_SNEA, S_dmodel);
+
+res = res || testMAP(dmodel_SNEA, ymodel_SNEA);
+
+res = res || testdMAP(dmodel_SNEA, ymodel_SNEA);
 
 if res ~=0 
    disp('[ERROR] One of the tests failed!')

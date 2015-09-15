@@ -345,13 +345,14 @@ classdef derivativeIDsolver < stochasticIDsolver
          % end 
          
          dd_1  = zeros(26*NB, 2*NB);
-         dd_2  = ((D'*S_Dinv*D + S_dinv + Y'*S_Yinv*Y)\(-Y'*S_Yinv*dbY - D'*S_Dinv*dbD));
+         S     = inv((D'*S_Dinv*D + S_dinv + Y'*S_Yinv*Y));
+         dd_2  = S*(-Y'*S_Yinv*dbY - D'*S_Dinv*dbD);
          for j = 1 : NB
             dDj   = obj.dDdq{j}.matrix;
             dDj   = dDj(:, bckPerm);
             
-            dd_1(:,j) = -inv(S_dinv + Y'*S_Yinv*Y + D'*S_Dinv*D)*(D'*S_Dinv*dDj + dDj'*S_Dinv*D)*d(bckPerm,1);
-            dd_1(:,j) = dd_1(:,j) + ((D'*S_Dinv*D + S_dinv + Y'*S_Yinv*Y)\(- dDj'*S_Dinv*bD));
+            dd_1(:,j) = -S*(D'*S_Dinv*dDj + dDj'*S_Dinv*D)*d(bckPerm,1);
+            dd_1(:,j) = dd_1(:,j) + S*(- dDj'*S_Dinv*bD);
          end
          dd_dq = dd_1 + dd_2;
          dd_dq = dd_dq(fwdPerm, :);

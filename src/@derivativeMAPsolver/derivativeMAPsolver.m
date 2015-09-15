@@ -1,9 +1,9 @@
-% derivativeACsolver is a class for wrapping accelerations solvers
+% mapMAPsolver is a class for wrapping differential inverse dynamics solvers
 %
-% derivativeACsolver is a class that is used to wrap mutiple solvers for
-% computing accelerations in articulated structures. Differential inverse
-% dynamic solvers compute an estimation of spatial and joint accelerations 
-% (d: accelrations) and kinematic (x: joint position and velocities)
+% derivativeMAPsolver is a class that is used to wrap mutiple solvers for
+% computing differential inverse dynamics. Differential inverse dynamic
+% solvers compute an estimation of the dynamic (d: forces, torques,
+% accelerations, etc.) and kinematic (x: joint position and velocities)
 % variables given a set of measurements, possibly redundant. The estimation
 % is performed using the following equation:
 %
@@ -11,7 +11,7 @@
 %
 % Y(x) d - y    = 0         (2)
 %
-% where (1) describes the accellearation eqaution for the articulated rigid
+% where (1) describes the Newton-Euler eqaution for the articulated rigid
 % body and (2) describes the measurement eqaution. The estimation of d and
 % x is obtained by first linearizing around [d_bar, x_bar] and then
 % computing the maximum a posteriori of the linearized equations. In this
@@ -21,12 +21,10 @@
 %
 % PROPERTIES
 %    IDstate - the current articulated rigid body state: q, dq (class state)
-%     IDmeas - the current measurements: y (class meas)
+%     MAPmeas - the current measurements: y (class meas)
 %    IDmodel - the model of the articulated rigid body (class model)
-%     IDsens - the model of the sensor distribution (class sensors)
-%          d - dynamic varaibles [a_i, d2q_i]
-%          x - kinematic variables [q, dq]
-%         Sx - kinematic variables variance
+%     MAPsens - the model of the sensor distribution (class sensors)
+%          d - dynamic varaibles [a_i, fB_i, f_i, tau_i, fx_i, d2q_i]
 %
 % METHODS
 %   setState - set the current value for x_bar (position q and velocity dq)
@@ -36,29 +34,31 @@
 % Author: Francesco Nori
 % Genova, Dec 2014
 
-classdef derivativeACsolver < stochasticACsolver
+classdef derivativeMAPsolver < deterministicMAPsolver
    properties (SetAccess = protected)
-      Sx_inv %% The inverse variance of the current esimation for x
-      Sx     %% The variance of the current esimation for x
       dvdx   %% Bidimensional cell array of mdl.n \times 2*mdl.n elements
       % dvdx{i,h} contains \frac{\partial v_i}{\partial q_h} if h <= n
       % otherwise it contains \frac{\partial v_1}{\partial \dot{q}_{h-n}}
-      ant    %% ant(h,i) == 1 if h is ancestor of i
       
       dXupdq %% Cell array of mdl.n elements.  dXupdq{i} contains
       %  \frac{\partial {}^{i}X_{\lambda(i)}}{\partial q_i}
-      dDb %% Matrix representing the derivative of D d + b with respect 
-      %  to x = [q; dq] \frac{D d + b}{\partial x}
-      iDb %% indeces to access the dDb submatrix
-      jDb %% indeces to access the dDb submatrix
 
-      dDb_s %% Matrix representing the derivative of D d + b with respect 
+      dbD_s %% Matrix representing the derivative of D d + b with respect 
       %  to x = [q; dq] \frac{D d + b}{\partial x}, sparse version
-      iDb_s %% indeces to access the dDb submatrix, sparse version
-      jDb_s %% indeces to access the dDb submatrix, sparse version
+      ibD_s %% indeces to access the dDb submatrix, sparse version
+      jbD_s %% indeces to access the dDb submatrix, sparse version  
+
+      dDd_s %% Matrix representing the derivative of D d + b with respect 
+      %  to x = [q; dq] \frac{D d + b}{\partial x}, sparse version
+      iDd_s %% indeces to access the dDb submatrix, sparse version
+      jDd_s %% indeces to access the dDb submatrix, sparse version  
       
-      dDdq   %% Cell array of mdl.n elements.  dDdq{i} contains
+      
+      dDdq %% Matrix representing the derivative of D with respect 
+      %  to x = q \frac{D}{\partial q}, sparse version. dDdq{i} contains
       %  \frac{\partial D(q)}{\partial q_i}
+      iD_s %% indeces to access the dD submatrix, sparse version
+      jD_s %% indeces to access the dD submatrix, sparse version        
       
       by_s  %% Matrix representing by(x)
       iby   %% indeces to access the by(x) submatrix
@@ -72,63 +72,40 @@ classdef derivativeACsolver < stochasticACsolver
       jdby   %% indeces to access the dby(x) submatrix
       idby_s %% indeces to access the dby(x) submatrix, sparse version
       jdby_s %% indeces to access the dby(x) submatrix, sparse version
-      
-      x_bar %% the current estimation for x (around which we linearize)
-      d_bar %% the current estimation for d (around which we linearize)
-      
-      x_prior %% the prior on x
-      d_prior %% the prior on d
-   end
-
-   properties
-      sparsified = 0;     %% check if sparsification was already performed
-      S                   %% the sparsification matrix
-      x                   %% the result of the estimation for x
-   end   
+ end
    
    methods
-      function b = derivativeACsolver(mdl,sns)
+      function b = derivativeMAPsolver(mdl,sns)
          if nargin == 0
             error(['You should provide a featherstone-like ' ...
-               'model to instantiate stochasticACsolver'] )
+               'model to instantiate stochasticMAPsolver'] )
          end
-         b = b@stochasticACsolver(mdl,sns);
+         b = b@deterministicMAPsolver(mdl,sns);
          
          %% Initialize own properties
-         b.dDdq    = cell(mdl.n, 1);
+         b.dDdq  = cell(mdl.n, 1);
          b.dXupdq  = cell(mdl.n, 1);
-         b.dvdx    = cell(mdl.n, 2*mdl.n);
+         b.dvdx    = cell(mdl.n, 2*mdl.n);         
          for i = 1 : mdl.n
+            % init dXupdq
             b.dXupdq{i} = zeros(6,6);
+            % init dvdx
             for j = 1 : mdl.n
                b.dvdx{i,j} = zeros(6,1);
                b.dvdx{i,j+mdl.n} = zeros(6,1);
             end
+            % init dDdq
+            b.dDdq{i} = submatrix(b.iD_s, b.jD_s);
          end
-         
-         %% Initialize ancestors
-         b.ant = zeros(b.IDstate.n, b.IDstate.n);
-         for i = 1 : b.IDstate.n
-            h = i;
-            while( h ~= 0 )
-               parenth = b.IDmodel.modelParams.parent(h);               
-               b.ant(h,i) = 1;
-               h = parenth;
-            end
-         end
-         
-         
-         %% Initialize sumatrices
-         b = initdDsubmatrixIndices(b);
-         b = initdDsubmatrix(b);
-         
+         %% Initialize sumatrices         
          b = initBYsubmatrixIndices(b);         
          b = initdBYsubmatrixIndices(b);
-
+         b = initdDsubmatrixIndices(b);
+         b = initdDbSubmatrixIndices(b);
       end
 
       function obj = setState(obj,q,dq)
-         obj = setState@stochasticACsolver(obj,q,dq);
+         obj = setState@deterministicMAPsolver(obj,q,dq);
          %% Compute derivative of the transforms with respect to the parent for all links
          % obj.Xup{i} contains {}^{i}X_{\lambda(i)}
          for i = 1 : obj.IDstate.n
@@ -172,81 +149,22 @@ classdef derivativeACsolver < stochasticACsolver
             end
          end
                   
-         %% Update the Y and dY matrices
+         %% Update the Y and dY matrices         
          obj = updateBYsubmatrix(obj);
-         obj = updatedBYsubmatrix(obj);
-         
-         %% Value of x around which we linearize        
-         obj.x_bar = [q;dq];
-      end % derivativeACsolver
+         obj = updatedBYsubmatrix(obj);         
+      end % derivativeMAPsolver  
       
-      function disp(b)
-         % Display stochasticACsolver object
-         disp@deterministicIDsolver(b)
-         fprintf('derivativeACsolver disp to be implemented! \n')
-      end % disp
-
-      function obj = setD(obj, d)
-         [m,n] = size(d);
-         if (m ~= obj.IDmodel.modelParams.NB * 7) || (n ~= 1)
-            error('[ERROR] The input d should be provided as a column vector with 7*model.NB rows');
-         end
-         %  as defined in the IJRR Paper
-         obj.d_bar = d;
-         obj = updateStateDerivativeSubMatrix(obj, obj.d_bar);
-      end
-      
-      
-      function obj = setDprior(obj, d)
-         %% Compute \frac{\partial (Dd+b)}{\partial x} matrix
-         [m,n] = size(d);
-         if (m ~= obj.IDmodel.modelParams.NB * 7) || (n ~= 1)
-            error('[ERROR] The input d should be provided as a column vector with 26*model.NB rows');
-         end
-         %  as defined in the IJRR Paper
-         obj.d_prior = d;
-      end
-      
-      function obj = setXprior(obj, x)         
-         %% Current prior for the state [q; dq]         
-         [m,n] = size(x);
-         if (m ~= obj.IDmodel.modelParams.NB * 2) || (n ~= 1)
-            error('[ERROR] The input x should be provided as a column vector with 2*model.NB rows');
-         end
-         %  as defined in the IJRR Paper
-         obj.x_prior = x;
-      end
-      
-      function obj = setXvariance(obj,Sx)
-         [m,n] = size(Sx);
-         if (m ~= obj.IDmodel.modelParams.NB * 2) || (n ~= obj.IDmodel.modelParams.NB * 2)
-            error('[ERROR] The input Sx should be a matrix with 2*model.NB rows and columns');
-         end
-         S = inv(Sx);
-         [iS, jS] = find(S);
-         obj.Sx_inv = submatrixSparse(ones(m,1), ones(n,1), iS, jS);
-         for k = 1 : length(iS)
-            obj.Sx_inv = set(obj.Sx_inv, S(iS(k),jS(k)), iS(k), jS(k));
-         end
-         
-         S = Sx;
-         [iS, jS] = find(S);
-         obj.Sx = submatrixSparse(ones(m,1), ones(n,1), iS, jS);
-         for k = 1 : length(iS)
-            obj.Sx = set(obj.Sx, S(iS(k),jS(k)), iS(k), jS(k));
-         end
-      end      
       
       function y = simY(obj, d, q, dq)
-         % fprintf('Calling the stochasticACsolver simY method \n');
-         Y = cell2mat(obj.IDsens.sensorsParams.Y);
-         y = Y * [d; q; dq] + obj.by_s.matrix; % + chol(inv(obj.IDsens.sensorsParams.Sy_inv))*randn(obj.IDmeas.m, 1)
+         % fprintf('Calling the stochasticMAPsolver simY method \n');
+         Y = cell2mat(obj.MAPsens.sensorsParams.Y);
+         y = Y * [d; q; dq] + obj.by_s.matrix; % + chol(inv(obj.MAPsens.sensorsParams.Sy_inv))*randn(obj.MAPmeas.m, 1)
       end
 
       function res = eq(obj1, obj2)
          res = 1;
-         res = res && isequal(obj1.IDsens.sensorsParams.Sy_inv, obj2.IDsens.sensorsParams.Sy_inv);
-         if ~isequal(obj1.IDsens.sensorsParams.Sy_inv, obj2.IDsens.sensorsParams.Sy_inv)
+         res = res && isequal(obj1.MAPsens.sensorsParams.Sy_inv, obj2.MAPsens.sensorsParams.Sy_inv);
+         if ~isequal(obj1.MAPsens.sensorsParams.Sy_inv, obj2.MAPsens.sensorsParams.Sy_inv)
             disp('Sy_inv are different')
          end
          res = res && isequal(obj1.IDmodel.modelParams.Sv_inv.matrix, obj2.IDmodel.modelParams.Sv_inv.matrix);
@@ -277,8 +195,8 @@ classdef derivativeACsolver < stochasticACsolver
          if ~isequal(obj1.Sx_inv.As, obj2.Sx_inv.As)
             disp('Sx_inv are different')
          end                  
-         res = res && isequal(obj1.IDmeas.y, obj2.IDmeas.y);
-         if ~isequal(obj1.IDmeas.y, obj2.IDmeas.y)
+         res = res && isequal(obj1.MAPmeas.y, obj2.MAPmeas.y);
+         if ~isequal(obj1.MAPmeas.y, obj2.MAPmeas.y)
             disp('y are different')
          end
          res = res && isequal(obj1.x, obj2.x);
@@ -291,71 +209,54 @@ classdef derivativeACsolver < stochasticACsolver
          end
          
       end
-      %% Compute the derivative of D with respect to qi (i-th element of q)
-      function obj = compute_dDdq(obj)
-         for i = 1 : obj.IDstate.n
-            obj.dDdq{i} = submatrix(obj.iD, obj.jD);
-         end
-         
-         for i = 1 : obj.IDstate.n
-            j = obj.IDmodel.modelParams.parent(i);
-            if j > 0
-               obj.dDdq{i} = set(obj.dDdq{i}, obj.dXupdq{i}, (i-1)+1, (j-1)*2+1);
-            end
-            
-         end
-         
-      end
+      
+
       
       %% Compute the derivative of d with respect to q
       function dd_dq = compute_dq(obj, d)
          NB = obj.IDmodel.modelParams.NB;
          
-         % fwdPerm          = myDANEA.id;
-         % bckPerm(fwdPerm) = 1:length(fwdPerm);
-
-         D = obj.D.matrix;
-         b = obj.b.matrix;
+         fwdPerm          = obj.id;
+         bckPerm(fwdPerm) = 1:length(fwdPerm);
+         
+         D = sparse(obj.iDs, obj.jDs, obj.Ds, 19*NB, 26*NB);
+         b = sparse(obj.ibs, ones(size(obj.ibs)), obj.bs, 19*NB, 1);
          Sv_inv = obj.IDmodel.modelParams.Sv_inv.matrix;
          Sw_inv = obj.IDmodel.modelParams.Sw_inv.matrix;
-         if isa(obj.IDsens.sensorsParams.Sy_inv, 'submatrixSparse')
-             Sy_inv = obj.IDsens.sensorsParams.Sy_inv.matrix;
-         else
-             Sy_inv = obj.IDsens.sensorsParams.Sy_inv;
-         end
+         Sy_inv = obj.IDsens.sensorsParams.Sy_inv.matrix;
          Y      = obj.IDsens.sensorsParams.Ys;
-         Y      = Y(1:obj.IDmeas.m, 1:7*NB);
-         Y      = Y(:, obj.id);
+         % Y      = Y(1:obj.MAPmeas.m, 1:26*NB);
          
          S_Dinv = Sv_inv;
          S_dinv = blkdiag(zeros(size(Sv_inv)), Sw_inv);
          S_Yinv = Sy_inv;
          bY     = zeros(obj.IDmeas.m,1);
          bD     = b;
-         S_dinv = S_dinv(obj.id,obj.id);
          
          dbY    = zeros(obj.IDmeas.m, 2*NB);
          
-         % Compute dbD setting d_bar=0
-         obj = updateStateDerivativeSubMatrix(obj, zeros(size(d)));
-         dbD = obj.dDb_s.matrix;
-         % end
+         % Compute dbD
+         obj = updatedDbSubmatrix(obj, d);
+         dbD = obj.dbD_s.matrix;
          
          % Update dDdq, derivative of D w.r.t. q
-         obj = compute_dDdq(obj);
-         % end
+         obj = updatedDsubmatrix(obj);
          
-         dd_1  = zeros(7*NB, 2*NB);
-         dd_2  = ((D'*S_Dinv*D + S_dinv + Y'*S_Yinv*Y)\(-Y'*S_Yinv*dbY - D'*S_Dinv*dbD));
+         S = inv(D'*S_Dinv*D + S_dinv + Y'*S_Yinv*Y);
+         dd_1  = zeros(26*NB, 2*NB);                     %derivative w.r.t. dq is null
+         dd_2  = S*(-Y'*S_Yinv*dbY - D'*S_Dinv*dbD);
          for j = 1 : NB
             dDj   = obj.dDdq{j}.matrix;
+            dDj   = dDj(:, bckPerm);
             
-            dd_1(:,j) = -inv(S_dinv + Y'*S_Yinv*Y + D'*S_Dinv*D)*(D'*S_Dinv*dDj + dDj'*S_Dinv*D)*d;
-            dd_1(:,j) = dd_1(:,j) + ((D'*S_Dinv*D + S_dinv + Y'*S_Yinv*Y)\(- dDj'*S_Dinv*bD));
+            dd_1(:,j) = -S*(D'*S_Dinv*dDj + dDj'*S_Dinv*D)*d(bckPerm,1);
+            dd_1(:,j) = dd_1(:,j) + S*(- dDj'*S_Dinv*bD);
          end
          dd_dq = dd_1 + dd_2;
+         dd_dq = dd_dq(fwdPerm, :);
          
       end
+      
    end % methods
 end % classdef
 

@@ -42,6 +42,10 @@ cp -v  $BNT_TIME_VARYING_FOLDER/extern/featherstone/spatial/traslyderiv.m $SPATI
 
 cp -v  $BNT_TIME_VARYING_FOLDER/extern/featherstone/spatial/traslzderiv.m $SPATIAL_FOLDER/spatial/traslzderiv.m
 
+cp -v  $BNT_TIME_VARYING_FOLDER/extern/featherstone/spatial/crfmult.m $SPATIAL_FOLDER/spatial/crfmult.m
+
+cp -v  $BNT_TIME_VARYING_FOLDER/extern/featherstone/spatial/crmmult.m $SPATIAL_FOLDER/spatial/crmmult.m
+
 cp -v  $BNT_TIME_VARYING_FOLDER/extern/bnt/BNT/CPDs/@gaussian_net_wrench_CPD/convert_to_pot.m $BNT_FOLDER/BNT/CPDs/@gaussian_net_wrench_CPD/convert_to_pot.m
 
 cp -v  $BNT_TIME_VARYING_FOLDER/extern/bnt/BNT/CPDs/@gaussian_net_wrench_CPD/gaussian_CPD_params_given_dps.m $BNT_FOLDER/BNT/CPDs/@gaussian_net_wrench_CPD/gaussian_CPD_params_given_dps.m
