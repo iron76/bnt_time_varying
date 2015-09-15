@@ -1,5 +1,5 @@
 dynComp = iDynTree.DynamicsComputations();
-dynComp.loadRobotModelFromFile('iCubRightLegV25.urdf')
+dynComp.loadRobotModelFromFile('iCubRightLegV25.urdf');
 
 zeroVec = iDynTree.VectorDynSize(6);
 zeroGrav = iDynTree.SpatialAcc();
