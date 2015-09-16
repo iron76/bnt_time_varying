@@ -49,38 +49,7 @@ function [ ymodel ] = iCubSens( dmodel , sens)
 % Genova, Dec 2014
 
 ymodel.NB = dmodel.NB;
-ny = 0;
-
-for i = 1 : length(sens.parts) 
-   sens_label = sens.labels{i};
-   if strcmp(sens_label(end-2:end), 'imu') || strcmp(sens_label(end-2:end), 'acc') || strcmp(sens_label(end-2:end), 'fts')
-      
-      ny = ny + 1;
-      dy = sens.ndof{i};
-      ymodel.labels{ny,1} = sens.labels{i};
-      for j = 1 : dmodel.NB
-         ymodel.Y{ny,j}   = zeros(dy,26);
-         ymodel.Ys{ny,j}  = sparse(zeros(dy,26));
-         if(strcmp(sens.parts{i}, dmodel.linkname{j}))
-            link_ind = j;
-         end
-      end
-      
-      if strcmp(ymodel.labels{ny,1}(end-2:end), 'imu')
-         ymodel.Y{ny,link_ind}      = [[zeros(3,3) eye(3); eye(3) zeros(3,3)] zeros(dy,6) zeros(dy,6) zeros(dy, 1) zeros(dy,6) zeros(dy, 1)];
-         ymodel.Ys{ny,link_ind}     = sparse(1:6,[4:6 1:3],ones(dy,1), dy, 26);
-      elseif strcmp(ymodel.labels{ny,1}(end-2:end), 'acc')
-         ymodel.Y{ny,link_ind}      = [zeros(dy,3) eye(dy) zeros(dy,6) zeros(dy,6) zeros(dy, 1) zeros(dy,6) zeros(dy, 1)];
-         ymodel.Ys{ny,link_ind}     = sparse(1:3,4:6,ones(dy,1), dy, 26);
-      elseif strcmp(ymodel.labels{ny,1}(end-2:end), 'fts')
-         ymodel.Y{ny,link_ind}      = [zeros(dy,6) zeros(dy,6) [zeros(3,3) eye(3); eye(3) zeros(3,3)] zeros(dy, 1) zeros(dy,6) zeros(dy, 1)];
-         ymodel.Ys{ny,link_ind}     = sparse(1:6, [16:18 13:15],ones(dy,1), dy, 26);
-      end
-      ymodel.sizes{ny,1}  = dy;
-   end
-end
-
-ymodel.ny = ny;
+ymodel.ny = 0;
 
 for i = 1 : dmodel.NB
    
@@ -106,6 +75,36 @@ for i = 1 : dmodel.NB
    ymodel.Y{ymodel.ny,i}  = [zeros(1,6) zeros(1,6) zeros(1, 6) zeros(1, 1) zeros(1,6) eye(1,1)];
    ymodel.Ys{ymodel.ny,i} = sparse(1,26,ones(1,1), 1, 26);
 end
+
+for i = 1 : length(sens.parts) 
+   sens_label = sens.labels{i};
+   if strcmp(sens_label(end-2:end), 'imu') || strcmp(sens_label(end-2:end), 'acc') || strcmp(sens_label(end-2:end), 'fts')
+      
+      ymodel.ny = ymodel.ny + 1;
+      dy = sens.ndof{i};
+      ymodel.labels{ymodel.ny,1} = sens.labels{i};
+      for j = 1 : dmodel.NB
+         ymodel.Y{ymodel.ny,j}   = zeros(dy,26);
+         ymodel.Ys{ymodel.ny,j}  = sparse(zeros(dy,26));
+         if(strcmp(sens.parts{i}, dmodel.linkname{j}))
+            link_ind = j;
+         end
+      end
+      
+      if strcmp(ymodel.labels{ymodel.ny,1}(end-2:end), 'imu')
+         ymodel.Y{ymodel.ny,link_ind}      = [[zeros(3,3) eye(3); eye(3) zeros(3,3)] zeros(dy,6) zeros(dy,6) zeros(dy, 1) zeros(dy,6) zeros(dy, 1)];
+         ymodel.Ys{ymodel.ny,link_ind}     = sparse(1:6,[4:6 1:3],ones(dy,1), dy, 26);
+      elseif strcmp(ymodel.labels{ymodel.ny,1}(end-2:end), 'acc')
+         ymodel.Y{ymodel.ny,link_ind}      = [zeros(dy,3) eye(dy) zeros(dy,6) zeros(dy,6) zeros(dy, 1) zeros(dy,6) zeros(dy, 1)];
+         ymodel.Ys{ymodel.ny,link_ind}     = sparse(1:3,4:6,ones(dy,1), dy, 26);
+      elseif strcmp(ymodel.labels{ymodel.ny,1}(end-2:end), 'fts')
+         ymodel.Y{ymodel.ny,link_ind}      = [zeros(dy,6) zeros(dy,6) [zeros(3,3) eye(3); eye(3) zeros(3,3)] zeros(dy, 1) zeros(dy,6) zeros(dy, 1)];
+         ymodel.Ys{ymodel.ny,link_ind}     = sparse(1:6, [16:18 13:15],ones(dy,1), dy, 26);
+      end
+      ymodel.sizes{ymodel.ny,1}  = dy;
+   end
+end
+
 
 ymodel.m  = sum(cell2mat(ymodel.sizes));
 

@@ -48,110 +48,56 @@ mtbInvertedFrames   =  {true,true, ...
 
 
 
-if ~exist('preprocess.mat', 'file')
-   
-   data.nsamples  = 100; %number of samples
-   data.plot      = 0;
-   data.ini       = 2;   %seconds to be skipped at the start
-   data.end       = 22;  %seconds to reach the end of the movement
-   data.diff_imu  = 1;    %derivate the angular velocity of the IMUs
-   data.diff_q    = 1;    %derivate the angular velocity of the IMUs
-   
-   
-   %%strucutre from files
-   data.path        = '/Users/iron/Desktop/graph/data/09-11-2015';
-   data.parts       = {};
-   data.labels      = {};
-   data.ndof        = {};
-   data.index       = {};
-   data.type        = {};
-   data.visualize   = {};
-   %%strucutre for urdf
-   sens.parts       = {};
-   sens.labels      = {};
-   sens.ndof        = {};
-   sens.type        = {};
-   sens.transform  = {};
-   
-   %% add ft sensors
-   data = addSensToData(data, 'r_leg_ft_sensor:o' , 'rl_fts'  , 6, '1:6', ''           , 1*data.plot);
-   sens = addSensToSens(sens, 'r_upper_leg'       , 'rl_fts'  , 6,        ''           ,'drake_r_upper_leg_X_urdf_r_hip_3');
-   data = addSensToData(data, 'r_foot_ft_sensor:o', 'rf_fts'  , 6, '1:6', ''           , 1*data.plot);
-   sens = addSensToSens(sens, 'r_foot'       , 'rf_fts'  , 6,        ''           ,'drake_r_foot_X_urdf_r_foot');
-   
-   % add mtb sensors
-   for i = 1:nrOfMTBAccs
-      sensorTransformName = strcat('drake_', mtbSensorLink{i},'_X_urdf_',mtbSensorFrames{i});
-      data = addSensToData(data, 'right_leg/inertialMTB'    , mtbSensorLabel{i}  , 3, mtbIndices{i}, ''           , 1*data.plot);
-      sens = addSensToSens(sens, mtbSensorLink{i} , mtbSensorLabel{i}  , 3,        ''           ,sensorTransformName);
-   end
-   
-   %% add joint measurements
-   data = addSensToData(data, 'right_leg'         , 'rl'      , 6, '1:6', 'stateExt:o' , 1*data.plot);
-   
-   data = loadData(data);
-   
-   
-   
-   
-   %%
-   % for i = 1 : length(data.time)
-   %    iCubVisualize(data.q(:,i), R)
-   % end
-   
-   run('iCub.m');
 
-   % load the necessary transforms from URDF
-   % this transforms are computed using the 
-   % computeURDFToDrakeTransforms script
-   %computeURDFToDrakeTransforms;
-   run('iCubSensTransforms.m');
-   
-   dmodel  = iCub_dmodel;
-   ymodel  = iCubSens(dmodel, sens);
-   dmodel  = autoTreeStochastic(dmodel, 1e-1, 1e4);
-   ymodel  = iCubSensStochastic(ymodel);
-   
-   myModel = model(dmodel);
-   mySens  = sensors(ymodel);
-   myMAP  = MAP(myModel, mySens);
-   
-   %% RNEA
-   ymodel_RNEA  = autoSensRNEA(dmodel);
-   mySens_RNEA  = sensors(ymodel_RNEA);
-   myRNEA       = RNEA(myModel, mySens_RNEA);
-   
-   y      = zeros(ymodel.m, length(data.time));
-   y_RNEA = zeros(ymodel_RNEA.m, length(data.time));
-   
-   fx = cell(dmodel.NB);
-   for i = 1 : dmodel.NB
-      for t = 1 : length(data.time)
-         fx{i,1} = zeros(6,1);
-         y_RNEA(1+7*(i-1):7*i, t) = [fx{i,1}; data.d2q(i,t)];
-      end
-   end
-   
-   %% simulate the output
-   for i = 1 : length(data.time)
-      myRNEA = myRNEA.setState(data.q(:,i), data.dq(:,i));
-      myRNEA = myRNEA.setY(y_RNEA(:,i));
-      myRNEA = myRNEA.solveID();
-      
-      y(:,i) = myMAP.simY(myRNEA.d);
-      if mod(i-1,100) == 0
-         fprintf('Processing %d %% of the dataset\n', round(i/length(data.time)*100));
-      end
-   end
-   save preprocess.mat
+
+data.nsamples  = 100; %number of samples
+data.plot      = 0;
+data.ini       = 2;   %seconds to be skipped at the start
+data.end       = 22;  %seconds to reach the end of the movement
+data.diff_imu  = 1;    %derivate the angular velocity of the IMUs
+data.diff_q    = 1;    %derivate the angular velocity of the IMUs
+
+
+%%strucutre from files
+data.path        = '/Users/iron/Desktop/graph/data/09-11-2015';
+data.parts       = {};
+data.labels      = {};
+data.ndof        = {};
+data.index       = {};
+data.type        = {};
+data.visualize   = {};
+%%strucutre for urdf
+sens.parts       = {};
+sens.labels      = {};
+sens.ndof        = {};
+sens.type        = {};
+sens.transform  = {};
+
+%% add ft sensors
+data = addSensToData(data, 'r_leg_ft_sensor:o' , 'rl_fts'  , 6, '1:6', ''           , 1*data.plot);
+sens = addSensToSens(sens, 'r_upper_leg'       , 'rl_fts'  , 6,        ''           ,'drake_r_upper_leg_X_urdf_r_hip_3');
+data = addSensToData(data, 'r_foot_ft_sensor:o', 'rf_fts'  , 6, '1:6', ''           , 1*data.plot);
+sens = addSensToSens(sens, 'r_foot'       , 'rf_fts'  , 6,        ''           ,'drake_r_foot_X_urdf_r_foot');
+
+% add mtb sensors
+for i = 1:nrOfMTBAccs
+   sensorTransformName = strcat('drake_', mtbSensorLink{i},'_X_urdf_',mtbSensorFrames{i});
+   data = addSensToData(data, 'right_leg/inertialMTB'    , mtbSensorLabel{i}  , 3, mtbIndices{i}, ''           , 1*data.plot);
+   sens = addSensToSens(sens, mtbSensorLink{i} , mtbSensorLabel{i}  , 3,        ''           ,sensorTransformName);
 end
-%% plot results
-load preprocess.mat
-close all
 
-%label_to_plot = {'rl_fts','rf_fts'}
+%% add joint measurements
+data = addSensToData(data, 'right_leg'         , 'rl'      , 6, '1:6', 'stateExt:o' , 1*data.plot);
+
+data = loadData(data);
+
+
+%% plot results
 label_to_plot = [mtbSensorLabel,{'rl_fts','rf_fts'}];
-%label_to_plot = {'11B13_acc'};
+
+
+run('iCubSensTransforms.m');
+run('iCub.m');
 
 %% Process raw sensor data and bring it in the desired reference frames
 acc_gain = 5.9855e-04;
@@ -200,22 +146,33 @@ fprintf('Processed raw sensors\n')
 
 %% Build data.y anda data.Sy from adjusted ys_label
 data.y  = [];
+
+% Add the null external forces fx = 0
+data.y  = [data.y; zeros(6*iCub_dmodel.NB, length(data.time))];
+% Add the d2q measurements
+data.y  = [data.y; data.d2q];
+
 for i = 1 : length(sens.labels)
    eval(['data.y  = [data.y ; data.ys_' sens.labels{i} '];']);
 end
 
-data.Sy = [];
-for i = 1 : length(myMAP.IDsens.sensorsParams.labels)
-   data.Sy = [data.Sy; diag(myMAP.IDsens.sensorsParams.Sy{i})];
-end
-data.Sy = repmat(data.Sy, 1, data.nsamples);
+%% Visulize results of optmization
 
-% Add the null external forces fx = 0
-data.y  = [data.y; zeros(6*dmodel.NB, length(data.time))];
-% Add the d2q measurements
-data.y  = [data.y; data.d2q];
+% load the necessary transforms from URDF
+% this transforms are computed using the
+% computeURDFToDrakeTransforms script
+%computeURDFToDrakeTransforms;
 
-yMAP = zeros(size(y));
+dmodel  = iCub_dmodel;
+ymodel  = iCubSens(dmodel, sens);
+dmodel  = autoTreeStochastic(dmodel, 1e-7, 1e4);
+ymodel  = iCubSensStochastic(ymodel);
+
+myModel = model(dmodel);
+mySens  = sensors(ymodel);
+myMAP  = MAP(myModel, mySens);
+
+yMAP = zeros(size(data.y));
 for i = 1 : length(data.time)
    myMAP     = myMAP.setState(data.q(:,i), data.dq(:,i));
    myMAP     = myMAP.setY(data.y(:,i));
@@ -226,12 +183,20 @@ for i = 1 : length(data.time)
    end
 end
 
+label_to_min   = {'rl_fts','rf_fts', '11B1_acc', '11B2_acc', '11B3_acc', '11B4_acc', '11B5_acc', '11B7_acc', '11B8_acc', '11B9_acc', '11B10_acc', '11B11_acc', '11B13_acc', '11B12_acc'};
+joint_to_min   = {'r_hip_roll', 'r_hip_pitch', 'r_hip_yaw', 'r_ankle_roll', 'r_ankle_pitch', 'r_knee'};
+
+index_to_min   = zeros(size(dmodel.jointname));
+for i = 1 : length(joint_to_min)
+   index_to_min = index_to_min | strcmp(dmodel.jointname, joint_to_min{i});
+end
+
 
 %% Plot overlapped plots
 py = [0; cumsum(cell2mat(myMAP.IDsens.sensorsParams.sizes))];
-for l = 1 : length(label_to_plot)
+for l = 1 : length(label_to_min)
    for k = 1 : myMAP.IDsens.sensorsParams.ny
-      if strcmp(myMAP.IDsens.sensorsParams.labels{k}, label_to_plot{l})
+      if strcmp(myMAP.IDsens.sensorsParams.labels{k}, label_to_min{l})
          figure
          J = myMAP.IDsens.sensorsParams.sizes{k};
          I = py(k)+1 : py(k)+J;
@@ -239,9 +204,8 @@ for l = 1 : length(label_to_plot)
          for j = 1 : J
             subplot(2, ceil(J/2), j)
             hold on;
-            shadedErrorBar(data.time, data.y(I(j),:), sqrt(data.Sy(I(j), :)), {[colors(mod(j,3)+1) '--'] , 'LineWidth', 1}, 0);
-            plot(data.time, y(I(j),:), colors(mod(j,3)+1) , 'LineWidth', 1);
-            plot(data.time, yMAP(I(j),:), [colors(mod(j,3)+1) , '.']);            
+            plot(data.time, data.y(I(j),:), [colors(mod(j,3)+1) '--'] , 'LineWidth', 1);
+            plot(data.time, yMAP(I(j),:), [colors(mod(j,3)+1) , '.'], 'LineWidth', 2);
             
             title(strcat(strrep(myMAP.IDsens.sensorsParams.labels{k}, '_', '~'),num2str(j)));
          end
@@ -249,48 +213,76 @@ for l = 1 : length(label_to_plot)
    end
 end
 
-%% Plot state
-% figure
-% plot(data.time,data.q')
-% title('Joint positions')
-% figure
-% plot(data.time,data.dq')
-% title('Joint velocities')
-% figure
-% plot(data.time,data.d2q')
-% title('Joint accelerations')
-%
 
-%% Plot separated graphs
-% for l = 1 : length(label_to_plot)
-%    for i = 1 : length(data.parts)
-%       if strcmp(data.labels{i}, label_to_plot{l})
-%          t    = ['time_' data.labels{i}];
-%          ys   = ['ys_' data.labels{i}];
-%
-%          figure
-%          J = length(eval(data.index{i}));
-%          for j = 1 : J/3
-%             subplot([num2str(J/3) '1' num2str(j)])
-%             I = 1+(j-1)*3 : 3*j;
-%             eval(['plot(data.time,data.' ys '(I,:), ''--'' )' ]);
-%             title(strrep(['y_{' data.labels{i} '}'], '_', '~'))
-%          end
-%       end
-%    end
-%
-%    for k = 1 : myMAP.IDsens.sensorsParams.ny - dmodel.NB
-%       if strcmp(myMAP.IDsens.sensorsParams.labels{k}, label_to_plot{l})
-%          figure
-%          J = myMAP.IDsens.sensorsParams.sizes{k};
-%          for j = 1 : J/3
-%             subplot([num2str(J/3) '1' num2str(j)])
-%             I = py(k)+1+(j-1)*3 : py(k)+3*j;
-%             plot(data.time, y(I,:))
-%             title(strrep(myMAP.IDsens.sensorsParams.labels{k}, '_', '~'));
-%          end
-%       end
-%    end
-% end
+%% MAP model
+set_to_map   = {'rl_fts', 'rf_fts', '11B1_acc', '11B2_acc', '11B3_acc', '11B4_acc', '11B5_acc', '11B7_acc', '11B8_acc', '11B9_acc', '11B10_acc', '11B11_acc', '11B13_acc', '11B12_acc'};
 
-% save preprocess2.mat
+for r = 0 %:length(set_to_map)
+   
+   
+   label_to_map = set_to_map(1:r);
+   
+   % remove from sens the values not in label_to_map
+   index_to_map = zeros(size(label_to_map));
+   for k = 1 : length(sens.labels)
+      for l = 1 : length(label_to_map)
+         if strcmp(sens.labels{k}, label_to_map{l})
+            index_to_map(l) = k;
+         end
+      end
+   end
+   sensReduced.parts = sens.parts(index_to_map);
+   sensReduced.labels = sens.labels(index_to_map);
+   sensReduced.ndof = sens.ndof(index_to_map);
+   sensReduced.type = sens.type(index_to_map);
+   sensReduced.transform = sens.transform(index_to_map);
+   
+   
+   run('iCub.m');
+   
+   % load the necessary transforms from URDF
+   % this transforms are computed using the
+   % computeURDFToDrakeTransforms script
+   %computeURDFToDrakeTransforms;
+   run('iCubSensTransforms.m');
+   
+   dmodel  = iCub_dmodel;
+   ymodel  = iCubSens(dmodel, sens);
+   dmodel  = autoTreeStochastic(dmodel, 1e-7, 1e4);
+   ymodel  = iCubSensStochastic(ymodel);
+   
+   myModel = model(dmodel);
+   mySens  = sensors(ymodel);
+   myMAP  = MAP(myModel, mySens);
+   
+   ymodel  = iCubSens(dmodel, sensReduced);
+   ymodel  = iCubSensStochastic(ymodel);
+   mySens  = sensors(ymodel);
+   myRMAP  = MAP(myModel, mySens);
+   
+   %% Optimization
+   number_of_random_init = 5;
+   
+   label_to_min   = {'11B1_acc', '11B2_acc', '11B3_acc', '11B4_acc', '11B5_acc', '11B7_acc', '11B8_acc', '11B9_acc', '11B10_acc', '11B11_acc', '11B13_acc', '11B12_acc'};
+   
+   for j = length(label_to_min)
+      for i = 1 : number_of_random_init
+         subset_to_min = ['11B12_acc', label_to_min(randsample(length(label_to_min), j-1))];
+         index_to_min  = zeros(size(dmodel.jointname));
+         for k = 1 : length(joint_to_min)
+            index_to_min = index_to_min | strcmp(dmodel.jointname, joint_to_min{k});
+         end
+         
+         dq0 = randn(sum(index_to_min),1)*0.5;
+         dt  = randsample(data.nsamples, round(data.nsamples*0.5)); %sample a 10% reduced set of time instants
+         dt = sort(dt);
+         op  = optimset('Display', 'iter', 'TolFun', 1e-7, 'Algorithm','interior-point');
+         % [dq(:, i, j), fval(i), exitflag, output, grad(:,i)] = fminunc(@(dq) costFunctionMAP(dq, dt, data, myMAP, myRMAP, subset_to_min, label_to_map, index_to_min), dq0, op);
+         [dq(:, i, j), fval(i), exitflag, output, grad(:,i)] = fminunc(@(dq) costFunctionID(dq, dt, data, myMAP, subset_to_min, index_to_min), dq0, op);
+         dq(:, i, j) = mod(dq(:, i, j)+pi, 2*pi)-pi;
+      end
+      std_dq{r+1,j} = std(dq(:, :, j)');
+      std(dq(:, :, j)')
+   end
+end
+
