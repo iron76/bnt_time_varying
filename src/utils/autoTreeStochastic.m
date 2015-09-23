@@ -30,7 +30,7 @@ function [ model ] = autoTreeStochastic( model , sModel, sUknown )
 
 if nargin == 1
    sModel  = 1;
-   sUknown = 1e3;
+   sUknown = 1;
    generateS = @(n)eye(n);
 elseif nargin == 2
    sUknown = sModel*1e3;
