@@ -1,4 +1,4 @@
-function obj = solveID(obj)
+function obj = solveID(obj, computeVariance)
 %solveID Inverse Dynamics with sparse Newton-Euler Algorithm (SNEA)
 %   This function solves the inverse dynamics problem with the sparse
 %   Newton-Euler algorithm, as described in the paper "BERDY: Bayesian 
@@ -55,8 +55,25 @@ S_Yinv = Sy_inv;
 bY     = zeros(size(y));
 bD     = b;
 muD    = zeros(length(S_dinv), 1);
-d      = (D'*S_Dinv*D + S_dinv + Y'*S_Yinv*Y)\(Y'*S_Yinv*(y-bY) - D'*S_Dinv*bD + S_dinv * muD);
 
-obj.d  = d(obj.id,1);
+% permutations corresponding to the RNEA 
+% I      = [obj.ia; obj.ifB; obj.iF(end:-1:1, 1); obj.itau];
+% J      = [obj.jfx; obj.jd2q; obj.ja; obj.jfB; obj.jF(end:-1:1, 1); obj.jtau];
+% Iinv(I)= 1:length(I);
+% Jinv(J)= 1:length(J);
+% with these definitions [Y(:,J); D(I, J)] is lowertriangular
+
+if nargin == 1
+   d      = (D'*S_Dinv*D + S_dinv + Y'*S_Yinv*Y)\(Y'*S_Yinv*(y-bY) - D'*S_Dinv*bD + S_dinv * muD);
+   obj.d  = d(obj.id,1);
+elseif (nargin == 2) && strcmp(computeVariance, 'variance')
+   Sd     = inv(D'*S_Dinv*D + S_dinv + Y'*S_Yinv*Y);
+   d      = Sd*(Y'*S_Yinv*(y-bY) - D'*S_Dinv*bD + S_dinv * muD);
+   obj.d  = d(obj.id,1);
+   obj.Sd = Sd(obj.id,obj.id);
+end
+   
+
+
 
 end % solveID
