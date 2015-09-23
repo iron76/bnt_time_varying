@@ -48,6 +48,9 @@ for i = 1 : ymodel.NB
    ymodel.ny = ymodel.ny + 1;
    ymodel.sizes{ymodel.ny,1} = 6;
    ymodel.labels{ymodel.ny,1} = ['fx'  num2str(i)];
+end
+
+for i = 1 : ymodel.NB
    ymodel.ny = ymodel.ny + 1;
    ymodel.sizes{ymodel.ny,1} = 1;
    ymodel.labels{ymodel.ny,1} = ['d2q' num2str(i)];
