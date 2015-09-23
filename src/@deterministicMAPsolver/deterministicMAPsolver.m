@@ -33,6 +33,7 @@ classdef deterministicMAPsolver
       IDmodel  %% dynamic model
       IDsens   %% sensor model
       d        %% computed maximum-a-posteriori d
+      Sd       %% computed maximum-a-posteriori variance
       
       iDs  %% i-indeces for the sparse representation of D
       jDs  %% j- indeces for the sparse representation of D
@@ -45,6 +46,17 @@ classdef deterministicMAPsolver
       % kDy  %% indices for Dy
       
       id   %% indices for converting [dx dy] in d
+      ia   %% indices for accessing rows of ai   in D
+      ifB  %% indices for accessing rows of fBi  in D
+      itau %% indices for accessing rows of taui in D
+      iF   %% indices for accessing rows of fi   in D
+      ja   %% indices for accessing cols of ai   in D
+      jfB  %% indices for accessing cols of fBi  in D
+      jF   %% indices for accessing cols of fi   in D
+      jtau %% indices for accessing cols of taui in D
+      jfx  %% indices for accessing cols of fxi  in D
+      jd2q %% indices for accessing cols of d2qi in D   
+      
    end
    
    properties (SetAccess = protected)
@@ -70,6 +82,7 @@ classdef deterministicMAPsolver
             a.Xa      = cell(mdl.n, 1);
             a.vJ      = zeros(6, mdl.n);
             a.d       = zeros(26*mdl.n,1);
+            a.Sd      = zeros(26*mdl.n,26*mdl.n);
             a.v       = zeros(6, mdl.n);
             a.a       = zeros(6, mdl.n);
             a.f       = zeros(6, mdl.n);
@@ -77,6 +90,16 @@ classdef deterministicMAPsolver
             a.fx      = zeros(6, mdl.n);
             a.tau     = zeros(mdl.n, 1);
             a.d2q     = zeros(mdl.n, 1);
+            a.ia      = zeros(mdl.n, 1);
+            a.ifB     = zeros(mdl.n, 1);
+            a.itau    = zeros(mdl.n, 1);
+            a.iF      = zeros(mdl.n, 1);
+            a.ja      = zeros(mdl.n, 1);
+            a.jfB     = zeros(mdl.n, 1);
+            a.jtau    = zeros(mdl.n, 1);
+            a.jF      = zeros(mdl.n, 1);
+            a.jd2q    = zeros(mdl.n, 1);
+            a.jfx     = zeros(mdl.n, 1);
             for i = 1 : mdl.n
                a.Xup{i}  = zeros(6,6);
                a.Xa{i}   = zeros(6,6);
