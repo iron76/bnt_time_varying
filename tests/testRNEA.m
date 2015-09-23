@@ -36,8 +36,10 @@ d_myRNEA  = myRNEA.d;
 d2q   = zeros(NB,1);
 fx    = cell(1,NB);
 for i = 1 : NB
-   fx{i}    = y((1:6)+(i-1)*7,1);
-   d2q(i,1) = y(7*i); 
+   fx{i}    = y((1:6)+(i-1)*6,1);
+end
+for i = 1 : NB
+   d2q(i,1) = y(6*NB+i); 
 end
 
 [tau, a, fB, f] = ID( dmodel, q, dq, d2q, fx);

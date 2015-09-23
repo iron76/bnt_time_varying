@@ -23,7 +23,7 @@ NB        = dmodel.NB;
 q         = rand(dmodel.NB,1);
 dq        = rand(dmodel.NB,1);
 y_RNEA    = rand(ymodel.m,1);
-y_ANEA    = y_RNEA(7:7:end);
+y_ANEA    = y_RNEA(6*NB+1:7*NB);
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
