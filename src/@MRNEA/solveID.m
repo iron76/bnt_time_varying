@@ -47,6 +47,19 @@ Dy = D(1:19*NB, 19*NB+1:26*NB);
 % norm([obj.D(1:4*NB,Dx_ind) obj.D(1:4*NB,Dy_ind)] - [ Dx Dy ])
 
 dy = obj.IDmeas.y;
+
+iy = 1;
+for j = 1 : obj.IDsens.sensorsParams.ny
+   for i = 1 : obj.IDmodel.n
+      if strcmp(obj.IDsens.sensorsParams.labels{j,1}, ['fx' num2str(i)])
+         dy(7*(i-1)+1 : 7*(i-1)+6,1)  = obj.IDmeas.y(iy:iy+5,1);
+      elseif strcmp(obj.IDsens.sensorsParams.labels{j,1}, ['d2q' num2str(i)])
+         dy(7*i,1) = obj.IDmeas.y(iy, 1);
+      end
+   end
+   iy = iy + obj.IDsens.sensorsParams.sizes{j,1};
+end
+
 dx = -Dx\(Dy*dy+b);
 for i = 1 : NB
    obj.d((i-1)*26+1  : (i-1)*26+19, 1) = dx((i-1)*19+1:i*19,1);
