@@ -1,4 +1,4 @@
-qfunction [ obj ] = initSparseMatrixIndices( obj )
+function [ obj ] = initSparseMatrixIndices( obj )
 %INITSPARSEINDICES Summary of this function goes here
 %   Detailed explanation goes here
 
