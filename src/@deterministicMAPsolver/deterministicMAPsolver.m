@@ -30,33 +30,34 @@ classdef deterministicMAPsolver
    end
    
    properties (SetAccess = protected, GetAccess = public)
-      IDmodel  %% dynamic model
-      IDsens   %% sensor model
-      d        %% computed maximum-a-posteriori d
-      Sd       %% computed maximum-a-posteriori variance
+      IDmodel %% dynamic model
+      IDsens  %% sensor model
+      d       %% computed maximum-a-posteriori d
+      Sd      %% computed maximum-a-posteriori variance
       
-      iDs  %% i-indeces for the sparse representation of D
-      jDs  %% j- indeces for the sparse representation of D
-      Ds   %% values fot the sparse representation of D
+      iDs     %% i-indeces for the sparse representation of D
+      jDs     %% j- indeces for the sparse representation of D
+      Ds      %% values fot the sparse representation of D
       
-      ibs  %% i-indeces for the sparse representation of b
-      bs   %% values fot the sparse representation of b
+      ibs     %% i-indeces for the sparse representation of b
+      bs      %% values fot the sparse representation of b
+            
+      id      %% indices for converting [dx dy] in d
+      ia      %% indices for accessing rows of ai   in D
+      ifB     %% indices for accessing rows of fBi  in D
+      itau    %% indices for accessing rows of taui in D
+      iF      %% indices for accessing rows of fi   in D
+      ja      %% indices for accessing cols of ai   in D
+      jfB     %% indices for accessing cols of fBi  in D
+      jF      %% indices for accessing cols of fi   in D
+      jtau    %% indices for accessing cols of taui in D
+      jfx     %% indices for accessing cols of fxi  in D
+      jd2q    %% indices for accessing cols of d2qi in D   
       
-      % kDx  %% indices for Dx
-      % kDy  %% indices for Dy
-      
-      id   %% indices for converting [dx dy] in d
-      ia   %% indices for accessing rows of ai   in D
-      ifB  %% indices for accessing rows of fBi  in D
-      itau %% indices for accessing rows of taui in D
-      iF   %% indices for accessing rows of fi   in D
-      ja   %% indices for accessing cols of ai   in D
-      jfB  %% indices for accessing cols of fBi  in D
-      jF   %% indices for accessing cols of fi   in D
-      jtau %% indices for accessing cols of taui in D
-      jfx  %% indices for accessing cols of fxi  in D
-      jd2q %% indices for accessing cols of d2qi in D   
-      
+      iLabels %% labels for the the rows in D
+      jLabels %% labels for the the cols in D
+      iSizes  %% sizes  for the the rows in D
+      jSizes  %% sizes  for the the cols in D
    end
    
    properties (SetAccess = protected)
@@ -191,17 +192,17 @@ classdef deterministicMAPsolver
          y = cell2mat(obj.IDsens.sensorsParams.Y)*d;
       end 
       
-      obj = solveMAP(obj)
+      % obj = solveMAP(obj)
    end
    
-   methods
-      obj = initSparseMatrixIndices(obj);
-      obj = initDsubmatrixIndices(obj);
-      obj = initDsubmatrix(obj);
-      obj = initSparseMatrix(obj);
-      
-      obj = updateDsubmatrix(obj);
-      obj = updateSparseMatrix(obj);      
-   end
+   % methods 
+      % obj = initDsubmatrixIndices(obj);
+      % obj = initDsubmatrix(obj);      
+      % obj = updateDsubmatrix(obj);
+     
+      % obj = initSparseMatrixIndices(obj);
+      % obj = initSparseMatrix(obj);
+      % obj = updateSparseMatrix(obj);      
+   % end
 end % classdef
 

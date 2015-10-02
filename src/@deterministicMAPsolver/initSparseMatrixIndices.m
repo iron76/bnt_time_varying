@@ -1,4 +1,4 @@
-function [ obj ] = initSparseMatrixIndices( obj )
+qfunction [ obj ] = initSparseMatrixIndices( obj )
 %INITSPARSEINDICES Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -116,6 +116,33 @@ for i = 1:obj.IDmodel.modelParams.NB
    end
 end
 
+for i = 1:obj.IDmodel.modelParams.NB
+   obj.iLabels{(i-1)*4+1} = ['a_'   num2str(i)];
+   obj.iLabels{(i-1)*4+2} = ['fB_'  num2str(i)];
+   obj.iLabels{(i-1)*4+3} = ['f_'   num2str(i)];
+   obj.iLabels{(i-1)*4+4} = ['tau_' num2str(i)];
+   
+   obj.iSizes((i-1)*4+1) = 6;
+   obj.iSizes((i-1)*4+2) = 6;
+   obj.iSizes((i-1)*4+3) = 6;
+   obj.iSizes((i-1)*4+4) = obj.IDmodel.jn(i);
 
 end
 
+% d - dynamic varaibles [a_i, fB_i, f_i, tau_i, fx_i, d2q_i]
+
+for j = 1:obj.IDmodel.modelParams.NB
+   obj.jLabels{(j-1)*6+1} = ['a_'   num2str(j)];
+   obj.jLabels{(j-1)*6+2} = ['fB_'  num2str(j)];
+   obj.jLabels{(j-1)*6+3} = ['f_'   num2str(j)];
+   obj.jLabels{(j-1)*6+4} = ['tau_' num2str(j)];
+   obj.jLabels{(j-1)*6+5} = ['fx_'  num2str(j)];
+   obj.jLabels{(j-1)*6+6} = ['d2q_' num2str(j)];
+   
+   obj.jSizes((j-1)*6+1) = 6;
+   obj.jSizes((j-1)*6+2) = 6;
+   obj.jSizes((j-1)*6+3) = 6;
+   obj.jSizes((j-1)*6+4) = obj.IDmodel.jn(j);
+   obj.jSizes((j-1)*6+5) = 6;
+   obj.jSizes((j-1)*6+6) = obj.IDmodel.jn(j);   
+end
