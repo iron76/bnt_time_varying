@@ -56,8 +56,8 @@ classdef deterministicMAPsolver
       
       iLabels %% labels for the the rows in D
       jLabels %% labels for the the cols in D
-      iSizes  %% sizes  for the the rows in D
-      jSizes  %% sizes  for the the cols in D
+      iIndex  %% sizes  for the the rows in D
+      jIndex  %% sizes  for the the cols in D
    end
    
    properties (SetAccess = protected)
