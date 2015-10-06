@@ -117,32 +117,37 @@ for i = 1:obj.IDmodel.modelParams.NB
 end
 
 for i = 1:obj.IDmodel.modelParams.NB
-   obj.iLabels{(i-1)*4+1} = ['a_'   num2str(i)];
-   obj.iLabels{(i-1)*4+2} = ['fB_'  num2str(i)];
-   obj.iLabels{(i-1)*4+3} = ['f_'   num2str(i)];
-   obj.iLabels{(i-1)*4+4} = ['tau_' num2str(i)];
+   for j = 1 : 6
+      obj.iLabels{(i-1)*19+j} = ['a_'   num2str(i)];
+   end
+   for j = 6 + (1 : 6)
+      obj.iLabels{(i-1)*19+j} = ['fB_'  num2str(i)];
+   end
+   for j = 12 + (1 : 6)
+      obj.iLabels{(i-1)*19+j} = ['f_'   num2str(i)];
+   end   
+   obj.iLabels{(i-1)*19+19} = ['tau_' num2str(i)];
    
-   obj.iSizes((i-1)*4+1) = 6;
-   obj.iSizes((i-1)*4+2) = 6;
-   obj.iSizes((i-1)*4+3) = 6;
-   obj.iSizes((i-1)*4+4) = obj.IDmodel.jn(i);
-
+   obj.iIndex((i-1)*4+1:4*i,1) = [(i-1)*19+1; (i-1)*19+7; (i-1)*19+13; (i-1)*19+19];
 end
 
 % d - dynamic varaibles [a_i, fB_i, f_i, tau_i, fx_i, d2q_i]
 
-for j = 1:obj.IDmodel.modelParams.NB
-   obj.jLabels{(j-1)*6+1} = ['a_'   num2str(j)];
-   obj.jLabels{(j-1)*6+2} = ['fB_'  num2str(j)];
-   obj.jLabels{(j-1)*6+3} = ['f_'   num2str(j)];
-   obj.jLabels{(j-1)*6+4} = ['tau_' num2str(j)];
-   obj.jLabels{(j-1)*6+5} = ['fx_'  num2str(j)];
-   obj.jLabels{(j-1)*6+6} = ['d2q_' num2str(j)];
+for i = 1:obj.IDmodel.modelParams.NB
+   for j = 1 : 6
+      obj.jLabels{(i-1)*26+j} = ['a_'   num2str(i)];
+   end
+   for j = 6 + (1 : 6)
+      obj.jLabels{(i-1)*26+j} = ['fB_'  num2str(i)];
+   end
+   for j = 12 + (1 : 6)
+      obj.jLabels{(i-1)*26+j} = ['f_'   num2str(i)];
+   end   
+   obj.jLabels{(i-1)*26+19} = ['tau_' num2str(i)];
+   for j = 19 + (1 : 6)
+      obj.jLabels{(i-1)*26+j} = ['fx_'  num2str(i)];
+   end
+   obj.jLabels{(i-1)*26+26} = ['d2q_' num2str(i)];
    
-   obj.jSizes((j-1)*6+1) = 6;
-   obj.jSizes((j-1)*6+2) = 6;
-   obj.jSizes((j-1)*6+3) = 6;
-   obj.jSizes((j-1)*6+4) = obj.IDmodel.jn(j);
-   obj.jSizes((j-1)*6+5) = 6;
-   obj.jSizes((j-1)*6+6) = obj.IDmodel.jn(j);   
+   obj.jIndex((i-1)*6+1:6*i,1) = [(i-1)*26+1; (i-1)*26+7; (i-1)*26+13; (i-1)*26+19; (i-1)*26+20; (i-1)*26+26];
 end
