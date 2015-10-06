@@ -102,8 +102,8 @@ classdef submatrix
                end
             end
          else
-            I = obj.cm(i)+1:obj.cm(i+1);
-            J = obj.cn(j)+1:obj.cn(j+1);
+            I = (obj.cm(i)+1:obj.cm(i+1))';
+            J = (obj.cn(j)+1:obj.cn(j+1))';
          end
       end
       
