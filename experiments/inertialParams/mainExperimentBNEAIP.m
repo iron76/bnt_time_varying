@@ -5,7 +5,7 @@ S_dmodel  = 1e-2;
 S_ymodel  = 1e-4;
 
 NB_BNEAIP = 4;
-dmodel_BNEAIP = autoTree(NB_BNEAIP);
+dmodel_BNEAIP = autoTreeNonPlanar(NB_BNEAIP);
 dmodel_BNEAIP = autoTreeStochastic(dmodel_BNEAIP, S_dmodel);
 dmodel_BNEAIP.gravity = [0; -9.81; 0];
 nrOfSamples = 30;
@@ -32,7 +32,7 @@ fprintf('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n');
 
 % first we try for fitting without force sensing (but with joint accelerations) 
 % cleaerly we get no improvement 
-fprintf('~~~~~~~~~Testing with just joint accelerations~~~~~~~~~\n');
+fprintf('~~~~~~~~~Testing with just joint accelerations + joint ft + link accelerations~~~~~~~~~\n');
 ymodel_BNEAIP = insufficientSensing(dmodel_BNEAIP);
 ymodel_BNEAIP  = autoSensStochastic(ymodel_BNEAIP, S_ymodel);
 
@@ -52,8 +52,8 @@ fprintf('~~~~~~~~~Testing with base force torque + joint accelerations + link ac
 ymodel_BNEAIP = basicSensingAndAcc(dmodel_BNEAIP);
 ymodel_BNEAIP  = autoSensStochastic(ymodel_BNEAIP, S_ymodel);
 
-[result{trail,sensorSetupTested}(iter,1), result{trail,sensorSetupTested}(iter,2) ]  = experimentLearnBNEAIP(dmodel_BNEAIP, ymodel_BNEAIP, trail, nrOfSamples, iter);
-sensorSetupTested = sensorSetupTested+1;
+%[result{trail,sensorSetupTested}(iter,1), result{trail,sensorSetupTested}(iter,2) ]  = experimentLearnBNEAIP(dmodel_BNEAIP, ymodel_BNEAIP, trail, nrOfSamples, iter);
+%sensorSetupTested = sensorSetupTested+1;
 
 end
 end

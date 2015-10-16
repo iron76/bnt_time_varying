@@ -1,4 +1,4 @@
-function [ ymodel ] = basicSensing( dmodel  )
+function [ ymodel ] = insufficientSensing( dmodel  )
 %AUTOSENSSNEA Generates a sensor distribution articulated rigid body.
 %   This function generates a structure that contains just: 
 %           * Six Axis F/T sensor at the base 
@@ -49,6 +49,12 @@ ny = 0;
 
 for i = 1 : ymodel.NB
     ny = ny + 1;
+    ymodel.sizes{ny,1} = 6;
+    ymodel.labels{ny,1} = ['y_f' num2str(i)];
+end
+
+for i = 1 : ymodel.NB
+    ny = ny + 1;
     ymodel.sizes{ny,1} = 1;
     ymodel.labels{ny,1} = ['y_d2q' num2str(i)];
 end
@@ -59,6 +65,13 @@ for i = 1 : ymodel.NB
     ymodel.sizes{ny,1} = 6;
     ymodel.labels{ny,1} = ['y_fx' num2str(i)];
 end
+
+for i = 1 : ymodel.NB
+    ny = ny + 1;
+    ymodel.sizes{ny,1} = 6;
+    ymodel.labels{ny,1} = ['y_a' num2str(i)];
+end
+
 
 ymodel.m  = sum(cell2mat(ymodel.sizes));
 ymodel.ny = ny;
