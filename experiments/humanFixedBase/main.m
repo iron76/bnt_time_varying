@@ -11,11 +11,10 @@ clc
  % data.diff_imu  = 1;    %derivate the angular velocity of the IMUs
  % data.diff_q    = 1;    %derivate the angular velocity of the IMUs
 
-subjectID = 3;
+subjectID = 1;
 trialID = 1;
 %    %%strucutre from files
 data.path        = './experiments/humanFixedBase/processedSensorData.mat';
-%    % data.path        = '/home/pegua/Documents/Papers/2015-01-rss/data';
 
 
 %    data.parts       = {'inertial'                                 , 'left_arm_accelerometers', 'left_foot_inertial'        , 'left_hand_inertial'                  , 'right_arm_accelerometers', 'right_foot_inertial'       , 'right_hand_inertial'                 , 'torso_accelerometers'                    , 'l_arm_ft_sensor:o', 'r_arm_ft_sensor:o', 'l_leg_ft_sensor:o', 'r_leg_ft_sensor:o', 'l_foot_ft_sensor:o'        , 'r_foot_ft_sensor:o'        , 'head'      , 'left_arm'  , 'right_arm' , 'left_leg'  , 'right_leg' , 'torso'     };
@@ -48,16 +47,20 @@ data.path        = './experiments/humanFixedBase/processedSensorData.mat';
 
    %run('humanThreeLink.m')
    
-   humanThreeLink
-   dmodel  = humanThreeLink_dmodel;
-   ymodel  = humanThreeLinkSens(dmodel, sens);
+   load(sprintf('./experiments/humanFixedBase/humanThreeLinkModelFromURDF_subject%d.mat',subjectID));
+   dmodel  = humanThreeLink_dmodel; %deterministic model
+  
+   ymodel  = humanThreeLinkSens(dmodel, sens); %creating Ys
    
-   dmodel  = autoTreeStochastic(dmodel, 1e-5, 1e4);
-   ymodel  = humanThreeLinkSensStochastic(ymodel);
+   dmodel  = autoTreeStochastic(dmodel, 1e-5, 1e4);% probabilistic model for D equation (added Sv and Sw)
+   ymodel  = humanThreeLinkSensStochastic(ymodel);% proabilistic model for Y(q,dq) d = y (added Sy)
+   %ymodel.Sy_inv 
+   
    myModel = model(dmodel);
    mySens  = sensors(ymodel);
-   myPNEA  = PNEA(myModel, mySens);
 
+   %  myPNEA  = PNEA(myModel, mySens);
+   myMAP  = MAP(myModel, mySens);
    
 
 %% plot results
@@ -77,9 +80,10 @@ data.index = {'1:6','1:6'};
 
 [ data ] = organiseBERDYCompatibleSensorData( data, subjectID,trialID );
 label_to_plot = {'fts','imu'};
-humanThreeLink_dmodel.gravity = [+0;9.81;0];
+% humanThreeLink_dmodel.gravity = [+0;9.81;0];
 
 %% Process raw sensor data and bring it in the desired reference frames
+
 acc_gain = 1.0;%5.9855e-04;
 deg_to_rad = pi/180.0;
 gyro_gain = 1.0;%deg_to_rad*7.6274e-03;
@@ -89,36 +93,15 @@ for l = 1 : length(label_to_plot)
          t    = ['time_' data.labels{i}];
          ys   = ['ys_' data.labels{i}];
          J = length(eval(data.index{i}));
-%          if( strcmp(data.labels{i},'lh_imu') || ...
-%              strcmp(data.labels{i},'rh_imu') )
-%             eval(['data.ys_' data.labels{i} '(1:3,:) = ' ...
-%                   'acc_gain*data.ys_' data.labels{i} '(1:3,:);']);
-%             eval(['data.ys_' data.labels{i} '(4:6,:) = ' ...
-%                   'gyro_gain*data.ys_' data.labels{i} '(4:6,:);']);
-%          end
+         
          if( strcmp(data.labels{i},'imu') )
             eval(['data.ys_' data.labels{i} '(4:6,:) = ' ...
                   'deg_to_rad*data.ys_' data.labels{i} '(4:6,:);']);
          end
-%           if( strcmp(data.labels{i}(end-2:end),'acc') )
-%              eval(['data.ys_' data.labels{i} '(1:3,:) = ' ...
-%                    'acc_gain*data.ys_' data.labels{i} '(1:3,:);']);
-%              eval(['data.ys_' data.labels{i} ' = ' ...
-%                     sens.transform{i} '(1:3,1:3) * ' 'data.ys_' data.labels{i} ';']);
-%           end
-%          if( strcmp(data.labels{i}(end-2:end),'imu') )
-%              eval(['data.ys_' data.labels{i} ' = ' ...
-%                    sens.transform{i} ' * ' 'data.ys_' data.labels{i} ';']);
-%          % account for the wrong offset present in the input data                
-%          elseif( strcmp(data.labels{i}(end-4:end),'f_fts') )
-%              eval(['data.ys_' data.labels{i} '(3,:) = ' ...
-%                     'data.ys_' data.labels{i} '(3,:) - 3.9;' ]);
-%          end
+       
          if( strcmp(data.labels{i}(end-2:end),'fts') )
              eval(['data.ys_' data.labels{i} ' = ' ...
                    'data.ys_' data.labels{i} ';']);
-             %eval(['data.ys_' data.labels{i} ' = ' ...
-             %      sens.transform{i} ' * ' 'data.ys_' data.labels{i} ';']);
          end
       end
    end
@@ -131,8 +114,8 @@ for i = 1 : length(sens.labels)
 end
 
 data.Sy = [];
-for i = 1 : length(myPNEA.IDsens.sensorsParams.labels)
-   data.Sy = [data.Sy; diag(myPNEA.IDsens.sensorsParams.Sy{i})];
+for i = 1 : length(myMAP.IDsens.sensorsParams.labels)
+   data.Sy = [data.Sy; diag(myMAP.IDsens.sensorsParams.Sy{i})];
 end
 data.Sy = repmat(data.Sy, 1, data.nsamples);
 
@@ -142,58 +125,6 @@ data.y  = [data.y; zeros(6*dmodel.NB, length(data.time))];
 data.y  = [data.y; data.d2q];
 
 data.Sy = [data.Sy data.Sy(:,end)];
-% %% Plot overlapped plots
-% py = [0; cumsum(cell2mat(myPNEA.IDsens.sensorsParams.sizes))];
-% for l = 1 : length(label_to_plot)
-%    for k = 1 : myPNEA.IDsens.sensorsParams.ny
-%       if strcmp(myPNEA.IDsens.sensorsParams.labels{k}, label_to_plot{l})
-%          figure
-%          J = myPNEA.IDsens.sensorsParams.sizes{k};
-%          I = py(k)+1 : py(k)+J;
-%          colors = ['r', 'g', 'b'];
-%          for j = 1 : J
-%             subplot(2, ceil(J/2), j)
-%             hold on;
-%             shadedErrorBar(data.time, data.y(I(j),:), sqrt(data.Sy(I(j), :)), {[colors(mod(j,3)+1) '--'] , 'LineWidth', 1}, 0);
-%             plot(data.time, data.y(I(j),:), colors(mod(j,3)+1) , 'LineWidth', 1);
-% 
-%             title(strrep(myPNEA.IDsens.sensorsParams.labels{k}, '_', '~'));
-%          end
-%       end
-%    end
-% end
-% 
-% %% Plot separated graphs
-% % for l = 1 : length(label_to_plot)
-% %    for i = 1 : length(data.parts)
-% %       if strcmp(data.labels{i}, label_to_plot{l})
-% %          t    = ['time_' data.labels{i}];
-% %          ys   = ['ys_' data.labels{i}];
-% %          
-% %          figure
-% %          J = length(eval(data.index{i}));
-% %          for j = 1 : J/3
-% %             subplot([num2str(J/3) '1' num2str(j)])
-% %             I = 1+(j-1)*3 : 3*j;
-% %             eval(['plot(data.time,data.' ys '(I,:), ''--'' )' ]);
-% %             title(strrep(['y_{' data.labels{i} '}'], '_', '~'))
-% %          end
-% %       end
-% %    end
-% %    
-% %    for k = 1 : myPNEA.IDsens.sensorsParams.ny - dmodel.NB
-% %       if strcmp(myPNEA.IDsens.sensorsParams.labels{k}, label_to_plot{l})
-% %          figure
-% %          J = myPNEA.IDsens.sensorsParams.sizes{k};
-% %          for j = 1 : J/3
-% %             subplot([num2str(J/3) '1' num2str(j)])
-% %             I = py(k)+1+(j-1)*3 : py(k)+3*j;
-% %             plot(data.time, y(I,:))
-% %             title(strrep(myPNEA.IDsens.sensorsParams.labels{k}, '_', '~'));
-% %          end
-% %       end
-% %    end
-% % end
 
 NB = 2;
 n=round(length(data.time));
@@ -201,15 +132,15 @@ n=round(length(data.time));
 d  = zeros(26*NB, n);
 Sd = zeros(26*NB, 26*NB, n);
 for i = 1 : n
-   myPNEA = myPNEA.setState(data.q(:,i), data.dq(:,i));
-   myPNEA = myPNEA.setY(data.y(:,i));
+   myMAP =  myMAP.setState(data.q(:,i), data.dq(:,i));
+   myMAP = myMAP.setY(data.y(:,i));
    
-   myPNEA = myPNEA.solveID();
+   myMAP = myMAP.solveID();
    
-   Y = cell2mat(myPNEA.IDsens.sensorsParams.Y);
-   
-   res.d(:,i)    = myPNEA.d;
-   res.Sd(:,:,i) = myPNEA.Sd;
+   Y = cell2mat(myMAP.IDsens.sensorsParams.Y);
+  
+   res.d(:,i)    = myMAP.d;
+   res.Sd(:,:,i) = myMAP.Sd;
    
    res.y(:,i)    = Y * res.d(:,i);
    res.Sy(:,:,i) = Y * res.Sd(:,:,i) * Y';
@@ -218,10 +149,12 @@ for i = 1 : n
    end
 end
 
+
+
 %% Rerrange solution
 for i = 1 : NB
    for j = 1 : n
-      link = strrep(myPNEA.IDmodel.modelParams.linkname{i}, '+', '_');
+      link = strrep(myMAP.IDmodel.modelParams.linkname{i}, '+', '_');
       di   = ['res.d_'   link  '(:,j)'];
       ind  = '1 + 26*(i-1) : 26*(i-1) + 26';
       eval([di '   = d(' ind ',j);'])
@@ -253,12 +186,45 @@ for i = 1 : NB
    end
 end
 
-save(sprintf('./experiments/humanFixedBase/savedBERDYresult_subj%d_trial%d.mat',subjectID,trialID),'res','data','myPNEA');
-% 
-% tempT = data.time;%data.time(1:10:end-3);
-% figure;plot(tempT,res.tau_foot,'b',tempT,res.tau_leg,'r');
-% xlabel('Time (sec)');
-% ylabel('Torques (Nm)');
-% axis tight; hold on;   
-% legend('\tau_1 (ankle)','\tau_2 (hip)');
-% title('Torque Estimates');
+save(sprintf('./experiments/humanFixedBase/savedBERDYresult_subj%d_trial%d.mat',subjectID,trialID),'res','data','myMAP');
+
+
+%% comparing tau
+
+load ('resultsFromCheckRNEA.mat');
+
+fig = figure();
+axes1 = axes('Parent',fig,'FontSize',16);
+box(axes1,'on');
+hold(axes1,'on');
+grid on;
+
+plot1 = plot(data.time,tau(:,1), 'lineWidth',2.5); hold on;
+set(plot1,'color',[1 0 0]);
+plot2 = plot(data.time,tau(:,2), 'lineWidth',2.5); hold on;
+set(plot2,'color',[0 0.498039215803146 0]);
+plot3 = plot(data.time,res.tau_foot', 'lineWidth',1.5,'LineStyle','--'); hold on;
+set(plot3,'color',[0 0 0]);
+plot4 = plot(data.time,res.tau_leg', 'lineWidth',1.5,'LineStyle','--'); hold on;
+set(plot4,'color',[0 0 0]);
+
+leg = legend('$\tau_1$','$\tau_2$','$\tau_{MAP}$','Location','northeast');
+set(leg,'Interpreter','latex');
+set(leg,'FontSize',18);
+xlabel('Time [s]','FontSize',20);
+ylabel('Torque[Nm]','FontSize',20);
+axis tight;
+grid on;
+
+%vect1 = tau(:,1) - res.tau_foot';
+%vect2 = tau(:,2) - res.tau_leg';
+
+%% test Y
+
+figure();
+y_pred = myMAP.simY(res.d);
+
+%  plot(y_pred' - data.y')
+
+ind=1;
+plot(y_pred(ind,:)); hold on; plot(data.y(ind,:), '--')
