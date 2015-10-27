@@ -3,7 +3,7 @@
 load('VICONsaveData.mat');
 load('imuExtractedData.mat');
 
-subjectIDList = [1,2,3];
+subjectIDList = [1];
 trialIDList = 1:3;
 
 
@@ -100,4 +100,4 @@ for subjectID=1:length(subjectIDList)
     end
 end
 
-save('IMU_VICON_ShiftedData.mat','imu_vicon_shiftedData');
+save('./experiments/humanFixedBase/IMU_VICON_ShiftedData.mat','imu_vicon_shiftedData');

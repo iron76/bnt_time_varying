@@ -16,9 +16,9 @@ function [R_G_0,P_G_0] = computeFootRotation( P_G_lheeT,P_G_rheeT, P_G_ltoeT, P_
     v_G_0 = computeVectorFromPoints(P_G_0,P_G_mtoe);
   
     %% assuming original URDF (rotation on y axes)
-    %x_G_0 = v_G_0 ./ norm(v_G_0);
-    %z_G_0 = repmat([0,0,1],size(v_G_0,1),1);
-    %y_G_0 = cross(z_G_0,x_G_0);
+    x_G_0 = v_G_0 ./ norm(v_G_0);
+    z_G_0 = repmat([0,0,1],size(v_G_0,1),1);
+    y_G_0 = cross(z_G_0,x_G_0);
   
     %% assuming new URDF1 (rotation on z axes, y facing upwards on 0)
     %x_G_0 = v_G_0 ./ norm(v_G_0);
@@ -26,9 +26,9 @@ function [R_G_0,P_G_0] = computeFootRotation( P_G_lheeT,P_G_rheeT, P_G_ltoeT, P_
     %z_G_0 = cross(x_G_0,y_G_0);
   
     %% assuming new URDF2 (rotation on z axes, y facing downwards on 0)
-    x_G_0 = v_G_0 ./ norm(v_G_0);
-    y_G_0 = repmat([0,0,-1],size(v_G_0,1),1);
-    z_G_0 = cross(x_G_0,y_G_0);
+%     x_G_0 = v_G_0 ./ norm(v_G_0);
+%     y_G_0 = repmat([0,0,-1],size(v_G_0,1),1);
+%     z_G_0 = cross(x_G_0,y_G_0);
    
     R_G_0 = [x_G_0' y_G_0' z_G_0' ];
 end

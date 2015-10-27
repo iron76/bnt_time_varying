@@ -1,11 +1,12 @@
-cl% load data
+
+% load data
 
 load('IMU_VICON_ShiftedData.mat');
 
 isTest = 'false';
 
-subjectList = 1:3;
-trialList = 1:2 ; 
+subjectList = 1;
+trialList = 1 ; 
 
 %subjectList = 3;
 %trialList = 1 ; 
@@ -197,8 +198,8 @@ for subjectID = subjectList
                 a_2_imulin(i,:) =  (R_2_imuini*temp.a_imu_imulin(i,:)')'; %
                 v_2_imurot(i,:) =  (R_2_imuini*temp.v_imu_imurot(i,:)')'; %
 
-               % adjT_0_PWA{i} = [ R_0_PWA , zeros(3) ; -skew(r_0_from0toPWA(i,:)') * R_0_PWA , R_0_PWA]; 
-                adjT_0_PWA{i} = [  R_0_PWA , -skew(r_0_from0toPWA(i,:)') * R_0_PWA ; zeros(3) , R_0_PWA  ]; 
+                adjT_0_PWA{i} = [ R_0_PWA , zeros(3) ; R_0_PWA * skew(r_0_from0toPWA(i,:)'), R_0_PWA]; 
+                % adjT_0_PWA{i} = [  R_0_PWA , -skew(r_0_from0toPWA(i,:)') * R_0_PWA ; zeros(3) , R_0_PWA  ]; 
                 %CLA: the notation for force transformation is modified because
                 %whe use the notation linear-angular in 6d vectors and not
                 %angular-linear like in the Featherstone.

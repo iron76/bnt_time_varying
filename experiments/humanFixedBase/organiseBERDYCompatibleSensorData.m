@@ -65,14 +65,14 @@ data.q_t = data.q2; data.dq_t = data.dq2; data.ddq_t = data.ddq2;
 data.q = [data.q1 data.q2]';
 data.dq = [data.dq1 data.dq2]';
 
-%% FUCKING FORCE PLATE MEASURES AN ACTION
-data.y_ftx = -processedSensorData(subjectID,trialID).ftx(:,(tminIndex:tmaxIndex));
-data.y_fts = -data.y_ftx;
+%% FORCE PLATE MEASURES AN ACTION
+data.y_fts = +processedSensorData(subjectID,trialID).ftx(:,(tminIndex:tmaxIndex));
+%data.y_fts = -data.y_ftx;
 data.y_imu = processedSensorData(subjectID,trialID).imu(:,(tminIndex:tmaxIndex));
 
 data.ys_fts = data.y_fts;
-data.ys_fts = data.y_ftx;
-data.ys_ftx = data.y_ftx;
+%data.ys_fts = data.y_ftx;
+%data.ys_ftx = data.y_ftx;
 data.ys_imu = data.y_imu;
 
 save('./experiments/humanFixedBase/processedSensorData.mat','data');
