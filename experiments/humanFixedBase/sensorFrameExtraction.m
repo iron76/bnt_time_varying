@@ -1,6 +1,5 @@
 
-% load data
-
+% loading data from Vicon
 load('IMU_VICON_ShiftedData.mat');
 
 isTest = 'false';
@@ -8,16 +7,12 @@ isTest = 'false';
 subjectList = 1;
 trialList = 1 ; 
 
-%subjectList = 3;
-%trialList = 1 ; 
-
 for subjectID = subjectList
     fprintf('\n---------\nSubject : %d\nTrial : ',subjectID);
     for trialID = trialList
         fprintf('%d, ',trialID);
-        figure;
-        temp = imu_vicon_shiftedData(subjectID,trialID);
         
+        temp = imu_vicon_shiftedData(subjectID,trialID);
         
         pSelec = size(temp.P_G_lhee,1);
         
@@ -50,245 +45,354 @@ for subjectID = subjectList
         [R_G_0,P_G_0] = computeFootRotation(P_G_lhee,P_G_rhee,P_G_ltoe,P_G_rtoe); 
       
         R_0_G = R_G_0';
-        R_G_1 = R_G_0;     
-       
+        R_G_1 = R_G_0;     % because point P_G_1 is fixed on the foot in URDF
         R_1_G = R_G_1';
+  
         
-        len = size(P_G_1,1);
-        %x_1 = repmat([1,0,0],len,1);
-        x_1 = repmat([1,0,0],len,1);
-        %% recomputing wrt to x-axis of frame1 to obtain both positive and negative angles
-        
-        %y_1_0 = repmat([0,-1,0],len,1);
-        q1 = computeAngleBetweenVectors(x_1,(R_1_G*(P_G_2-P_G_1)')');
-        q1 = repmat(0.5*pi,size(q1))-q1;
-         %q1 = computeAngleBetweenVectors(y_1_0,(P_G_2-P_G_1));
-        subplot(2,1,1);
-        plot(temp.t_vicon(:,1:pSelec),q1.*(180/pi),'r'); hold on;
-        xlabel('Time t(sec)');
-        ylabel('q_1 and q_2 (degrees)');
-        P_2_3 = recomputeVectorInFrame2(q1,R_1_G,(P_G_3-P_G_2));
-        %q2 = computeAngleBetweenVectors((R_G_1*(P_G_2-P_G_1)')',(R_G_1*(P_G_3-P_G_2)')');
-        x_2 = repmat([0,1,0],len,1);%x_1;
-        q2 = computeAngleBetweenVectors(x_2,(P_G_3-P_G_2));
-        q2 =  -repmat(0.5*pi,size(q2)) + q2;
-        plot(temp.t_vicon(:,1:pSelec),q2.*(180/pi));
-        legend('q_1 angle','q_2 angle');
-        axis tight;
-        
-        subplot(2,1,2);
-        q1s = sgolayfilt_wrapper(q1.*(180/pi),3,57);
-        plot(temp.t_vicon(:,1:pSelec),q1s,'r'); hold on;
-        xlabel('Time t(sec)');
-        ylabel('q_1 and q_2 (degrees)');
-        plot(temp.t_vicon(:,1:pSelec),sgolayfilt_wrapper(q2.*(180/pi),3,57));
-        legend('q_1 angle','q_2 angle');
-        axis tight;
-        
-        q1 = sgolayfilt_wrapper(q1,3,57);
-        q2 = sgolayfilt_wrapper(q2,3,57);
-        
-        dq1 = diff(q1)./1e-3;%diff(temp.t_vicon(1:end-1));
-        dq2 = diff(q2)./1e-3;%diff(temp.t_vicon(1:end-1));
-        dq1 = [dq1;dq1(end,:)];
-        dq2 = [dq2;dq2(end,:)];
-        
-        dq1 = sgolayfilt_wrapper(dq1,3,57);
-        dq2 = sgolayfilt_wrapper(dq2,3,57);
-        
-        ddq1 = diff(dq1)./1e-3;
-        ddq2 = diff(dq2)./1e-3;
-        
-        ddq1 = sgolayfilt_wrapper(ddq1,3,57);
-        ddq2 = sgolayfilt_wrapper(ddq2,3,57);
-        
-        ddq1 = [ddq1;ddq1(end,:)];
-        ddq2 = [ddq2;ddq2(end,:)];
-        
-        
-        figure;
-        subplot(2,1,1);
-        plot(temp.t_vicon(:,1:pSelec),dq1.*(180/pi),'r'); hold on;
-        xlabel('Time t(sec)');
-        ylabel('dq_1 and dq_2 (degrees/sec)');
-        
-        plot(temp.t_vicon(:,1:pSelec),dq2.*(180/pi));
-        legend('dq_1','dq_2');
-        axis tight;
-        
-        subplot(2,1,2);
-        plot(temp.t_vicon(:,1:pSelec),sgolayfilt_wrapper(dq1.*(180/pi),3,57),'r'); hold on;
-        xlabel('Time t(sec)');
-        ylabel('dq_1 and dq_2 (degrees/sec)');
-        
-        plot(temp.t_vicon(:,1:pSelec),sgolayfilt_wrapper(dq2.*(180/pi),3,57));
-        legend('dq_1','dq_2');
-        axis tight;
-        
-        figure;
-        subplot(2,1,1);
-        plot(temp.t_vicon(:,1:pSelec),ddq1.*(180/pi),'r'); hold on;
-        xlabel('Time t(sec)');
-        ylabel('ddq_1 and ddq_2 (degrees/sec^2)');
-        
-        plot(temp.t_vicon(:,1:pSelec),ddq2.*(180/pi));
-        legend('ddq_1','ddq_2');
-        axis tight;
-        
-        subplot(2,1,2);
-        plot(temp.t_vicon(:,1:pSelec),sgolayfilt_wrapper(ddq1.*(180/pi),3,57),'r'); hold on;
-        xlabel('Time t(sec)');
-        ylabel('ddq_1 and ddq_2 (degrees/sec^2)');
-        
-        plot(temp.t_vicon(:,1:pSelec),sgolayfilt_wrapper(ddq2.*(180/pi),3,57));
-        legend('ddq_1','ddq_2');
-        axis tight;
+        %% Computing q1 and q2  angles 
        
-        % computing R_G_imu
-        [R_G_imuini,P_G_imuini] = computeInitialIMURotation(P_G_imuA,P_G_imuB,P_G_imuC);
+        % JOINT ANGLE q1
+        len = size(P_G_1,1);
+        %y_vers = repmat([0 1 0],len,1);
+        %z_vers = repmat([0 0 1],len,1);
         
-        R_G_PWA = [1 0 0 ;0 -1 0;0 0 -1]; 
-        %CLA: rotation matrix from PWA to G frame
+        l1 = (P_G_2 - P_G_1);
+        q1 = zeros (len, 1);
+        %q1f = zeros (len, 1);
+        %q1z = zeros (len, 1);
         
-        R_0_PWA = R_0_G * R_G_PWA; 
-        %CLA: rotation matrix from PWA to 0 frame as the composition of two
-        %R matrices
+        for i = 1 : len;
+        %q1_temp = dot(y_vers(i,:),l1(i,:) ./ norm(l1(i,:)));
+        %q1(i) =  0.5*pi - acos(q1_temp);
+            q1(i) =atan2(-l1(i,2),l1(i,3));
+        %q1z(i) = acos(dot(z_vers(i,:),l1(i,:) ./ norm(l1(i,:))));
+        end
         
+        
+        % JOINT ANGLE q2
+        l2 = (P_G_3-P_G_2);
+        q_temp = zeros (len, 1);
+
+        for i = 1 : len;
+            q_temp(i) = atan2(-l2(i,2),l2(i,3));
+        end
+        
+        q2 = q_temp-q1;
+
+
+%         delta_t = 1e-3; % from IMU 1KHz 
+%         dq1 = diff(q1)./delta_t;%diff(temp.t_vicon(1:end-1));
+%         dq2 = diff(q2)./delta_t;%diff(temp.t_vicon(1:end-1));
+%         dq1 = [dq1;dq1(end,:)];
+%         dq2 = [dq2;dq2(end,:)];
+%         
+%         dq1 = sgolayfilt_wrapper(dq1,3,57);
+%         dq2 = sgolayfilt_wrapper(dq2,3,57);
+%         
+%         ddq1 = diff(dq1)./delta_t;
+%         ddq2 = diff(dq2)./delta_t;
+%         
+%         ddq1 = sgolayfilt_wrapper(ddq1,3,57);
+%         ddq2 = sgolayfilt_wrapper(ddq2,3,57);
+%         
+%         ddq1 = [ddq1;ddq1(end,:)];
+%         ddq2 = [ddq2;ddq2(end,:)];
+%         
+%         
+%         figure;
+%         subplot(2,1,1);
+%         plot(temp.t_vicon(:,1:pSelec),dq1.*(180/pi),'r'); hold on;
+%         xlabel('Time [s]');
+%         ylabel('dq_1 and dq_2 [deg/s]');
+%         grid on;
+%         
+%         plot(temp.t_vicon(:,1:pSelec),dq2.*(180/pi));
+%         legend('dq_1','dq_2');
+%         axis tight;
+%         grid on;
+%         
+%         subplot(2,1,2);
+%         plot(temp.t_vicon(:,1:pSelec),sgolayfilt_wrapper(dq1.*(180/pi),3,57),'r'); hold on;
+%         xlabel('Time [s]');
+%         ylabel('dq_1 and dq_2 [deg/s]');
+%         grid on;
+%         
+%         plot(temp.t_vicon(:,1:pSelec),sgolayfilt_wrapper(dq2.*(180/pi),3,57));
+%         legend('dq_1','dq_2');
+%         axis tight;
+%         grid on;
+%         
+%         figure;
+%         subplot(2,1,1);
+%         plot(temp.t_vicon(:,1:pSelec),ddq1.*(180/pi),'r'); hold on;
+%         xlabel('Time [s]');
+%         ylabel('ddq_1 and ddq_2 (degrees/sec^2)');
+%         grid on;
+%         
+%         plot(temp.t_vicon(:,1:pSelec),ddq2.*(180/pi));
+%         legend('ddq_1','ddq_2');
+%         axis tight;
+%         grid on;
+%         
+%         subplot(2,1,2);
+%         plot(temp.t_vicon(:,1:pSelec),sgolayfilt_wrapper(ddq1.*(180/pi),3,57),'r'); hold on;
+%         xlabel('Time [s]');
+%         ylabel('ddq_1 and ddq_2 (degrees/sec^2)');
+%         grid on;
+%         
+%         plot(temp.t_vicon(:,1:pSelec),sgolayfilt_wrapper(ddq2.*(180/pi),3,57));
+%         legend('ddq_1','ddq_2');
+%         axis tight;
+%         grid on;
+       
+
+%% Using Savitzky-Golay filtering for differentiation
+
+% to do: tune window and polyn order.
+
+        window = 57;
+        [~, diffCoeff] = sgolay_wrapper(3, window);
+        %diffCoeff is a matrix of (polynomialOrder-1) column where:
+        %- ( ,1) --> coefficient for S-Golay as smoother;
+        %- ( ,2) --> coefficient for S-Golay as 1st differentiator;
+        %- ( ,3) --> coefficient for S-Golay as 2nd differentiator;
+        %  .   
+        %  .
+        %- ( ,polynomialOrder-1) --> coefficient for S-Golay as (polynomialOrder) differentiator;
+        
+        halfWindow  = ((window+1)/2) -1;
+        dq1_sg = zeros(len, 1);
+        dq2_sg = zeros(len, 1);
+        ddq1_sg = zeros(len, 1);
+        ddq2_sg = zeros(len, 1);
+        
+        for n = (window+1)/2:len-(window+1)/2,
+              % 1st differential
+              dq1_sg(n) = dot(diffCoeff(:,2),q1(n - halfWindow:n + halfWindow));
+              dq2_sg(n) = dot(diffCoeff(:,2),q2(n - halfWindow:n + halfWindow));
+              % 2nd differential
+              ddq1_sg(n) = dot(diffCoeff(:,3),q1(n - halfWindow:n + halfWindow));
+              ddq2_sg(n) = dot(diffCoeff(:,3),q2(n - halfWindow:n + halfWindow));
+        end
+        
+        dq1_sg = dq1_sg ./ 1e-3;
+        dq2_sg = dq2_sg ./ 1e-3;
+        ddq1_sg = ddq1_sg ./ (1e-3)^2;
+        ddq2_sg = ddq2_sg ./ (1e-3)^2;
+        
+        
+        figure;
+        subplot(311);
+        plot1 = plot(temp.t_vicon(:,1:pSelec),q1.*(180/pi),'lineWidth',1.0); hold on;
+        set(plot1,'color',[1 0 0]);
+        plot2= plot(temp.t_vicon(:,1:pSelec),q2.*(180/pi),'lineWidth',1.0); hold on;
+        set(plot2,'color',[0 0.498039215803146 0]);
+        leg = legend('$q_1$','$q_2$','Location','northeast');
+        set(leg,'Interpreter','latex');
+        set(leg,'FontSize',15);
+        xlabel('Time [s]','FontSize',15);
+        ylabel('Joint Angle [deg]','FontSize',15);
+        axis tight;
+        grid on;  
+
+        subplot(312);
+        plot1 = plot(temp.t_vicon(:,1:pSelec),(180/pi)*dq1_sg,'lineWidth',1.0); hold on;
+        set(plot1,'color',[1 0 0]);
+        plot2= plot(temp.t_vicon(:,1:pSelec),(180/pi)*dq2_sg,'lineWidth',1.0); hold on;
+        set(plot2,'color',[0 0.498039215803146 0]);
+        leg = legend('$\dot q_{1}$','$\dot q_{2}$','Location','northeast');
+        set(leg,'Interpreter','latex');
+        set(leg,'FontSize',15);
+        xlabel('Time [s]','FontSize',15);
+        ylabel('Joint Velocity [deg/s]','FontSize',15);
+        axis tight;
+        grid on;
+        
+        subplot(313);
+        plot1 = plot(temp.t_vicon(:,1:pSelec),(180/pi)*ddq1_sg,'lineWidth',1.0); hold on;
+        set(plot1,'color',[1 0 0]);
+        plot2= plot(temp.t_vicon(:,1:pSelec),(180/pi)*ddq2_sg,'lineWidth',1.0); hold on;
+        set(plot2,'color',[0 0.498039215803146 0]);
+        leg = legend('$\ddot q_{1}$','$\ddot q_{2}$','Location','northeast');
+        set(leg,'Interpreter','latex');
+        set(leg,'FontSize',15);
+        xlabel('Time [s]','FontSize',15);
+        ylabel('Joint Acceleration [deg/s^2]','FontSize',15);
+        axis tight;
+        grid on;
+        
+       
+       
+        %% Force plate sensing
+        
+        R_G_PWA = [1 0 0 ;0 -1 0;0 0 -1]; %fixed rotation matrix from PWA to G frame
+        
+        R_0_PWA = R_0_G * R_G_PWA; %rotation matrix from PWA to 0 frame as the composition of two R matrices
+        
+        % distanza tra origine fpl e global?
         r_G_from0toPWA = computeVectorFromPoints(repmat(-P_G_0,size(P_PWA_C,1),1),(R_G_PWA*P_PWA_C')')*1e-3;% positions in mm
         r_0_from0toPWA = (R_0_G * r_G_from0toPWA')'; 
         
         fx_0_1 = zeros(size(fx_PWAPWA_1));
-        a_2_imulin = zeros(size(fx_PWAPWA_1,1),3);%
-        v_2_imurot = zeros(size(fx_PWAPWA_1,1),3);%
         
-        
-       % R_G_imu0fake = [0 -1 0; 0 0 -1;1 0 0];
-        R_0_1ini = euler2dcm([0,mean(q1(1:10)),0]);
-                %R_0_1cla{i} = computeRy(q1(i));
-         
-        R_1_2ini = euler2dcm([0,mean(q2(1:10)),0]);
-                %R_1_2cla{i} = computeRy(q2(i));
+        for i = 1:length(temp.t_vicon)      
 
-        R_G_2ini = R_G_0 * R_0_1ini * R_1_2ini;
-       % R_G_imuinifake = [0 0 1; 0 -1 0; -1 0 0];
-        R_2_imuini = R_G_2ini'* R_G_imuini;
-        %R_2_imuini = R_G_2ini'* R_G_imuinifake;
-        
-       % R_G_0
-        
-       % R_0_1ini
-       % R_1_2ini
-        
-        figure;
-        subplot(2,1,1);
-        plot(temp.t_imu,temp.a_imu_imulin');axis tight;
-        xlabel('time (sec)');
-        ylabel('m/sec^2');
-        legend('x','y','z');
-        title('Raw Acceleration of link2 (imuframe)');
-        subplot(2,1,2);
-        plot(temp.t_imu,temp.v_imu_imurot');  axis tight;
-        xlabel('time (sec)');
-        ylabel('rad/sec');
-        legend('x','y','z');
-        title('Raw Angular Velocity of link2 (imuframe)');
-        
-        
-          for i = 1:length(temp.t_vicon)   
-                a_2_imulin(i,:) =  (R_2_imuini*temp.a_imu_imulin(i,:)')'; %
-                v_2_imurot(i,:) =  (R_2_imuini*temp.v_imu_imurot(i,:)')'; %
-
-                adjT_0_PWA{i} = [ R_0_PWA , zeros(3) ; R_0_PWA * skew(r_0_from0toPWA(i,:)'), R_0_PWA]; 
+                adjT_0_PWA{i} = [ R_0_PWA' , zeros(3) ; skew(r_0_from0toPWA(i,:)') * R_0_PWA', R_0_PWA']; 
                 % adjT_0_PWA{i} = [  R_0_PWA , -skew(r_0_from0toPWA(i,:)') * R_0_PWA ; zeros(3) , R_0_PWA  ]; 
                 %CLA: the notation for force transformation is modified because
-                %whe use the notation linear-angular in 6d vectors and not
+                %we use the notation linear-angular in 6d vectors and not
                 %angular-linear like in the Featherstone.
 
                 fx_0_1(i,:) = ((adjT_0_PWA{i}) * fx_PWAPWA_1(i,:)')';
+        end
+        
+       
+        figure;
+        subplot(211);
+        plot(temp.t_vicon,fx_PWAPWA_1(:,1:3)); axis tight;
+        xlabel('Time [s]','FontSize',15);
+        ylabel('Force [N]','FontSize',15);
+        title('Wrench measured','FontSize',15);
+        set(legend,'Interpreter','latex');
+        set(legend,'FontSize',15);
+        legend('F_x','F_y','F_z','Location','northeast');
+        grid on;
+        
+        subplot(212);
+        plot(temp.t_vicon,fx_PWAPWA_1(:,4:6)); axis tight;
+        xlabel('Time [s]','FontSize',15);
+        ylabel('Momentum measured [Nm]','FontSize',15);
+        set(legend,'Interpreter','latex');
+        set(legend,'FontSize',15);
+        legend('M_x','M_y','M_z','Location','northeast');
+        grid on;
+        
+        
+        
+        figure;
+        subplot(211);
+        plot(temp.t_vicon, fx_0_1(:,1:3)); axis tight;
+        xlabel('Time [s]','FontSize',15);
+        ylabel('Force [N]','FontSize',15);
+        title('External Wrench at link 0','FontSize',15);
+        set(legend,'Interpreter','latex');
+        set(legend,'FontSize',15);
+        legend('F_x','F_y','F_z','Location','northeast');
+        grid on;
+        
+        subplot(212);
+        plot(temp.t_vicon, fx_0_1(:,4:6)); axis tight;
+        xlabel('Time [s]','FontSize',15);
+        ylabel('Momentum [Nm]','FontSize',15);
+        set(legend,'Interpreter','latex');
+        set(legend,'FontSize',15);
+        legend('M_x','M_y','M_z','Location','northeast');
+        grid on;
+        
+        %% IMU sensor
+      
+        % Plotting raw data coming from IMU sensor in IMU frame
+        
+        figure;
+        subplot(211);
+        plot(temp.t_imu,temp.a_imu_imulin'); axis tight;
+        xlabel('Time [s]','FontSize',15);
+        ylabel('[m/sec^2]','FontSize',15);
+        set(legend,'Interpreter','latex');
+        set(legend,'FontSize',15);
+        legend('a^{IMU}_x','a^{IMU}_y','a^{IMU}_z','Location','northeast');
+        title('Raw Acceleration of link 2 (IMU frame)','FontSize',15);
+        grid on;
+        
+        subplot(212);
+        plot(temp.t_imu,temp.v_imu_imurot');  axis tight;
+        xlabel('Time [s]','FontSize',15);
+        ylabel('[rad/s]','FontSize',15);
+        set(legend,'Interpreter','latex');
+        set(legend,'FontSize',15);
+        legend('w^{IMU}_x','w^{IMU}_y','w^{IMU}_z','Location','northeast');
+        title('Raw Angular Velocity of link 2 (IMU frame)','FontSize',15);
+        grid on;
+        
+        
+        % Extracting position vector from IMU-P2 
+        
+        P_G_IMU = computeCentroidOfTriangle( P_G_imuA,P_G_imuB,P_G_imuC );
+        r_G_fromIMUtoP2 = P_G_2 - P_G_IMU;
+        
+        
+        % Extracting rotation matrix R_2_imuini
+        
+        R_0_1ini = euler2dcm([0,mean(q1(1:10)),0]); %??
+        R_1_2ini = euler2dcm([0,mean(q2(1:10)),0]); %??
+        R_G_2ini = R_G_0 * R_0_1ini * R_1_2ini;
+        
+        [R_G_imuini,~] = computeInitialIMURotation(P_G_imuA,P_G_imuB,P_G_imuC);
+        R_2_imuini = R_G_2ini'* R_G_imuini;
+        
+   
+        %Computing IMU data in link 2 frame
+        
+        a_2_imulin = zeros(size(fx_PWAPWA_1,1),3);
+        v_2_imurot = zeros(size(fx_PWAPWA_1,1),3);
+        
+          for i = 1:length(temp.t_vicon)   
+                a_2_imulin(i,:) =  (R_2_imuini*temp.a_imu_imulin(i,:)')'; 
+                v_2_imurot(i,:) =  (R_2_imuini*temp.v_imu_imurot(i,:)')'; 
           end
         
-%         R_0_1CELL = cell2mat(R_0_1);
-%         R_0_1claCELL = cell2mat(R_0_1cla);
-%         if (sum(R_0_1CELL-R_0_1claCELL) ~= 0);
-%         disp('Something wrong!');
-%         else disp('Two methods for R computation are equivalent.');
-%         end
-%         
-%         R_1_2CELL = cell2mat(R_1_2);
-%         R_1_2claCELL = cell2mat(R_1_2cla);
-%         if (sum(R_1_2CELL-R_1_2claCELL) ~= 0);
-%         disp('Something wrong!');
-%         else disp('Two methods for R computation are equivalent.');
-%         end
-        
+          
+        % Plotting data coming from IMU sensor in link 2 frame
+          
         figure;
-        subplot(2,1,1);
+        subplot(211);
         plot(temp.t_vicon,a_2_imulin); axis tight;
-        xlabel('time (sec)');
-        ylabel('m/sec^2');
-        legend('x','y','z');
-        title('Acceleration of link2');
-        subplot(2,1,2);
+        xlabel('Time [s]','FontSize',15);
+        ylabel('[m/sec^2]','FontSize',15);
+        set(legend,'Interpreter','latex');
+        set(legend,'FontSize',15);
+        legend('a^{2}_x','a^{2}_y','a^{2}_z','Location','northeast');
+        title('Acceleration of link 2 (link 2 frame))','FontSize',15);
+        grid on;
+        
+        subplot(212);
         plot(temp.t_vicon,v_2_imurot);  axis tight;
-        xlabel('time (sec)');
-        ylabel('rad/sec');
-        legend('x','y','z');
-        title('Angular Velocity of link2');
+        xlabel('Time [s]','FontSize',15);
+        ylabel('[rad/s]','FontSize',15);
+        set(legend,'Interpreter','latex');
+        set(legend,'FontSize',15);
+        legend('w^{2}_x','w^{2}_y','w^{2}_z','Location','northeast');
+        title('Angular Velocity of link 2 (link 2 frame)','FontSize',15);
+        grid on;
         
-        figure;
-        subplot(2,1,1);
-        plot(temp.t_vicon,fx_PWAPWA_1(:,1:3)); axis tight;
-        xlabel('time (sec)');
-        ylabel('Wrench Force(N)');
-        title('Wrench measured');
-        legend('x','y','z');
-        subplot(2,1,2);
-        plot(temp.t_vicon,fx_PWAPWA_1(:,4:6)); axis tight;
-        xlabel('time (sec)');
-        ylabel('Wrench Moments measured (Nm)');
-        legend('x','y','z');
         
-        figure;
-        subplot(2,1,1);
-        plot(temp.t_vicon, fx_0_1(:,1:3)); axis tight;
-        xlabel('time (sec)');
-        ylabel('Wrench Force (N)');
-        title('External Wrench at link0');
-        legend('x','y','z');
-        subplot(2,1,2);
-        plot(temp.t_vicon, fx_0_1(:,4:6)); axis tight;
-        xlabel('time (sec)');
-        ylabel('Wrench Moments (Nm)');
-        legend('x','y','z');
+        
+        %% clustering data
         
         processedSensorData(subjectID,trialID).R_G_0 = R_G_0;
-        processedSensorData(subjectID,trialID).R_0_1 = R_0_1ini;
-        processedSensorData(subjectID,trialID).R_2_imu = R_2_imuini;
-        processedSensorData(subjectID,trialID).R_G_imu0 = R_G_imuini;
-        processedSensorData(subjectID,trialID).R_G_2 = R_G_2ini;
+        processedSensorData(subjectID,trialID).R_0_1 = R_0_1ini; %?
+        processedSensorData(subjectID,trialID).R_2_imu = R_2_imuini; %?
+        processedSensorData(subjectID,trialID).R_G_imu0 = R_G_imuini; %?
+        processedSensorData(subjectID,trialID).R_G_2 = R_G_2ini; %?
         processedSensorData(subjectID,trialID).R_G_PWA = R_G_PWA;
         processedSensorData(subjectID,trialID).R_0_PWA = R_0_PWA;
         processedSensorData(subjectID,trialID).q1 = q1;
         processedSensorData(subjectID,trialID).q2 = q2;
-        processedSensorData(subjectID,trialID).dq1 = dq1;
-        processedSensorData(subjectID,trialID).dq2 = dq2;
-        processedSensorData(subjectID,trialID).ddq1 = ddq1;
-        processedSensorData(subjectID,trialID).ddq2 = ddq2;
+        processedSensorData(subjectID,trialID).dq1 = dq1_sg;
+        processedSensorData(subjectID,trialID).dq2 = dq2_sg;
+        processedSensorData(subjectID,trialID).ddq1 = ddq1_sg;
+        processedSensorData(subjectID,trialID).ddq2 = ddq2_sg;
         processedSensorData(subjectID,trialID).a_2_imulin = a_2_imulin;
         processedSensorData(subjectID,trialID).v_2_imurot = v_2_imurot;
         processedSensorData(subjectID,trialID).adjT_0_PWA = adjT_0_PWA;
         processedSensorData(subjectID,trialID).f_x_1 = fx_0_1';
-%         processedSensorData(subjectID,trialID).a_2_imulin = a_2_imulin;
-%         processedSensorData(subjectID,trialID).v_2_imurot = v_2_imurot;
         processedSensorData(subjectID,trialID).t = temp.t_vicon;
         processedSensorData(subjectID,trialID).imu = [a_2_imulin v_2_imurot]';
-        %processedSensorData(subjectID,trialID).imu = 
         processedSensorData(subjectID,trialID).ftx = fx_0_1';
         
     end
 end
-% make loop
-%processedSensorData = imu_vicon_shiftedData;
+
 if(strcmp(isTest,'true')~=1)
     save('./experiments/humanFixedBase/preProcessedSensorData.mat','processedSensorData');%a_2_imulin
 end

@@ -7,14 +7,18 @@ trialID = 1;
 
 data.path        = './experiments/humanFixedBase/processedSensorData.mat';
 
-   sens.parts       = {'foot','torso'};
-   sens.labels      = {'fts','imu'};
+   sens.parts       = {'leg','torso'}; %la forza della force plate viene vista come entrante nella leg e non nel foot
+   sens.labels      = {'fts','imu'};  %se invece di imu usassi acc che considera solo la parte lineare?
    sens.ndof        = {6,6};
    
+%    sens.parts       = {'torso'}; %la forza della force plate viene vista come entrante nella leg e non nel foot
+%    sens.labels      = {'imu'}; %invece di imu uso acc che considera solo la parte lineare
+%    sens.ndof        = {6};
+%    
    load(sprintf('./experiments/humanFixedBase/humanThreeLinkModelFromURDF_subject%d.mat',subjectID));
    dmodel  = humanThreeLink_dmodel; %deterministic model
   
-   ymodel  = humanThreeLinkSens(dmodel, sens); %creating Ys
+   ymodel  = humanThreeLinkSens(dmodel, sens); 
    
    dmodel  = autoTreeStochastic(dmodel, 1e-5, 1e4);% probabilistic model for D equation (added Sv and Sw)
    ymodel  = humanThreeLinkSensStochastic(ymodel);% proabilistic model for Y(q,dq) d = y (added Sy)
@@ -35,19 +39,25 @@ else
     [ data ] = organiseBERDYCompatibleSensorData( data, subjectID, trialID );
 end
 
-data.parts = {'foot','torso'};
+data.parts = {'leg','torso'};
 data.labels = {'fts','imu'};
 data.ndof = {6,6};
 data.index = {'1:6','1:6'};
 
+% data.parts = {'torso'};
+% data.labels = {'imu'};
+% data.ndof = {6};
+% data.index = {'1:6'};
+
 [ data ] = organiseBERDYCompatibleSensorData( data, subjectID,trialID );
 label_to_plot = {'fts','imu'};
+%label_to_plot = {'imu'};
 
 %% Process raw sensor data and bring it in the desired reference frames
 
-acc_gain = 1.0;%5.9855e-04;
+acc_gain = 5.9855e-04; %1.0 naveen
 deg_to_rad = pi/180.0;
-gyro_gain = 1.0;%deg_to_rad*7.6274e-03;
+gyro_gain = deg_to_rad*7.6274e-03; %1.0 naveen
 for l = 1 : length(label_to_plot)
    for i = 1 : length(data.parts)
       if strcmp(data.labels{i}, label_to_plot{l})
@@ -117,6 +127,7 @@ Sd = zeros(26*NB, 26*NB, n);
 for i = 1 : NB
    for j = 1 : n
       link = strrep(myMAP.IDmodel.modelParams.linkname{i}, '+', '_');
+      joint = strrep(myMAP.IDmodel.modelParams.jointname{i}, '+', '_');
       di   = ['res.d_'   link  '(:,j)'];
       ind  = '1 + 26*(i-1) : 26*(i-1) + 26';
       eval([di '   = d(' ind ',j);'])
@@ -134,16 +145,16 @@ for i = 1 : NB
       eval(['res.Sf_'   link '(:,:,j) = res.Sd(' ind ',' ind ',j);'])
       %tau
       ind  = '19 + 26*(i-1) : 26*(i-1) + 19';
-      eval(['res.tau_'  link '(:,j)   =  res.d(' ind '        ,j);'])
-      eval(['res.Stau_' link '(:,:,j) = res.Sd(' ind ',' ind ',j);'])
+      eval(['res.tau_'  joint '(:,j)   =  res.d(' ind '        ,j);'])
+      eval(['res.Stau_' joint '(:,:,j) = res.Sd(' ind ',' ind ',j);'])
       %fx
       ind  = '20 + 26*(i-1) : 26*(i-1) + 25';
       eval(['res.fx_'   link '(:,j)   =  res.d(' ind '        ,j);'])
       eval(['res.Sfx_'  link '(:,:,j) = res.Sd(' ind ',' ind ',j);'])
       %d2q
       ind  = '26 + 26*(i-1) : 26*(i-1) + 26';
-      eval(['res.d2q_'  link '(:,j)   =  res.d(' ind '        ,j);'])
-      eval(['res.Sd2q_' link '(:,:,j) = res.Sd(' ind ',' ind ',j);'])
+      eval(['res.d2q_'  joint '(:,j)   =  res.d(' ind '        ,j);'])
+      eval(['res.Sd2q_' joint '(:,:,j) = res.Sd(' ind ',' ind ',j);'])
 
    end
 end
@@ -166,9 +177,9 @@ plot1 = plot(data.time,tau(:,1), 'lineWidth',2.5); hold on;
 set(plot1,'color',[1 0 0]);
 plot2 = plot(data.time,tau(:,2), 'lineWidth',2.5); hold on;
 set(plot2,'color',[0 0.498039215803146 0]);
-plot3 = plot(data.time,res.tau_foot', 'lineWidth',1.5,'LineStyle','--'); hold on;
+plot3 = plot(data.time,res.tau_ankle', 'lineWidth',1.5,'LineStyle','--'); hold on;
 set(plot3,'color',[0 0 0]);
-plot4 = plot(data.time,res.tau_leg', 'lineWidth',1.5,'LineStyle','--'); hold on;
+plot4 = plot(data.time,res.tau_hip', 'lineWidth',1.5,'LineStyle','--'); hold on;
 set(plot4,'color',[0 0 0]);
 
 leg = legend('$\tau_1$','$\tau_2$','$\tau_{MAP}$','Location','northeast');
@@ -179,19 +190,40 @@ ylabel('Torque[Nm]','FontSize',20);
 axis tight;
 grid on;
 
-%vect1 = tau(:,1) - res.tau_foot';
-%vect2 = tau(:,2) - res.tau_leg';
 
 %% test Y
 
-figure();
-y_pred = myMAP.simY(res.d);
+ for  ind = 1:26
 
-%  plot(y_pred' - data.y')
+        y_pred = myMAP.simY(res.d);
 
-ind=6;
-plot(y_pred(ind,:)); hold on; plot(data.y(ind,:), '--')
-legend('Map Pred', 'Actual data');
-title(sprintf('Id %d',ind));
+        fig = figure();
+        axes1 = axes('Parent',fig,'FontSize',16);
+        box(axes1,'on');
+        hold(axes1,'on');
+        grid on;
 
+        plot1 = plot(data.time,y_pred(ind,:), 'lineWidth',1.0, 'LineStyle','--'); hold on;
+        set(plot1,'color',[1 0 0]);
+        plot2 = plot(data.time,data.y(ind,:), 'lineWidth',1.0); hold on;
+        set(plot2,'color',[0 0 1]);
+
+        leg = legend('Map Pred', 'Actual data','Location','northeast');
+        %set(leg,'Interpreter','latex');
+        set(leg,'FontSize',18);
+        xlabel('Time [s]','FontSize',20);
+        %ylabel('Torque[Nm]','FontSize',20);
+        title(sprintf('Figure %d',ind));
+        axis tight;
+        grid on;
+
+%     figure();
+%     y_pred = myMAP.simY(res.d);
+% 
+%     plot(y_pred(ind,:)); 
+%     hold on; 
+%     plot(data.y(ind,:), '--');
+%     legend('Map Pred', 'Actual data');
+%     title(sprintf('Figure %d',ind));
+  end
 
