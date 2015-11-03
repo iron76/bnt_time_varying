@@ -40,19 +40,20 @@ data.time = t(tminIndex:tmaxIndex);
 
 %% Getting variables
 
+endIdx = 18606;
 %GET JOINT ANGLES
 q1 = processedSensorData.q1;
-q1 = q1(2000:18607,:); %window filter
+q1 = q1(2000:endIdx,:); %window filter
 % q1 = 0.1 * ones(size(q1));
 q2 = processedSensorData.q2;
-q2 = q2(2000:18607,:); %window filter
+q2 = q2(2000:endIdx,:); %window filter
 % q2 = 0.2 * ones(size(q2));
 
 %GET JOINT VELOCITIES 
 dq1 = processedSensorData.dq1;
-dq1 = dq1(2000:18607,:); %window filter
+dq1 = dq1(2000:endIdx,:); %window filter
 dq2 = processedSensorData.dq2;
-dq2 = dq2(2000:18607,:); %window filter
+dq2 = dq2(2000:endIdx,:); %window filter
 % dq1 = zeros (length(q1),1);
 % dq2 = zeros (length(q2),1);
 

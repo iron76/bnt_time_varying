@@ -192,6 +192,8 @@ grid on;
 
 
 %% test Y
+%chosenInd = [ ]
+chosenInd = [ ]
 
  for  ind = 1:26
 
