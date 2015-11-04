@@ -1,4 +1,4 @@
-function  [a_2_2, v_2_2, fBase] = simulateSensors_RNEA( model, q, qd, qdd, f_ext)
+function  [ y_RNEA ] = simulateSensors_RNEA( model, q, qd, qdd, f_ext)
 
 % ID  Inverse Dynamics via Recursive Newton-Euler Algorithm
 % ID(model,q,qd,qdd,f_ext) calculates the inverse dynamics of a kinematic
@@ -40,6 +40,15 @@ for i = model.NB:-1:1
   end
 end
 
-a_2_2 = a_i{2}(4:6)';
-v_2_2 = v_i{2}(1:3)';
-fBase = fB{1};
+%featherstone model is angular-linear, we process linear-angular
+a_2_2 = a{2}(4:6)';
+v_2_2 = v{2}(1:3)';
+fts(1:3) = f{1}(4:6); 
+fts(4:6) = f{1}(1:3);
+
+y_RNEA = zeros(26,1);
+y_RNEA(1:6) = fts;
+y_RNEA(7:9) = a_2_2;
+y_RNEA(10:12) = v_2_2;
+y_RNEA(13:24) = zeros(12,1);
+y_RNEA(25:26) = qdd;

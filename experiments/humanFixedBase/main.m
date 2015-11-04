@@ -14,7 +14,7 @@ data.path        = './experiments/humanFixedBase/processedSensorData.mat';
 %    sens.parts       = {'torso'}; %la forza della force plate viene vista come entrante nella leg e non nel foot
 %    sens.labels      = {'imu'}; %invece di imu uso acc che considera solo la parte lineare
 %    sens.ndof        = {6};
-%    
+
    load(sprintf('./experiments/humanFixedBase/humanThreeLinkModelFromURDF_subject%d.mat',subjectID));
    dmodel  = humanThreeLink_dmodel; %deterministic model
   
@@ -26,8 +26,7 @@ data.path        = './experiments/humanFixedBase/processedSensorData.mat';
    myModel = model(dmodel);
    mySens  = sensors(ymodel);
 
-   myMAP  = MAP(myModel, mySens);
-   
+   myMAP  = MAP(myModel, mySens);   
 
 %% plot results (???)
 close all
@@ -189,43 +188,3 @@ xlabel('Time [s]','FontSize',20);
 ylabel('Torque[Nm]','FontSize',20);
 axis tight;
 grid on;
-
-
-%% test Y
-%chosenInd = [ ]
-chosenInd = [ ]
-
- for  ind = 1:26
-
-        y_pred = myMAP.simY(res.d);
-
-        fig = figure();
-        axes1 = axes('Parent',fig,'FontSize',16);
-        box(axes1,'on');
-        hold(axes1,'on');
-        grid on;
-
-        plot1 = plot(data.time,y_pred(ind,:), 'lineWidth',1.0, 'LineStyle','--'); hold on;
-        set(plot1,'color',[1 0 0]);
-        plot2 = plot(data.time,data.y(ind,:), 'lineWidth',1.0); hold on;
-        set(plot2,'color',[0 0 1]);
-
-        leg = legend('Map Pred', 'Actual data','Location','northeast');
-        %set(leg,'Interpreter','latex');
-        set(leg,'FontSize',18);
-        xlabel('Time [s]','FontSize',20);
-        %ylabel('Torque[Nm]','FontSize',20);
-        title(sprintf('Figure %d',ind));
-        axis tight;
-        grid on;
-
-%     figure();
-%     y_pred = myMAP.simY(res.d);
-% 
-%     plot(y_pred(ind,:)); 
-%     hold on; 
-%     plot(data.y(ind,:), '--');
-%     legend('Map Pred', 'Actual data');
-%     title(sprintf('Figure %d',ind));
-  end
-
