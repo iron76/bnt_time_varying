@@ -19,7 +19,7 @@ data.path        = './experiments/humanFixedBase/processedSensorData.mat';
    dmodel  = humanThreeLink_dmodel; %deterministic model
   
    ymodel  = humanThreeLinkSens(dmodel, sens); 
-   
+                                     % sModel, sUnkown-covarianceOfd 
    dmodel  = autoTreeStochastic(dmodel, 1e-5, 1e4);% probabilistic model for D equation (added Sv and Sw)
    ymodel  = humanThreeLinkSensStochastic(ymodel);% proabilistic model for Y(q,dq) d = y (added Sy)
    
@@ -188,3 +188,6 @@ xlabel('Time [s]','FontSize',20);
 ylabel('Torque[Nm]','FontSize',20);
 axis tight;
 grid on;
+
+
+berdyResultSensorTest
