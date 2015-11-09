@@ -36,8 +36,8 @@ for subjectID = subjectList
         P_G_imuC = temp.P_G_imuC(1:pSelec,:);
         
         P_PWA_C = temp.P_PWA_C(1:pSelec,:);
-        fx_PWAPWA_1 = temp.fx_PWAPWA_1(1:pSelec,:);
-        fx_PWAPWA_1(:,4:6) = fx_PWAPWA_1(:,4:6).*1e-3;
+        fx_PWAPWA_PWA = temp.fx_PWAPWA_PWA(1:pSelec,:);
+        fx_PWAPWA_PWA(:,1:3) = fx_PWAPWA_PWA(:,1:3).*1e-3;
         
         P_G_1 = computeCentroidOfPoints(P_G_lankle,P_G_rankle);
         P_G_2 = computeCentroidOfPoints(P_G_lhip,P_G_rhip);
@@ -78,85 +78,20 @@ for subjectID = subjectList
         end
         
         q2 = q_temp-q1;
+    
+        
+        %% Using Savitzky-Golay filtering for differentiation
 
-
-%         delta_t = 1e-3; % from IMU 1KHz 
-%         dq1 = diff(q1)./delta_t;%diff(temp.t_vicon(1:end-1));
-%         dq2 = diff(q2)./delta_t;%diff(temp.t_vicon(1:end-1));
-%         dq1 = [dq1;dq1(end,:)];
-%         dq2 = [dq2;dq2(end,:)];
-%         
-%         dq1 = sgolayfilt_wrapper(dq1,3,57);
-%         dq2 = sgolayfilt_wrapper(dq2,3,57);
-%         
-%         ddq1 = diff(dq1)./delta_t;
-%         ddq2 = diff(dq2)./delta_t;
-%         
-%         ddq1 = sgolayfilt_wrapper(ddq1,3,57);
-%         ddq2 = sgolayfilt_wrapper(ddq2,3,57);
-%         
-%         ddq1 = [ddq1;ddq1(end,:)];
-%         ddq2 = [ddq2;ddq2(end,:)];
-%         
-%         
-%         figure;
-%         subplot(2,1,1);
-%         plot(temp.t_vicon(:,1:pSelec),dq1.*(180/pi),'r'); hold on;
-%         xlabel('Time [s]');
-%         ylabel('dq_1 and dq_2 [deg/s]');
-%         grid on;
-%         
-%         plot(temp.t_vicon(:,1:pSelec),dq2.*(180/pi));
-%         legend('dq_1','dq_2');
-%         axis tight;
-%         grid on;
-%         
-%         subplot(2,1,2);
-%         plot(temp.t_vicon(:,1:pSelec),sgolayfilt_wrapper(dq1.*(180/pi),3,57),'r'); hold on;
-%         xlabel('Time [s]');
-%         ylabel('dq_1 and dq_2 [deg/s]');
-%         grid on;
-%         
-%         plot(temp.t_vicon(:,1:pSelec),sgolayfilt_wrapper(dq2.*(180/pi),3,57));
-%         legend('dq_1','dq_2');
-%         axis tight;
-%         grid on;
-%         
-%         figure;
-%         subplot(2,1,1);
-%         plot(temp.t_vicon(:,1:pSelec),ddq1.*(180/pi),'r'); hold on;
-%         xlabel('Time [s]');
-%         ylabel('ddq_1 and ddq_2 (degrees/sec^2)');
-%         grid on;
-%         
-%         plot(temp.t_vicon(:,1:pSelec),ddq2.*(180/pi));
-%         legend('ddq_1','ddq_2');
-%         axis tight;
-%         grid on;
-%         
-%         subplot(2,1,2);
-%         plot(temp.t_vicon(:,1:pSelec),sgolayfilt_wrapper(ddq1.*(180/pi),3,57),'r'); hold on;
-%         xlabel('Time [s]');
-%         ylabel('ddq_1 and ddq_2 (degrees/sec^2)');
-%         grid on;
-%         
-%         plot(temp.t_vicon(:,1:pSelec),sgolayfilt_wrapper(ddq2.*(180/pi),3,57));
-%         legend('ddq_1','ddq_2');
-%         axis tight;
-%         grid on;
-       
-
-%% Using Savitzky-Golay filtering for differentiation
-
-% to do: tune window and polyn order.
+        % to do: tune window and polyn order.
 
         window = 57;
         [~, diffCoeff] = sgolay_wrapper(3, window);
-        %diffCoeff is a matrix of (polynomialOrder-1) column where:
+        %diffCoeff is a matrix of (polynomialOrder-1) columns where:
         %- ( ,1) --> coefficient for S-Golay as smoother;
         %- ( ,2) --> coefficient for S-Golay as 1st differentiator;
         %- ( ,3) --> coefficient for S-Golay as 2nd differentiator;
         %  .   
+        %  .
         %  .
         %- ( ,polynomialOrder-1) --> coefficient for S-Golay as (polynomialOrder) differentiator;
         
@@ -188,6 +123,7 @@ for subjectID = subjectList
         plot2= plot(temp.t_vicon(:,1:pSelec),q2.*(180/pi),'lineWidth',1.0); hold on;
         set(plot2,'color',[0 0.498039215803146 0]);
         leg = legend('$q_1$','$q_2$','Location','northeast');
+        title('Joint Quantities','FontSize',15);
         set(leg,'Interpreter','latex');
         set(leg,'FontSize',15);
         xlabel('Time [s]','FontSize',15);
@@ -222,73 +158,6 @@ for subjectID = subjectList
         grid on;
         
        
-       
-        %% Force plate sensing
-        
-        R_G_PWA = [1 0 0 ;0 -1 0;0 0 -1]; %fixed rotation matrix from PWA to G frame
-        
-        R_0_PWA = R_0_G * R_G_PWA; %rotation matrix from PWA to 0 frame as the composition of two R matrices
-        
-        % distanza tra origine fpl e global?
-        r_G_from0toPWA = computeVectorFromPoints(repmat(-P_G_0,size(P_PWA_C,1),1),(R_G_PWA*P_PWA_C')')*1e-3;% positions in mm
-        r_0_from0toPWA = (R_0_G * r_G_from0toPWA')'; 
-        
-        fx_0_1 = zeros(size(fx_PWAPWA_1));
-        
-        for i = 1:length(temp.t_vicon)      
-
-                adjT_0_PWA{i} = [ R_0_PWA' , zeros(3) ; skew(r_0_from0toPWA(i,:)') * R_0_PWA', R_0_PWA']; 
-                % adjT_0_PWA{i} = [  R_0_PWA , -skew(r_0_from0toPWA(i,:)') * R_0_PWA ; zeros(3) , R_0_PWA  ]; 
-                %CLA: the notation for force transformation is modified because
-                %we use the notation linear-angular in 6d vectors and not
-                %angular-linear like in the Featherstone.
-
-                fx_0_1(i,:) = ((adjT_0_PWA{i}) * fx_PWAPWA_1(i,:)')';
-        end
-        
-       
-        figure;
-        subplot(211);
-        plot(temp.t_vicon,fx_PWAPWA_1(:,1:3)); axis tight;
-        xlabel('Time [s]','FontSize',15);
-        ylabel('Force [N]','FontSize',15);
-        title('Wrench measured','FontSize',15);
-        set(legend,'Interpreter','latex');
-        set(legend,'FontSize',15);
-        legend('F_x','F_y','F_z','Location','northeast');
-        grid on;
-        
-        subplot(212);
-        plot(temp.t_vicon,fx_PWAPWA_1(:,4:6)); axis tight;
-        xlabel('Time [s]','FontSize',15);
-        ylabel('Momentum measured [Nm]','FontSize',15);
-        set(legend,'Interpreter','latex');
-        set(legend,'FontSize',15);
-        legend('M_x','M_y','M_z','Location','northeast');
-        grid on;
-        
-        
-        
-        figure;
-        subplot(211);
-        plot(temp.t_vicon, fx_0_1(:,1:3)); axis tight;
-        xlabel('Time [s]','FontSize',15);
-        ylabel('Force [N]','FontSize',15);
-        title('External Wrench at link 0','FontSize',15);
-        set(legend,'Interpreter','latex');
-        set(legend,'FontSize',15);
-        legend('F_x','F_y','F_z','Location','northeast');
-        grid on;
-        
-        subplot(212);
-        plot(temp.t_vicon, fx_0_1(:,4:6)); axis tight;
-        xlabel('Time [s]','FontSize',15);
-        ylabel('Momentum [Nm]','FontSize',15);
-        set(legend,'Interpreter','latex');
-        set(legend,'FontSize',15);
-        legend('M_x','M_y','M_z','Location','northeast');
-        grid on;
-        
         %% IMU sensor
       
         % Plotting raw data coming from IMU sensor in IMU frame
@@ -297,21 +166,20 @@ for subjectID = subjectList
         subplot(211);
         plot(temp.t_imu,temp.a_imu_imulin'); axis tight;
         xlabel('Time [s]','FontSize',15);
-        ylabel('[m/sec^2]','FontSize',15);
+        ylabel('Linear Acceleration [m/sec^2]','FontSize',15);
         set(legend,'Interpreter','latex');
         set(legend,'FontSize',15);
         legend('a^{IMU}_x','a^{IMU}_y','a^{IMU}_z','Location','northeast');
-        title('Raw Acceleration of link 2 (IMU frame)','FontSize',15);
+        title('Raw IMU data of link 2 (IMU frame)','FontSize',15);
         grid on;
         
         subplot(212);
         plot(temp.t_imu,temp.v_imu_imurot');  axis tight;
         xlabel('Time [s]','FontSize',15);
-        ylabel('[rad/s]','FontSize',15);
+        ylabel('Angular Velocity [rad/s]','FontSize',15);
         set(legend,'Interpreter','latex');
         set(legend,'FontSize',15);
         legend('w^{IMU}_x','w^{IMU}_y','w^{IMU}_z','Location','northeast');
-        title('Raw Angular Velocity of link 2 (IMU frame)','FontSize',15);
         grid on;
         
         
@@ -331,10 +199,10 @@ for subjectID = subjectList
         R_2_imuini = R_G_2ini'* R_G_imuini;
         
    
-        %Computing IMU data in link 2 frame
+        % Computing IMU data in link 2 frame
         
-        a_2_imulin = zeros(size(fx_PWAPWA_1,1),3);
-        v_2_imurot = zeros(size(fx_PWAPWA_1,1),3);
+        a_2_imulin = zeros(size(fx_PWAPWA_PWA,1),3);
+        v_2_imurot = zeros(size(fx_PWAPWA_PWA,1),3);
         
           for i = 1:length(temp.t_vicon)   
                 a_2_imulin(i,:) =  (R_2_imuini*temp.a_imu_imulin(i,:)')'; 
@@ -348,21 +216,86 @@ for subjectID = subjectList
         subplot(211);
         plot(temp.t_vicon,a_2_imulin); axis tight;
         xlabel('Time [s]','FontSize',15);
-        ylabel('[m/sec^2]','FontSize',15);
+        ylabel('Linera Acceleration [m/sec^2]','FontSize',15);
         set(legend,'Interpreter','latex');
         set(legend,'FontSize',15);
         legend('a^{2}_x','a^{2}_y','a^{2}_z','Location','northeast');
-        title('Acceleration of link 2 (link 2 frame))','FontSize',15);
+        title('IMU data of link 2 (link 2 frame)','FontSize',15);
         grid on;
         
         subplot(212);
         plot(temp.t_vicon,v_2_imurot);  axis tight;
         xlabel('Time [s]','FontSize',15);
-        ylabel('[rad/s]','FontSize',15);
+        ylabel('Angular Velocity [rad/s]','FontSize',15);
         set(legend,'Interpreter','latex');
         set(legend,'FontSize',15);
         legend('w^{2}_x','w^{2}_y','w^{2}_z','Location','northeast');
-        title('Angular Velocity of link 2 (link 2 frame)','FontSize',15);
+        grid on;
+            
+        
+        %% Force plate sensing
+        
+        R_G_PWA = [1 0 0 ;0 -1 0;0 0 -1]; %fixed rotation matrix from PWA to G frame 
+        R_0_PWA = R_0_G * R_G_PWA; %rotation matrix from PWA to 0 frame as the composition of two R matrices
+        
+%         r_G_from0toPWA = computeVectorFromPoints(repmat(-P_G_0,size(P_PWA_C,1),1),(R_G_PWA*P_PWA_C')')*1e-3;% positions in mm
+%         r_0_from0toPWA = (R_0_G * r_G_from0toPWA')'; 
+        
+        %fx_0_1 = zeros(size(fx_PWAPWA_PWA));
+        f_0_PWA = zeros(size(fx_PWAPWA_PWA));
+        adjT_0_PWA = cell (1,length(temp.t_vicon));
+        
+        for i = 1:length(temp.t_vicon)
+            
+            adjT_0_PWA{i} = [R_0_PWA , zeros(3) ; zeros(3) , R_0_PWA];  % we don't have the skew matrix!
+            f_0_PWA(i,:) = adjT_0_PWA{i} * fx_PWAPWA_PWA(i,:)';
+            
+            %     adjT_0_PWA{i} = [ R_0_PWA' , zeros(3) ; skew(r_0_from0toPWA(i,:)') * R_0_PWA', R_0_PWA'];
+            %     fx_0_1(i,:) = ((X_0_PWA{i}) * fx_PWAPWA_1(i,:)')';
+        end
+        
+       
+        figure;
+        subplot(211);
+        plot(temp.t_vicon,fx_PWAPWA_PWA(:,4:6)); axis tight;
+        xlabel('Time [s]','FontSize',15);
+        ylabel('Force [N]','Fontsize',15);
+        title('Wrench measured in force plate (PWA) frame','FontSize',15);
+        set(legend,'Interpreter','latex');
+        set(legend,'FontSize',20);
+        legend('F_x','F_y','F_z','Location','northeast');
+        grid on;
+        
+        subplot(212);
+        plot(temp.t_vicon,fx_PWAPWA_PWA(:,1:3)); axis tight;
+        xlabel('Time [s]','FontSize',15);
+        ylabel('Momentum [Nm]','FontSize',15);
+        set(legend,'Interpreter','latex');
+        set(legend,'FontSize',20);
+        legend('M_x','M_y','M_z','Location','northeast');
+        grid on;
+        
+        
+        figure;
+        subplot(211);
+        %plot(temp.t_vicon, fx_0_1(:,1:3)); axis tight;
+        plot(temp.t_vicon, f_0_PWA(:,4:6)); axis tight;
+        xlabel('Time [s]','FontSize',15);
+        ylabel('Force [N]','FontSize',15);
+        title('Wrench measured in link 0 frame','FontSize',15);
+        set(legend,'Interpreter','latex');
+        set(legend,'FontSize',20);
+        legend('F_x','F_y','F_z','Location','northeast');
+        grid on;
+        
+        subplot(212);
+        %plot(temp.t_vicon, fx_0_1(:,4:6)); axis tight;
+        plot(temp.t_vicon, f_0_PWA(:,1:3)); axis tight;
+        xlabel('Time [s]','FontSize',15);
+        ylabel('Momentum [Nm]','FontSize',15);
+        set(legend,'Interpreter','latex');
+        set(legend,'FontSize',20);
+        legend('M_x','M_y','M_z','Location','northeast');
         grid on;
         
         
@@ -385,15 +318,15 @@ for subjectID = subjectList
         processedSensorData(subjectID,trialID).a_2_imulin = a_2_imulin;
         processedSensorData(subjectID,trialID).v_2_imurot = v_2_imurot;
         processedSensorData(subjectID,trialID).adjT_0_PWA = adjT_0_PWA;
-        processedSensorData(subjectID,trialID).f_x_1 = fx_0_1';
         processedSensorData(subjectID,trialID).t = temp.t_vicon;
         processedSensorData(subjectID,trialID).imu = [a_2_imulin v_2_imurot]';
-        processedSensorData(subjectID,trialID).ftx = fx_0_1';
+        processedSensorData(subjectID,trialID).f_0_PWA = f_0_PWA';
+       
         
     end
 end
 
 if(strcmp(isTest,'true')~=1)
-    save('./experiments/humanFixedBase/preProcessedSensorData.mat','processedSensorData');%a_2_imulin
+    save('./experiments/humanFixedBase/preProcessedSensorData.mat','processedSensorData');
 end
 

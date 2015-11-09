@@ -26,7 +26,7 @@ load('humanThreeLinkModelFromURDF_subject1.mat');
 load('preProcessedSensorData.mat','processedSensorData');
 
 t = processedSensorData(1,1).t;
-f_temp = processedSensorData(1,1).ftx;
+f_temp = processedSensorData(1,1).f_0_PWA;
 [~,chosenF_ID] = max(f_temp(:,1));
 [~,tminIndex] = max(f_temp(chosenF_ID,1:round(end/2)));
 [val,tmaxIndex] = max(f_temp(chosenF_ID,round(end/2):end));
@@ -38,31 +38,30 @@ data.max_time = t(tmaxIndex);
 data.nsamples = tmaxIndex - tminIndex;
 data.time = t(tminIndex:tmaxIndex);
 
+
 %% Getting variables
 
-endIdx = 18606;
+endIdx = 18607;
 %GET JOINT ANGLES
 q1 = processedSensorData.q1;
-q1 = q1(2000:endIdx,:); %window filter
-% q1 = 0.1 * ones(size(q1));
+q1 = q1(tminIndex:tmaxIndex,:); %window filter
 q2 = processedSensorData.q2;
-q2 = q2(2000:endIdx,:); %window filter
-% q2 = 0.2 * ones(size(q2));
+q2 = q2(tminIndex:tmaxIndex,:); %window filter
 
 %GET JOINT VELOCITIES 
 dq1 = processedSensorData.dq1;
-dq1 = dq1(2000:endIdx,:); %window filter
+dq1 = dq1(tminIndex:tmaxIndex,:); %window filter
 dq2 = processedSensorData.dq2;
-dq2 = dq2(2000:endIdx,:); %window filter
+dq2 = dq2(tminIndex:tmaxIndex,:); %window filter
 % dq1 = zeros (length(q1),1);
 % dq2 = zeros (length(q2),1);
 
 
 %GET JOINT ACCELERATIONS
 % ddq1 = processedSensorData.ddq1;
-% ddq1 = ddq1(2000:18607,:); %window filter
+% ddq1 = ddq1(tminIndex:tmaxIndex,:); %window filter
 % ddq2 = processedSensorData.ddq2;
-% ddq2 = ddq2(2000:18607,:); %window filter
+% ddq2 = ddq2(tminIndex:tmaxIndex,:); %window filter
 ddq1 = zeros (length(q1),1);
 ddq2 = zeros (length(q2),1);
 
@@ -127,7 +126,7 @@ ddq  = [ddq1,ddq2];
 % ylabel('Joint Acceleration [deg/s^2]','FontSize',20);
 % axis tight; 
 
-%% Plot tau using Newton-Euler with Featherstone toolbox
+%% Computing tau using Newton-Euler with Featherstone toolbox
 
 tau = zeros(size (q));
 % a = cell (size(q));
@@ -225,7 +224,7 @@ end
 % error = norm(tau-tauIdyntree);
 % fprintf('Inverse dynamics compared with an error of %d', error);
 % 
- %% Comparing plots
+ %% Comparing plots Featherstone/IdynTree
 
 % figure;
 % subplot(511);
@@ -294,7 +293,8 @@ end
 % grid on;
 % 
 
- %% Comparing plots
+ %% Plotting results
+ 
 figure;
 subplot(311);
 plot1 = plot(data.time,(180/pi)*q1,'lineWidth',2.0); hold on;
