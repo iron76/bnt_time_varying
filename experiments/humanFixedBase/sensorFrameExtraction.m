@@ -35,10 +35,9 @@ for subjectID = subjectList
         P_G_imuB = temp.P_G_imuB(1:pSelec,:);
         P_G_imuC = temp.P_G_imuC(1:pSelec,:);
         
-        P_PWA_C = temp.P_PWA_C(1:pSelec,:);
         f_fp = temp.f_fp(1:pSelec,:);
         f_fp(:,1:3) = temp.f_fp(:,1:3)*1e-3; % converting Nmm to Nm
-        %angular on top linear below
+ 
         
         P_G_1 = computeCentroidOfPoints(P_G_lankle,P_G_rankle);
         P_G_2 = computeCentroidOfPoints(P_G_lhip,P_G_rhip);
@@ -179,15 +178,15 @@ for subjectID = subjectList
         
         % Extracting position vector from IMU-P2 
         
-        P_G_IMU = computeCentroidOfTriangle( P_G_imuA,P_G_imuB,P_G_imuC );
-        r_G_fromIMUtoP2 = P_G_2 - P_G_IMU;
+%         P_G_IMU = computeCentroidOfTriangle( P_G_imuA,P_G_imuB,P_G_imuC );
+%         r_G_fromIMUtoP2 = P_G_2 - P_G_IMU;
         
         
         % Extracting rotation matrix R_2_imuini
         
-        R_0_1ini = euler2dcm([0,mean(q1(1:10)),0]); %??
-        R_1_2ini = euler2dcm([0,mean(q2(1:10)),0]); %??
-        R_G_2ini = R_G_0 * R_0_1ini * R_1_2ini;
+        R_0_1ini = euler2dcm([0,mean(q1(1:10)),0]); 
+        R_1_2ini = euler2dcm([0,mean(q2(1:10)),0]); 
+        R_G_2ini = R_G_0' * R_0_1ini * R_1_2ini;
         
         [R_G_imuini,~] = computeInitialIMURotation(P_G_imuA,P_G_imuB,P_G_imuC);
         R_2_imuini = R_G_2ini'* R_G_imuini;
@@ -195,8 +194,8 @@ for subjectID = subjectList
    
         % Computing IMU data in link 2 frame
         
-        a_2_imulin = zeros(size(f_fp,1),3);
-        v_2_imurot = zeros(size(f_fp,1),3);
+        a_2_imulin = zeros(size(q1,1),3);
+        v_2_imurot = zeros(size(q1,1),3);
         
           for i = 1:length(temp.t_vicon)   
                 a_2_imulin(i,:) =  (R_2_imuini*temp.a_imu_imulin(i,:)')'; 
@@ -300,8 +299,8 @@ for subjectID = subjectList
         processedSensorData(subjectID,trialID).dq2 = dq2_sg;
         processedSensorData(subjectID,trialID).ddq1 = ddq1_sg;
         processedSensorData(subjectID,trialID).ddq2 = ddq2_sg;
-        processedSensorData(subjectID,trialID).a_2_imulin = a_2_imulin;
-        processedSensorData(subjectID,trialID).v_2_imurot = v_2_imurot;
+        processedSensorData(subjectID,trialID).a_2_imulin = a_2_imulin';
+        processedSensorData(subjectID,trialID).v_2_imurot = v_2_imurot';
         processedSensorData(subjectID,trialID).XStar_0_fp = XStar_0_fp;
         processedSensorData(subjectID,trialID).t = temp.t_vicon;
         processedSensorData(subjectID,trialID).imu = [a_2_imulin v_2_imurot]';

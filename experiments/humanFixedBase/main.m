@@ -28,12 +28,13 @@ trialID = 1;
 
 close all
  
-if(exist(data.path,'file'))
-    load(data.path);
-else    
+% if(exist(data.path,'file'))
+%     load(data.path);
+% else    
     sensorFrameExtraction
     [ data ] = organiseBERDYCompatibleSensorData( data, subjectID, trialID );
-end
+% end
+close all
 
 data.parts =  {'leg','torso'};
 data.labels = {'fts','imu'  };
@@ -190,7 +191,7 @@ axis tight;
 grid on;
 
 
-%berdyResultSensorTest
+berdyResultSensorTest
 
 % %% Comparing MAP y-pred/
 % 

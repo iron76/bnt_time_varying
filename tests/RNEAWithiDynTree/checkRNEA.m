@@ -26,7 +26,7 @@ load('humanThreeLinkModelFromURDF_subject1.mat');
 load('preProcessedSensorData.mat','processedSensorData');
 
 t = processedSensorData(1,1).t;
-f_temp = processedSensorData(1,1).f_0_PWA;
+f_temp = processedSensorData(1,1).f_0;
 [~,chosenF_ID] = max(f_temp(:,1));
 [~,tminIndex] = max(f_temp(chosenF_ID,1:round(end/2)));
 [val,tmaxIndex] = max(f_temp(chosenF_ID,round(end/2):end));
@@ -312,7 +312,7 @@ grid on;
 subplot(312);
 plot1 = plot(data.time,(180/pi)*dq1,'lineWidth',2.0); hold on;
 set(plot1,'color',[1 0 0]);
-% % % % % plot2= plot(data.time,(180/pi)*dq2,'lineWidth',2.0); hold on;
+plot2= plot(data.time,(180/pi)*dq2,'lineWidth',2.0); hold on;
 set(plot2,'color',[0 0.498039215803146 0]);
 leg = legend('$\dot q_1$','$\dot q_2$','Location','northeast');
 set(leg,'Interpreter','latex');

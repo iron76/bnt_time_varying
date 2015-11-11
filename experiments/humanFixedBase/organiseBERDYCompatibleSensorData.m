@@ -8,7 +8,7 @@ function [ data ] = organiseBERDYCompatibleSensorData( data , subjectID, trialID
 load('./experiments/humanFixedBase/preProcessedSensorData.mat','processedSensorData');
 
 t = processedSensorData(subjectID,trialID).t;
-f_temp = processedSensorData(subjectID,trialID).f_0_PWA;
+f_temp = processedSensorData(subjectID,trialID).f_0;
 [~,chosenF_ID] = max(f_temp(:,1));
 [~,tminIndex] = max(f_temp(chosenF_ID,1:round(end/2)));
 [~,tmaxIndex] = max(f_temp(chosenF_ID,round(end/2):end));
@@ -20,7 +20,6 @@ data.min_time = t(tminIndex);
 data.max_time = t(tmaxIndex);
 data.nsamples = tmaxIndex - tminIndex;
 data.time = t(tminIndex:tmaxIndex);
-
 
 data.q1 = processedSensorData(subjectID,trialID).q1(tminIndex:tmaxIndex);
 data.q2 = processedSensorData(subjectID,trialID).q2(tminIndex:tmaxIndex);
@@ -35,7 +34,6 @@ data.d2q = [data.ddq1 data.ddq2]';
 
 %% data from force plate sensing
 
-%fixed for the moment zeros fts
 data.y_fts = zeros(6,length(tminIndex:tmaxIndex));
 data.ys_fts = data.y_fts;
 
