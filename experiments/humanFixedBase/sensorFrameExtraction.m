@@ -44,6 +44,7 @@ for subjectID = subjectList
         P_G_3 = computeCentroidOfTriangle(P_G_lsho,P_G_rsho,P_G_tors);
         [R_G_0,P_G_0] = computeFootRotation(P_G_lhee,P_G_rhee,P_G_ltoe,P_G_rtoe); 
       
+     %   [R_0_G,P_G_0] = computeFootRotation(P_G_lhee,P_G_rhee,P_G_ltoe,P_G_rtoe);
         R_0_G = R_G_0';
         R_G_1 = R_G_0;     % because point P_G_1 is fixed on the foot in URDF
         R_1_G = R_G_1';

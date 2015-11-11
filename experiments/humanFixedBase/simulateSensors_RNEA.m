@@ -41,13 +41,13 @@ for i = model.NB:-1:1
 end
 
 a_2_2 = a{2}(4:6)';
-v_2_2 = v{2}(1:3)';
-fts(1:3) = f{1}(1:3); 
-fts(4:6) = f{1}(4:6);
+%v_2_2 = v{2}(1:3)';
+fts(4:6) = f{1}(1:3); 
+fts(1:3) = f{1}(4:6);
 
 y_RNEA = zeros(26,1);
 y_RNEA(1:6) = fts;
-y_RNEA(7:9) = zeros(3,1);
-y_RNEA(10:12) = a_2_2;
+y_RNEA(7:9) = a_2_2;
+y_RNEA(10:12) = zeros(3,1);
 y_RNEA(13:24) = zeros(12,1);
 y_RNEA(25:26) = qdd;

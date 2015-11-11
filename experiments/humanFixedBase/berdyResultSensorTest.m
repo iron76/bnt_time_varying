@@ -21,7 +21,7 @@ end
 
 %% indices in output chosen for comparison and analysis
 chosenInd = [1:12,25,26];
-% [mu f a2rot a2lin fx1 fx2 dq1 dq2]
+% [f mu a2lin a2rot fx1 fx2 dq1 dq2]
 % [3  3  3      3    6   6   1   1 ]
 
 fprintf('\nComputing MAP prediction\n');

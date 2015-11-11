@@ -33,16 +33,24 @@ data.dq = [data.dq1 data.dq2]';
 data.d2q = [data.ddq1 data.ddq2]';
 
 %% data from force plate sensing
+%f_0 from sensor frame extraction is angular-linear. The MAP y requires
+%linear-angular fts measurement
 
-data.y_fts = zeros(6,length(tminIndex:tmaxIndex));
+data.y_fts = zeros(size(processedSensorData(subjectID,trialID).f_0(:,(tminIndex:tmaxIndex))));
+data.y_fts(1:3,:) = - processedSensorData(subjectID,trialID).f_0(4:6, (tminIndex:tmaxIndex));
+data.y_fts(4:6,:) = - processedSensorData(subjectID,trialID).f_0(1:3, (tminIndex:tmaxIndex));
+
 data.ys_fts = data.y_fts;
 
 
 %% data from IMU sensor
 
-%data.y_imu = processedSensorData(subjectID,trialID).imu(:,(tminIndex:tmaxIndex));
-data.y_imu = [zeros(3,length(tminIndex:tmaxIndex));
-              processedSensorData(subjectID,trialID).a_2_imulin(:, (tminIndex:tmaxIndex))];
+%IMU from sensor frame extraction is angular-linear. The MAP y requires
+%linear-angular IMU measurement
+data.y_imu = [processedSensorData(subjectID,trialID).a_2_imulin(:, (tminIndex:tmaxIndex));
+              zeros(3,length(tminIndex:tmaxIndex))];
+% data.y_imu = [zeros(3,length(tminIndex:tmaxIndex));
+%               processedSensorData(subjectID,trialID).a_2_imulin(:, (tminIndex:tmaxIndex))];
 data.ys_imu = data.y_imu;
 
 
