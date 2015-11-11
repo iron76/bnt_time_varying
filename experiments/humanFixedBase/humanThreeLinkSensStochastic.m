@@ -18,11 +18,17 @@ idSy_inv = []; jdSy_inv = []; dSy_inv=[];
 my = 1;
 
 %uncertainties
-so       = 0.0013;%10*0.7805; % IMU Gyroscope
-sa       = 0.00426;%10*0.05; % IMU Acclerometer
-sf       = 52.9097;%10; %FT - force
-su       = 0.031; % FT - momment
-sd       = 50*0.2; % joint acceleration
+% so       = 10e+4 * 0.0013;%10*0.7805; % IMU Gyroscope
+% sa       = 10e+4 * 0.00426;%10*0.05; % IMU Acclerometer
+% sf       = 10e+4 * 52.9097;%10; %FT - force
+% su       = 10e+4 * 0.031; % FT - momment
+% sd       = 10e+4 * 50*0.2; % joint acceleration
+
+so       = 0.7805; %IMU accelerometer
+sa       = 0.05; %IMU gyroscope
+sf       = 10; % FT moment
+su       = 0.1;  %0.031; % FT force
+sd       = 0.2; % joint acceleration
 
 imuS = [sa*eye(3) zeros(3,3); zeros(3,3) so*eye(3)];
 ftsS = [sf*eye(3) zeros(3,3); zeros(3,3) su*eye(3)];

@@ -312,7 +312,7 @@ grid on;
 subplot(312);
 plot1 = plot(data.time,(180/pi)*dq1,'lineWidth',2.0); hold on;
 set(plot1,'color',[1 0 0]);
-plot2= plot(data.time,(180/pi)*dq2,'lineWidth',2.0); hold on;
+% % % % % plot2= plot(data.time,(180/pi)*dq2,'lineWidth',2.0); hold on;
 set(plot2,'color',[0 0.498039215803146 0]);
 leg = legend('$\dot q_1$','$\dot q_2$','Location','northeast');
 set(leg,'Interpreter','latex');
@@ -331,7 +331,7 @@ leg = legend('$\tau_1$','$\tau_2$','Location','northeast');
 set(leg,'Interpreter','latex');
 set(leg,'FontSize',18);
 xlabel('Time [s]','FontSize',18);
-ylabel('Torque[Nm]','FontSize',18);
+ylabel('Torque [Nm]','FontSize',18);
 axis tight;
 grid on;
 
