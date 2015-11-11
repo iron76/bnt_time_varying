@@ -92,9 +92,9 @@ for subjectID=1:length(subjectIDList)
         imu_vicon_shiftedData(subjectID,trialID).P_G_imuB = interp1( t_raw_vicon_p,subjectData(subjectID,trialID).markers.imuB,t_vicon);
         imu_vicon_shiftedData(subjectID,trialID).P_G_imuC = interp1( t_raw_vicon_p,subjectData(subjectID,trialID).markers.imuC,t_vicon);
         
-        imu_vicon_shiftedData(subjectID,trialID).fx_PWAPWA_PWA = interp1( t_raw_vicon_f,[subjectData(subjectID,trialID).grwsMOM,subjectData(subjectID,trialID).grwsFOR],t_vicon);
-        %imu_vicon_shiftedData(subjectID,trialID).f_GPWA_s = interp1( t_raw_vicon_f,[subjectData(subjectID,trialID).analogsFOR,subjectData(subjectID,trialID).analogsMOM],t_vicon);
-        imu_vicon_shiftedData(subjectID,trialID).P_PWA_C = interp1( t_raw_vicon_f,subjectData(subjectID,trialID).grwsPOS,t_vicon);
+     %   imu_vicon_shiftedData(subjectID,trialID).f_PWAPWA_PWA = interp1( t_raw_vicon_f,[subjectData(subjectID,trialID).grwsMOM,subjectData(subjectID,trialID).grwsFOR],t_vicon);
+        imu_vicon_shiftedData(subjectID,trialID).f_fp = interp1( t_raw_vicon_f,[subjectData(subjectID,trialID).analogsMOM,subjectData(subjectID,trialID).analogsFOR],t_vicon);
+     %   imu_vicon_shiftedData(subjectID,trialID).P_PWA_C = interp1( t_raw_vicon_f,subjectData(subjectID,trialID).grwsPOS,t_vicon);
         % extract points needed in correct variable names
       
     end
