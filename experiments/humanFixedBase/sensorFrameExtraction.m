@@ -36,8 +36,6 @@ for subjectID = subjectList
         P_G_imuC = temp.P_G_imuC(1:pSelec,:);
         
         P_PWA_C = temp.P_PWA_C(1:pSelec,:);
-        %fx_PWAPWA_PWA = temp.fx_PWAPWA_PWA(1:pSelec,:);
-        %fx_PWAPWA_PWA(:,1:3) = fx_PWAPWA_PWA(:,1:3).*1e-3;
         f_fp = temp.f_fp(1:pSelec,:);
         f_fp(:,1:3) = temp.f_fp(:,1:3)*1e-3; % converting Nmm to Nm
         %angular on top linear below
@@ -56,19 +54,12 @@ for subjectID = subjectList
        
         % JOINT ANGLE q1
         len = size(P_G_1,1);
-        %y_vers = repmat([0 1 0],len,1);
-        %z_vers = repmat([0 0 1],len,1);
         
         l1 = (P_G_2 - P_G_1);
         q1 = zeros (len, 1);
-        %q1f = zeros (len, 1);
-        %q1z = zeros (len, 1);
         
         for i = 1 : len;
-        %q1_temp = dot(y_vers(i,:),l1(i,:) ./ norm(l1(i,:)));
-        %q1(i) =  0.5*pi - acos(q1_temp);
             q1(i) =atan2(-l1(i,2),l1(i,3));
-        %q1z(i) = acos(dot(z_vers(i,:),l1(i,:) ./ norm(l1(i,:))));
         end
         
         
@@ -238,39 +229,21 @@ for subjectID = subjectList
         
         %% Force plate sensing
         
-      %  R_G_PWA = [1 0 0 ;0 -1 0;0 0 -1]; %fixed rotation matrix from PWA to G frame 
-      %  R_0_PWA = R_0_G * R_G_PWA; %rotation matrix from PWA to 0 frame as the composition of two R matrices
         R_G_fp = [-1 0 0; 0 -1 0; 0 0 1]; % case of fp z upwards..else use [0 -1 0; -1 0 0; 0 0 -1];
-        R_0_fp = R_0_G * R_G_fp;
-%         r_G_from0toPWA = computeVectorFromPoints(repmat(-P_G_0,size(P_PWA_C,1),1),(R_G_PWA*P_PWA_C')')*1e-3;% positions in mm
-%         r_0_from0toPWA = (R_0_G * r_G_from0toPWA')'; 
+        R_0_fp = R_0_G * R_G_fp; 
         P_G_fp = [250,250,-43.3]; % center of force plate, below the force plate. (in mm)
         
         P_G_from0toFp = P_G_fp - P_G_0;
         P_0_from0toFp = R_0_G*P_G_from0toFp';
-        P_0_from0toFpm = P_0_from0toFp*1e-3; %converting tom
-        
-        %fx_0_1 = zeros(size(fx_PWAPWA_PWA));
-        
-        
-        %f_0_PWA = zeros(size(fx_PWAPWA_PWA));
+        P_0_from0toFpm = P_0_from0toFp*1e-3; %converting to m
+
         f_0 = zeros(length(temp.t_vicon),6);
-        %f_0(:,1:3) = 
-        %adjT_0_PWA = cell (1,length(temp.t_vicon));
         XStar_0_fp = [R_0_fp -R_0_fp*skew(P_0_from0toFpm); zeros(3) R_0_fp];
-       % for i = 1:length(temp.t_vicon)
-            
-            %adjT_0_PWA{i} = [R_0_PWA , zeros(3) ; zeros(3) , R_0_PWA];  % we don't have the skew matrix!
-            %f_0_PWA(i,:) = adjT_0_PWA{i} * fx_PWAPWA_PWA(i,:)';
-            f_0 = (XStar_0_fp * f_fp')';
-            %     adjT_0_PWA{i} = [ R_0_PWA' , zeros(3) ; skew(r_0_from0toPWA(i,:)') * R_0_PWA', R_0_PWA'];
-            %     fx_0_1(i,:) = ((X_0_PWA{i}) * fx_PWAPWA_1(i,:)')';
-       % end
+        f_0 = (XStar_0_fp * f_fp')';
         
        
         figure;
         subplot(211);
-        %plot(temp.t_vicon,fx_PWAPWA_PWA(:,4:6)); axis tight;
         plot(temp.t_vicon,f_fp(:,4:6)); axis tight;
         xlabel('Time [s]','FontSize',15);
         ylabel('Force [N]','Fontsize',15);
@@ -281,7 +254,6 @@ for subjectID = subjectList
         grid on;
         
         subplot(212);
-        %plot(temp.t_vicon,fx_PWAPWA_PWA(:,1:3)); axis tight;
         plot(temp.t_vicon,f_fp(:,1:3)); axis tight;
         xlabel('Time [s]','FontSize',15);
         ylabel('Moment [Nm]','FontSize',15);
@@ -293,7 +265,6 @@ for subjectID = subjectList
         
         figure;
         subplot(211);
-        %plot(temp.t_vicon, fx_0_1(:,1:3)); axis tight;
         plot(temp.t_vicon, f_0(:,4:6)); axis tight;
         xlabel('Time [s]','FontSize',15);
         ylabel('Force [N]','FontSize',15);
@@ -304,7 +275,6 @@ for subjectID = subjectList
         grid on;
         
         subplot(212);
-        %plot(temp.t_vicon, fx_0_1(:,4:6)); axis tight;
         plot(temp.t_vicon, f_0(:,1:3)); axis tight;
         xlabel('Time [s]','FontSize',15);
         ylabel('Moment [Nm]','FontSize',15);

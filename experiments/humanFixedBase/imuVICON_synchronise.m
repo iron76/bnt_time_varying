@@ -41,11 +41,11 @@ for subjectID=1:length(subjectIDList)
 
         subplot(3,1,2);plot(t_imu,accl);axis tight;
 
-        [val,chosenF_ID] = max(f(1,:));
-        [val,timeIndexToPeak1_f] = max(f(1:round(end*0.5),chosenF_ID));
+        [~,chosenF_ID] = max(f(1,:));
+        [~,timeIndexToPeak1_f] = max(f(1:round(end*0.5),chosenF_ID));
         timeToPeak1_f = t_vicon(timeIndexToPeak1_f);
 
-        [val,chosenA_ID] = max(accl(1,:));
+        [~,chosenA_ID] = max(accl(1,:));
         [val,timeIndexToPeak1_accl] = max(accl(1:round(end*0.5),chosenA_ID));
 
         timeToPeak1_accl = t_imu(timeIndexToPeak1_accl);
@@ -92,10 +92,8 @@ for subjectID=1:length(subjectIDList)
         imu_vicon_shiftedData(subjectID,trialID).P_G_imuB = interp1( t_raw_vicon_p,subjectData(subjectID,trialID).markers.imuB,t_vicon);
         imu_vicon_shiftedData(subjectID,trialID).P_G_imuC = interp1( t_raw_vicon_p,subjectData(subjectID,trialID).markers.imuC,t_vicon);
         
-     %   imu_vicon_shiftedData(subjectID,trialID).f_PWAPWA_PWA = interp1( t_raw_vicon_f,[subjectData(subjectID,trialID).grwsMOM,subjectData(subjectID,trialID).grwsFOR],t_vicon);
         imu_vicon_shiftedData(subjectID,trialID).f_fp = interp1( t_raw_vicon_f,[subjectData(subjectID,trialID).analogsMOM,subjectData(subjectID,trialID).analogsFOR],t_vicon);
-     %   imu_vicon_shiftedData(subjectID,trialID).P_PWA_C = interp1( t_raw_vicon_f,subjectData(subjectID,trialID).grwsPOS,t_vicon);
-        % extract points needed in correct variable names
+
       
     end
 end
