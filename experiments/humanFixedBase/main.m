@@ -1,17 +1,17 @@
-clear all
+clear 
 close all
 clc
 
 subjectID = 1;
 trialID = 1;
 
-   data.path        = './experiments/humanFixedBase/processedSensorData.mat';
+   data.path        = './experiments/humanFixedBase/data/processedSensorData.mat';
 
    sens.parts       = {'leg','torso'}; %force of the forceplate is ingoing into the leg
    sens.labels      = {'fts','imu'};  
    sens.ndof        = {6,6};
 
-   load(sprintf('./experiments/humanFixedBase/humanThreeLinkModelFromURDF_subject%d.mat',subjectID));
+   load(sprintf('./experiments/humanFixedBase/data/humanThreeLinkModelFromURDF_subject%d.mat',subjectID));
    dmodel  = humanThreeLink_dmodel; %deterministic model
   
    ymodel  = humanThreeLinkSens(dmodel, sens);  % sModel, sUnkown-covarianceOfd 
@@ -160,7 +160,7 @@ for i = 1 : dmodel.NB
    end
 end
 
-save(sprintf('./experiments/humanFixedBase/savedBERDYresult_subj%d_trial%d.mat',subjectID,trialID));%,'res','data','myMAP');
+save(sprintf('./experiments/humanFixedBase/data/savedBERDYresult_subj%d_trial%d.mat',subjectID,trialID));%,'res','data','myMAP');
 
 
 %% Comparing RNEA/MAP torques
@@ -191,7 +191,7 @@ axis tight;
 grid on;
 
 
-berdyResultSensorTest
+%berdyResultSensorTest
 
 % %% Comparing MAP y-pred/
 % 

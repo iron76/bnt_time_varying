@@ -126,7 +126,7 @@ for subjectID = 1:length(subjectList)
     end
 end
 
-save('./experiments/humanFixedBase/subjectSizeParams.mat','subjectParams');
+save('./experiments/humanFixedBase/data/subjectSizeParams.mat','subjectParams');
 
 
 

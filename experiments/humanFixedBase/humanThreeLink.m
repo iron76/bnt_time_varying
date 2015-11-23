@@ -40,7 +40,7 @@ if (loadingFromDrake)
     rmpath(strcat(path_to_drake_distro,'build/matlab'));
 
 end
- load(sprintf('./experiments/humanFixedBase/humanThreeLinkModelFromURDF_subject%d.mat',subjID));
+ load(sprintf('./experiments/humanFixedBase/file.mat/humanThreeLinkModelFromURDF_subject%d.mat',subjID));
 
 fprintf('\nFinished Loading the model\n');
 fprintf('-----------------------------\n\n');

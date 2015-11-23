@@ -1,6 +1,6 @@
 %% load dataset
 subjectID = 1; trialID = 1;
-load(sprintf('./experiments/humanFixedBase/savedBERDYresult_subj%d_trial%d.mat',subjectID,trialID),'res','data','myMAP');
+load(sprintf('./experiments/humanFixedBase/data/savedBERDYresult_subj%d_trial%d.mat',subjectID,trialID),'res','data','myMAP');
 
 y_predRNEA = zeros(26,length(data.time));
 q = zeros(2,(length(data.time)));dq = zeros(2,(length(data.time)));ddq = zeros(2,(length(data.time)));
@@ -8,7 +8,7 @@ q(1,:) = data.q1;q(2,:) = data.q2;
 dq(1,:) = data.dq1;dq(2,:) = data.dq2;
 ddq(1,:) = data.ddq1;ddq(2,:) = data.ddq2;
 
-load(sprintf('./experiments/humanFixedBase/humanThreeLinkModelFromURDF_subject%d.mat',subjectID));
+load(sprintf('./experiments/humanFixedBase/data/humanThreeLinkModelFromURDF_subject%d.mat',subjectID));
 dmodel  = humanThreeLink_dmodel; 
 
 fprintf('\nComputing RNEA prediction\n');

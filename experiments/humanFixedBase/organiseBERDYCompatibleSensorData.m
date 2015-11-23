@@ -5,7 +5,7 @@ function [ data ] = organiseBERDYCompatibleSensorData( data , subjectID, trialID
 %   matrices in correct form
 
 
-load('./experiments/humanFixedBase/preProcessedSensorData.mat','processedSensorData');
+load('./experiments/humanFixedBase/data/preProcessedSensorData.mat','processedSensorData');
 
 t = processedSensorData(subjectID,trialID).t;
 f_temp = processedSensorData(subjectID,trialID).f_0;
@@ -54,7 +54,7 @@ data.y_imu = [processedSensorData(subjectID,trialID).a_2_imulin(:, (tminIndex:tm
 data.ys_imu = data.y_imu;
 
 
-save('./experiments/humanFixedBase/processedSensorData.mat','data');
+save('./experiments/humanFixedBase/data/processedSensorData.mat','data');
 
 
 end

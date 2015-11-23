@@ -294,7 +294,7 @@ end
 % 
 
  %% Plotting results
- 
+
 figure;
 subplot(311);
 plot1 = plot(data.time,(180/pi)*q1,'lineWidth',2.0); hold on;
