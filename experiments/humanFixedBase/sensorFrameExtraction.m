@@ -189,7 +189,10 @@ for subjectID = subjectList
         R_1_2ini = euler2dcm([0,mean(q2(1:10)),0]); 
         R_G_2ini = R_G_0' * R_0_1ini * R_1_2ini;
         
-        [R_G_imuini,~] = computeInitialIMURotation(P_G_imuA,P_G_imuB,P_G_imuC);
+        %[R_G_imuini,~] =
+        %computeInitialIMURotation(P_G_imuA,P_G_imuB,P_G_imuC); seems buggy
+        R_G_imuini = [0 1 0; 0 0 -1; 1 0 0];
+        
         R_2_imuini = R_G_2ini'* R_G_imuini;
         
    
@@ -242,48 +245,48 @@ for subjectID = subjectList
         f_0 = (XStar_0_fp * f_fp')';
         
        
-        figure;
-        subplot(211);
-        plot(temp.t_vicon,f_fp(:,4:6)); axis tight;
-        xlabel('Time [s]','FontSize',15);
-        ylabel('Force [N]','Fontsize',15);
-        title('Wrench measured in force plate (Fp) frame','FontSize',15);
-        set(legend,'Interpreter','latex');
-        set(legend,'FontSize',20);
-        legend('F_x','F_y','F_z','Location','northeast');
-        grid on;
+%         figure;
+%         subplot(211);
+%         plot(temp.t_vicon,f_fp(:,4:6)); axis tight;
+%         xlabel('Time [s]','FontSize',15);
+%         ylabel('Force [N]','Fontsize',15);
+%         title('Wrench measured in force plate (Fp) frame','FontSize',15);
+%         set(legend,'Interpreter','latex');
+%         set(legend,'FontSize',20);
+%         legend('F_x','F_y','F_z','Location','northeast');
+%         grid on;
+%         
+%         subplot(212);
+%         plot(temp.t_vicon,f_fp(:,1:3)); axis tight;
+%         xlabel('Time [s]','FontSize',15);
+%         ylabel('Moment [Nm]','FontSize',15);
+%         set(legend,'Interpreter','latex');
+%         set(legend,'FontSize',20);
+%         legend('M_x','M_y','M_z','Location','northeast');
+%         grid on;
+%         
+%         
+%         figure;
+%         subplot(211);
+%         plot(temp.t_vicon, f_0(:,4:6)); axis tight;
+%         xlabel('Time [s]','FontSize',15);
+%         ylabel('Force [N]','FontSize',15);
+%         title('Wrench measured in link 0 frame','FontSize',15);
+%         set(legend,'Interpreter','latex');
+%         set(legend,'FontSize',20);
+%         legend('F_x','F_y','F_z','Location','northeast');
+%         grid on;
         
-        subplot(212);
-        plot(temp.t_vicon,f_fp(:,1:3)); axis tight;
-        xlabel('Time [s]','FontSize',15);
-        ylabel('Moment [Nm]','FontSize',15);
-        set(legend,'Interpreter','latex');
-        set(legend,'FontSize',20);
-        legend('M_x','M_y','M_z','Location','northeast');
-        grid on;
-        
-        
-        figure;
-        subplot(211);
-        plot(temp.t_vicon, f_0(:,4:6)); axis tight;
-        xlabel('Time [s]','FontSize',15);
-        ylabel('Force [N]','FontSize',15);
-        title('Wrench measured in link 0 frame','FontSize',15);
-        set(legend,'Interpreter','latex');
-        set(legend,'FontSize',20);
-        legend('F_x','F_y','F_z','Location','northeast');
-        grid on;
-        
-        subplot(212);
-        plot(temp.t_vicon, f_0(:,1:3)); axis tight;
-        xlabel('Time [s]','FontSize',15);
-        ylabel('Moment [Nm]','FontSize',15);
-        set(legend,'Interpreter','latex');
-        set(legend,'FontSize',20);
-        legend('M_x','M_y','M_z','Location','northeast');
-        grid on;
-        
-        
+%         subplot(212);
+%         plot(temp.t_vicon, f_0(:,1:3)); axis tight;
+%         xlabel('Time [s]','FontSize',15);
+%         ylabel('Moment [Nm]','FontSize',15);
+%         set(legend,'Interpreter','latex');
+%         set(legend,'FontSize',20);
+%         legend('M_x','M_y','M_z','Location','northeast');
+%         grid on;
+%         
+%         
         
         %% clustering data
         
@@ -292,8 +295,8 @@ for subjectID = subjectList
         processedSensorData(subjectID,trialID).R_2_imu = R_2_imuini; %?
         processedSensorData(subjectID,trialID).R_G_imu0 = R_G_imuini; %?
         processedSensorData(subjectID,trialID).R_G_2 = R_G_2ini; %?
-        processedSensorData(subjectID,trialID).R_G_fp = R_G_fp;
-        processedSensorData(subjectID,trialID).R_0_fp = R_0_fp;
+   %     processedSensorData(subjectID,trialID).R_G_fp = R_G_fp;
+   %     processedSensorData(subjectID,trialID).R_0_fp = R_0_fp;
         processedSensorData(subjectID,trialID).q1 = q1;
         processedSensorData(subjectID,trialID).q2 = q2;
         processedSensorData(subjectID,trialID).dq1 = dq1_sg;
@@ -302,7 +305,7 @@ for subjectID = subjectList
         processedSensorData(subjectID,trialID).ddq2 = ddq2_sg;
         processedSensorData(subjectID,trialID).a_2_imulin = a_2_imulin';
         processedSensorData(subjectID,trialID).v_2_imurot = v_2_imurot';
-        processedSensorData(subjectID,trialID).XStar_0_fp = XStar_0_fp;
+    %    processedSensorData(subjectID,trialID).XStar_0_fp = XStar_0_fp;
         processedSensorData(subjectID,trialID).t = temp.t_vicon;
         processedSensorData(subjectID,trialID).imu = [a_2_imulin v_2_imurot]';
         processedSensorData(subjectID,trialID).f_0 = f_0';

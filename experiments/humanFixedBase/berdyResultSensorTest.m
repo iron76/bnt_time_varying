@@ -2,7 +2,7 @@
 subjectID = 1; trialID = 1;
 load(sprintf('./experiments/humanFixedBase/savedBERDYresult_subj%d_trial%d.mat',subjectID,trialID),'res','data','myMAP');
 
-y_predRNEA = zeros(26,length(data.time));
+y_predRNEA = zeros(20,length(data.time));
 q = zeros(2,(length(data.time)));dq = zeros(2,(length(data.time)));ddq = zeros(2,(length(data.time)));
 q(1,:) = data.q1;q(2,:) = data.q2;
 dq(1,:) = data.dq1;dq(2,:) = data.dq2;
@@ -20,9 +20,9 @@ end
 
 
 %% indices in output chosen for comparison and analysis
-chosenInd = [1:12,25,26];
-% [f mu a2lin a2rot fx1 fx2 dq1 dq2]
-% [3  3  3      3    6   6   1   1 ]
+chosenInd = [1:6,19,20];
+% [a2lin a2rot fx1 fx2 dq1 dq2]
+% [3     3    6   6   1   1 ]
 
 fprintf('\nComputing MAP prediction\n');
 %% test Y from MAP simY
@@ -33,12 +33,10 @@ fprintf('\nPlotting selected data\n');
  for  ind = chosenInd
      
         if(ind>=1 && ind<7)
-            titl = 'fts';
-        elseif(ind>6 && ind<13)
             titl = 'imu';
-        elseif(ind>12 && ind<25)
+        elseif(ind>6 && ind<19)
             titl = 'fx';
-        elseif(ind>24 && ind<27)
+        elseif(ind>18 && ind<21)
             titl = 'ddq';
         end
 

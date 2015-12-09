@@ -128,18 +128,19 @@ ddq  = [ddq1,ddq2];
 
 %% Computing tau using Newton-Euler with Featherstone toolbox
 
-tau = zeros(size (q));
-% a = cell (size(q));
-% fB_i = cell (size(q));
-% f_i = cell (size(q));
+tau = zeros(size(q));
+a = zeros(size(q,1),6);
+fx = zeros(size(q,1),6);
+f = zeros(size(q,1),6);
 
 for i = 1:size(q)
       [tau_i, a_i, fB_i, f_i] = ID( humanThreeLink_dmodel, q(i,:), dq(i,:), ddq(i,:));
       tau(i,:) = tau_i';
-%       a(i,:) = a_i';
-%       fB(i,:) = fB_i';
-%       f(i,:) = f_i';   
+       a(i,:) = a_i';
+       f(i,:) = f_i';   
 end
+
+d1 = 
 
 % fig = figure();
 % axes1 = axes('Parent',fig,'FontSize',16);
