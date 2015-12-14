@@ -180,11 +180,17 @@ for subjectID = subjectList
         R_1_2ini = euler2dcm([0,mean(q2(1:10)),0]); 
         R_G_2ini = R_G_0 * R_0_1ini * R_1_2ini;
         
-        [R_G_imuini,~] = computeInitialIMURotation(P_G_imuA,P_G_imuB,P_G_imuC);
+        [R_G_imuini,P_G_Gimuini] = computeInitialIMURotation(P_G_imuA,P_G_imuB,P_G_imuC);
         R_2_imuini = R_G_2ini'* R_G_imuini;
         
-   
+        P_2_2imuini = P_G_Gimuini - mean(P_G_2(1:10,:));
         
+        T_2_imu = [R_2_imuini, P_2_2imuini' .*1e-3 ; zeros(1,3) 1];
+        X_2_imu = [R_2_imuini,                          zeros(3); ...
+                  skew(P_2_2imuini' .*1e-3)*R_2_imuini, R_2_imuini];
+        R_imuini_2 = R_2_imuini';      
+        X_imu_2 = [R_imuini_2,                             zeros(3); ...
+                   -R_2_imuini*skew(P_2_2imuini'.*1e-3),   R_imuini_2];   
         % Computing IMU data in link 2 frame
         
         a_2_imulin = zeros(size(q1,1),3);
@@ -226,7 +232,8 @@ for subjectID = subjectList
                    0 1  0; 
                    0 0 -1];   
               
-        R_0_fp = R_0_G * R_G_fp; 
+        R_0_fp = R_0_G * R_G_fp;
+        R_fp_0 = R_0_fp';
         
         % center of force plate in mm (below the force plate) in Global frame
         P_G_fp = [231.75,254,-43.3]; 
@@ -234,13 +241,25 @@ for subjectID = subjectList
         r_G_from0toFp = P_G_0 - P_G_fp;
         r_0_from0toFp = R_0_G*r_G_from0toFp';
         
-        r_0_from0toFpm = P_0_from0toFp*1e-3; %converting to m
+        r_0_from0toFpm = r_0_from0toFp*1e-3; %converting to m
 
         f_0 = zeros(length(temp.t_vicon),6);
-        XStar_0_fp = [R_0_fp' skew(r_0_from0toFpm)*R_0_fp'; zeros(3) R_0_fp'];
+       % XStar_0_fp = [R_0_fp' skew(r_0_from0toFpm)*R_0_fp'; zeros(3) R_0_fp'];
+        XStar_0_fp = [R_0_fp skew(r_0_from0toFpm)*R_0_fp; zeros(3) R_0_fp];
         f_0 = (XStar_0_fp * f_fp')';
+        XStar_fp_0 = [R_fp_0,       -R_fp_0*skew(r_0_from0toFpm);
+                      zeros(3),     R_fp_0];     
         
-       
+        R_1_0 = R_0_1ini';
+        R_1_fp = R_1_0 * R_0_fp;
+        f_G_from1toFpm = mean(P_G_1(1:10,:)) - P_G_fp;
+        R_1_G = R_G_1';
+        r_1_from1toFpm = R_1_G* f_G_from1toFpm';
+        XStar_1_fp = [R_1_fp    skew(r_1_from1toFpm*1e-3)*R_1_fp;...
+                     zeros(3)   R_1_fp];
+        R_fp_1 = R_1_fp';
+        XStar_fp_1 = [R_fp_1    -R_fp_1*skew(r_1_from1toFpm*1e-3);...
+                      zeros(3)  R_fp_1];
         figure;
         subplot(211);
         plot(temp.t_vicon,f_fp(:,4:6)); axis tight;
@@ -305,12 +324,21 @@ for subjectID = subjectList
         processedSensorData(subjectID,trialID).t = temp.t_vicon;
         processedSensorData(subjectID,trialID).imu = [a_2_imulin v_2_imurot]';
         processedSensorData(subjectID,trialID).f_0 = f_0';
-       
+        processedSensorData(subjectID,trialID).X_2_imu = X_2_imu;
+        processedSensorData(subjectID,trialID).X_imu_2 = X_imu_2;
         
+       
+        transformsData(subjectID,trialID).X_2_imu = X_2_imu;
+        transformsData(subjectID,trialID).X_imu_2 = X_imu_2;
+        transformsData(subjectID,trialID).XStar_0_fp = XStar_0_fp;
+        transformsData(subjectID,trialID).XStar_fp_0 = XStar_fp_0;
+        transformsData(subjectID,trialID).XStar_1_fp = XStar_1_fp;
+        transformsData(subjectID,trialID).XStar_fp_1 = XStar_fp_1;
     end
 end
 
 if(strcmp(isTest,'true')~=1)
     save('./experiments/humanFixedBase/data/preProcessedSensorData.mat','processedSensorData');
+    save('./tests/RNEAWithiDynTree/transformsData.mat','transformsData');
 end
 
