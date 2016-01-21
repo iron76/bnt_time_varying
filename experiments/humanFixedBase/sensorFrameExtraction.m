@@ -252,9 +252,9 @@ for subjectID = subjectList
         
         R_1_0 = R_0_1ini';
         R_1_fp = R_1_0 * R_0_fp;
-        f_G_from1toFpm = mean(P_G_1(1:10,:)) - P_G_fp;
+        r_G_from1toFpm = mean(P_G_1(1:10,:)) - P_G_fp;
         R_1_G = R_G_1';
-        r_1_from1toFpm = R_1_G* f_G_from1toFpm';
+        r_1_from1toFpm = R_1_G* r_G_from1toFpm';
         XStar_1_fp = [R_1_fp    skew(r_1_from1toFpm*1e-3)*R_1_fp;...
                      zeros(3)   R_1_fp];
         R_fp_1 = R_1_fp';
