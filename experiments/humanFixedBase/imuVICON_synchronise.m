@@ -1,9 +1,8 @@
 % load data
-
 load('VICONsaveData.mat');
 load('imuExtractedData.mat');
 
-subjectIDList = [1];
+subjectIDList = 1;
 trialIDList = 1:3;
 
 
@@ -13,14 +12,19 @@ for subjectID=1:length(subjectIDList)
         %% compute VICON, IMU time difference
         figure;
         subplot(3,1,1);
-        f_raw = subjectData(subjectID,trialID).grwsFOR;
+        
+        f_raw = subjectData(subjectID,trialID).analogsFOR;
         t_raw_vicon_f = 0:(1/100):(0.01*size(f_raw,1));
         t_raw_vicon_f = t_raw_vicon_f(1:end-1)./10;
 
         t_vicon = 0:(1/1000):t_raw_vicon_f(end);
         f = interp1(t_raw_vicon_f,f_raw,t_vicon);
 
-        plot(t_vicon,f);axis tight;
+        plot(t_vicon,f);
+        xlabel('A','FontSize',15);
+        ylabel('B','FontSize',15);
+        axis tight;
+        grid on;
 
         title(sprintf('Subject : %d, Trial : %d',subjectID,trialID));
         accl_raw = imuData(subjectID,trialID).accln;
@@ -33,15 +37,18 @@ for subjectID=1:length(subjectIDList)
             t_imu_raw = imuData(subjectID,trialID).t./1000;
         end
         
-        
 
         t_imu = 0:(1/1000):t_imu_raw(end);
         accl = interp1(t_imu_raw,accl_raw,t_imu);
         omega = interp1(t_imu_raw,omega_raw,t_imu);
 
-        subplot(3,1,2);plot(t_imu,accl);axis tight;
+        subplot(3,1,2);
+        plot(t_imu,accl);
+        axis tight;
+        grid on;
 
-        [~,chosenF_ID] = max(f(1,:));
+        %[~,chosenF_ID] = max(f(1,:));
+        chosenF_ID = 3;
         [~,timeIndexToPeak1_f] = max(f(1:round(end*0.5),chosenF_ID));
         timeToPeak1_f = t_vicon(timeIndexToPeak1_f);
 
@@ -56,11 +63,11 @@ for subjectID=1:length(subjectIDList)
         t_imu_shifted = t_imu(indicesToShift:end) - t_imu(indicesToShift);
         accl_shifted = accl(indicesToShift:end,:);
         omega_shifted = omega(indicesToShift:end,:);
-        %interp1(t_imu,accl,t_imu_shifted);
 
         subplot(3,1,3);
         plot(t_imu_shifted,accl_shifted);
         axis tight;
+        grid on;
         
         
         %% acceleration timeshift resultStore
@@ -98,4 +105,4 @@ for subjectID=1:length(subjectIDList)
     end
 end
 
-save('./experiments/humanFixedBase/IMU_VICON_ShiftedData.mat','imu_vicon_shiftedData');
+save('./experiments/humanFixedBase/data/IMU_VICON_ShiftedData.mat','imu_vicon_shiftedData');

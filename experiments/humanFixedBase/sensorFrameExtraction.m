@@ -36,16 +36,16 @@ for subjectID = subjectList
         P_G_imuC = temp.P_G_imuC(1:pSelec,:);
         
         f_fp = temp.f_fp(1:pSelec,:);
-        f_fp(:,1:3) = temp.f_fp(:,1:3)*1e-3; % converting Nmm to Nm
+        f_fp(:,1:3) = temp.f_fp(:,1:3)*1e-3; % converting moments from Nmm to Nm
  
         
         P_G_1 = computeCentroidOfPoints(P_G_lankle,P_G_rankle);
         P_G_2 = computeCentroidOfPoints(P_G_lhip,P_G_rhip);
         P_G_3 = computeCentroidOfTriangle(P_G_lsho,P_G_rsho,P_G_tors);
-        [R_G_0,P_G_0] = computeFootRotation(P_G_lhee,P_G_rhee,P_G_ltoe,P_G_rtoe); 
-      
-     %   [R_0_G,P_G_0] = computeFootRotation(P_G_lhee,P_G_rhee,P_G_ltoe,P_G_rtoe);
-        R_0_G = R_G_0';
+        
+        [R_0_G,P_G_0] = computeFootRotation(P_G_lhee,P_G_rhee,P_G_ltoe,P_G_rtoe); 
+       
+        R_G_0 = R_0_G';
         R_G_1 = R_G_0;     % because point P_G_1 is fixed on the foot in URDF
         R_1_G = R_G_1';
   
@@ -55,14 +55,14 @@ for subjectID = subjectList
         % JOINT ANGLE q1
         len = size(P_G_1,1);
         
+        % JOINT ANGLE q1
         l1 = (P_G_2 - P_G_1);
         q1 = zeros (len, 1);
         
         for i = 1 : len;
             q1(i) =atan2(-l1(i,2),l1(i,3));
         end
-        
-        
+       
         % JOINT ANGLE q2
         l2 = (P_G_3-P_G_2);
         q_temp = zeros (len, 1);
@@ -161,6 +161,7 @@ for subjectID = subjectList
         plot(temp.t_imu,temp.a_imu_imulin'); axis tight;
         xlabel('Time [s]','FontSize',15);
         ylabel('Linear Acceleration [m/sec^2]','FontSize',15);
+        legend('$a_x$','$a_y$','$a_z$','Location','northeast');
         set(legend,'Interpreter','latex');
         set(legend,'FontSize',15);
         legend('a^{IMU}_x','a^{IMU}_y','a^{IMU}_z','Location','northeast');
@@ -171,31 +172,31 @@ for subjectID = subjectList
         plot(temp.t_imu,temp.v_imu_imurot');  axis tight;
         xlabel('Time [s]','FontSize',15);
         ylabel('Angular Velocity [rad/s]','FontSize',15);
+        legend('$w_x$','$w_y$','$w_z$','Location','northeast');
         set(legend,'Interpreter','latex');
         set(legend,'FontSize',15);
         legend('w^{IMU}_x','w^{IMU}_y','w^{IMU}_z','Location','northeast');
         grid on;
         
-        
-        % Extracting position vector from IMU-P2 
-        
-%         P_G_IMU = computeCentroidOfTriangle( P_G_imuA,P_G_imuB,P_G_imuC );
-%         r_G_fromIMUtoP2 = P_G_2 - P_G_IMU;
-        
+ 
         
         % Extracting rotation matrix R_2_imuini
         
         R_0_1ini = euler2dcm([0,mean(q1(1:10)),0]); 
         R_1_2ini = euler2dcm([0,mean(q2(1:10)),0]); 
-        R_G_2ini = R_G_0' * R_0_1ini * R_1_2ini;
+        R_G_2ini = R_G_0 * R_0_1ini * R_1_2ini;
         
-        %[R_G_imuini,~] =
-        %computeInitialIMURotation(P_G_imuA,P_G_imuB,P_G_imuC); seems buggy
-        R_G_imuini = [0 1 0; 0 0 -1; 1 0 0];
-        
+        [R_G_imuini,P_G_Gimuini] = computeInitialIMURotation(P_G_imuA,P_G_imuB,P_G_imuC);
         R_2_imuini = R_G_2ini'* R_G_imuini;
         
-   
+        P_2_2imuini = P_G_Gimuini - mean(P_G_2(1:10,:));
+        
+        T_2_imu = [R_2_imuini, P_2_2imuini' .*1e-3 ; zeros(1,3) 1];
+        X_2_imu = [R_2_imuini,                          zeros(3); ...
+                  skew(P_2_2imuini' .*1e-3)*R_2_imuini, R_2_imuini];
+        R_imuini_2 = R_2_imuini';      
+        X_imu_2 = [R_imuini_2,                             zeros(3); ...
+                   -R_2_imuini*skew(P_2_2imuini'.*1e-3),   R_imuini_2];   
         % Computing IMU data in link 2 frame
         
         a_2_imulin = zeros(size(q1,1),3);
@@ -213,10 +214,10 @@ for subjectID = subjectList
         subplot(211);
         plot(temp.t_vicon,a_2_imulin); axis tight;
         xlabel('Time [s]','FontSize',15);
-        ylabel('Linera Acceleration [m/sec^2]','FontSize',15);
+        ylabel('Linear Acceleration [m/sec^2]','FontSize',15);
+        legend('$a_x$','$a_y$','$a_z$','Location','northeast');
         set(legend,'Interpreter','latex');
         set(legend,'FontSize',15);
-        legend('a^{2}_x','a^{2}_y','a^{2}_z','Location','northeast');
         title('IMU data of link 2 (link 2 frame)','FontSize',15);
         grid on;
         
@@ -224,79 +225,99 @@ for subjectID = subjectList
         plot(temp.t_vicon,v_2_imurot);  axis tight;
         xlabel('Time [s]','FontSize',15);
         ylabel('Angular Velocity [rad/s]','FontSize',15);
+        legend('$w_x$','$w_y$','$w_z$','Location','northeast');
         set(legend,'Interpreter','latex');
         set(legend,'FontSize',15);
-        legend('w^{2}_x','w^{2}_y','w^{2}_z','Location','northeast');
         grid on;
             
         
         %% Force plate sensing
         
-        R_G_fp = [-1 0 0; 0 -1 0; 0 0 1]; % case of fp z upwards..else use [0 -1 0; -1 0 0; 0 0 -1];
-        R_0_fp = R_0_G * R_G_fp; 
-        P_G_fp = [250,250,-43.3]; % center of force plate, below the force plate. (in mm)
+        %fixed rotation from Global and Force plate reference frames
+        R_G_fp = [-1 0  0;
+                   0 1  0; 
+                   0 0 -1];   
+              
+        R_0_fp = R_0_G * R_G_fp;
+        R_fp_0 = R_0_fp';
         
-        P_G_from0toFp = P_G_fp - P_G_0;
-        P_0_from0toFp = R_0_G*P_G_from0toFp';
-        P_0_from0toFpm = P_0_from0toFp*1e-3; %converting to m
+        % center of force plate in mm (below the force plate) in Global frame
+        P_G_fp = [231.75,254,-43.3]; 
+        
+        r_G_from0toFp = P_G_0 - P_G_fp;
+        r_0_from0toFp = R_0_G*r_G_from0toFp';
+        
+        r_0_from0toFpm = r_0_from0toFp*1e-3; %converting to m
 
         f_0 = zeros(length(temp.t_vicon),6);
-        XStar_0_fp = [R_0_fp -R_0_fp*skew(P_0_from0toFpm); zeros(3) R_0_fp];
+       % XStar_0_fp = [R_0_fp' skew(r_0_from0toFpm)*R_0_fp'; zeros(3) R_0_fp'];
+        XStar_0_fp = [R_0_fp skew(r_0_from0toFpm)*R_0_fp; zeros(3) R_0_fp];
         f_0 = (XStar_0_fp * f_fp')';
+        XStar_fp_0 = [R_fp_0,       -R_fp_0*skew(r_0_from0toFpm);
+                      zeros(3),     R_fp_0];     
         
-       
-%         figure;
-%         subplot(211);
-%         plot(temp.t_vicon,f_fp(:,4:6)); axis tight;
-%         xlabel('Time [s]','FontSize',15);
-%         ylabel('Force [N]','Fontsize',15);
-%         title('Wrench measured in force plate (Fp) frame','FontSize',15);
-%         set(legend,'Interpreter','latex');
-%         set(legend,'FontSize',20);
-%         legend('F_x','F_y','F_z','Location','northeast');
-%         grid on;
-%         
-%         subplot(212);
-%         plot(temp.t_vicon,f_fp(:,1:3)); axis tight;
-%         xlabel('Time [s]','FontSize',15);
-%         ylabel('Moment [Nm]','FontSize',15);
-%         set(legend,'Interpreter','latex');
-%         set(legend,'FontSize',20);
-%         legend('M_x','M_y','M_z','Location','northeast');
-%         grid on;
-%         
-%         
-%         figure;
-%         subplot(211);
-%         plot(temp.t_vicon, f_0(:,4:6)); axis tight;
-%         xlabel('Time [s]','FontSize',15);
-%         ylabel('Force [N]','FontSize',15);
-%         title('Wrench measured in link 0 frame','FontSize',15);
-%         set(legend,'Interpreter','latex');
-%         set(legend,'FontSize',20);
-%         legend('F_x','F_y','F_z','Location','northeast');
-%         grid on;
+        R_1_0 = R_0_1ini';
+        R_1_fp = R_1_0 * R_0_fp;
+        r_G_from1toFpm = mean(P_G_1(1:10,:)) - P_G_fp;
+        R_1_G = R_G_1';
+        r_1_from1toFpm = R_1_G* r_G_from1toFpm';
+        XStar_1_fp = [R_1_fp    skew(r_1_from1toFpm*1e-3)*R_1_fp;...
+                     zeros(3)   R_1_fp];
+        R_fp_1 = R_1_fp';
+        XStar_fp_1 = [R_fp_1    -R_fp_1*skew(r_1_from1toFpm*1e-3);...
+                      zeros(3)  R_fp_1];
+        figure;
+        subplot(211);
+        plot(temp.t_vicon,f_fp(:,4:6)); axis tight;
+        xlabel('Time [s]','FontSize',15);
+        ylabel('Force [N]','Fontsize',15);
+        title('Wrench measured in force plate (Fp) frame','FontSize',15);
+        legend('$F_x$','$F_y$','$F_z$','Location','northeast');
+        set(legend,'Interpreter','latex');
+        set(legend,'FontSize',20);
+        grid on;
         
-%         subplot(212);
-%         plot(temp.t_vicon, f_0(:,1:3)); axis tight;
-%         xlabel('Time [s]','FontSize',15);
-%         ylabel('Moment [Nm]','FontSize',15);
-%         set(legend,'Interpreter','latex');
-%         set(legend,'FontSize',20);
-%         legend('M_x','M_y','M_z','Location','northeast');
-%         grid on;
-%         
-%         
+        subplot(212);
+        plot(temp.t_vicon,f_fp(:,1:3)); axis tight;
+        xlabel('Time [s]','FontSize',15);
+        ylabel('Moment [Nm]','FontSize',15);
+        legend('$M_x$','$M_y$','$M_z$','Location','northeast');
+        set(legend,'Interpreter','latex');
+        set(legend,'FontSize',20);
+        grid on;
+        
+        
+        figure;
+        subplot(211);
+        plot(temp.t_vicon, f_0(:,4:6)); axis tight;
+        xlabel('Time [s]','FontSize',15);
+        ylabel('Force [N]','FontSize',15);
+        title('Wrench measured in link 0 frame','FontSize',15);
+        legend('$F_x$','$F_y$','$F_z$','Location','northeast');
+        set(legend,'Interpreter','latex');
+        set(legend,'FontSize',20);
+        grid on;
+        
+        subplot(212);
+        plot(temp.t_vicon, f_0(:,1:3)); axis tight;
+        xlabel('Time [s]','FontSize',15);
+        ylabel('Moment [Nm]','FontSize',15);
+        legend('$M_x$','$M_y$','$M_z$','Location','northeast');
+        set(legend,'Interpreter','latex');
+        set(legend,'FontSize',20);
+        grid on;
+        
+        
         
         %% clustering data
         
         processedSensorData(subjectID,trialID).R_G_0 = R_G_0;
-        processedSensorData(subjectID,trialID).R_0_1 = R_0_1ini; %?
-        processedSensorData(subjectID,trialID).R_2_imu = R_2_imuini; %?
-        processedSensorData(subjectID,trialID).R_G_imu0 = R_G_imuini; %?
-        processedSensorData(subjectID,trialID).R_G_2 = R_G_2ini; %?
-   %     processedSensorData(subjectID,trialID).R_G_fp = R_G_fp;
-   %     processedSensorData(subjectID,trialID).R_0_fp = R_0_fp;
+        processedSensorData(subjectID,trialID).R_0_1 = R_0_1ini; 
+        processedSensorData(subjectID,trialID).R_2_imu = R_2_imuini; 
+        processedSensorData(subjectID,trialID).R_G_imu0 = R_G_imuini; 
+        processedSensorData(subjectID,trialID).R_G_2 = R_G_2ini; 
+        processedSensorData(subjectID,trialID).R_G_fp = R_G_fp;
+        processedSensorData(subjectID,trialID).R_0_fp = R_0_fp;
         processedSensorData(subjectID,trialID).q1 = q1;
         processedSensorData(subjectID,trialID).q2 = q2;
         processedSensorData(subjectID,trialID).dq1 = dq1_sg;
@@ -305,16 +326,25 @@ for subjectID = subjectList
         processedSensorData(subjectID,trialID).ddq2 = ddq2_sg;
         processedSensorData(subjectID,trialID).a_2_imulin = a_2_imulin';
         processedSensorData(subjectID,trialID).v_2_imurot = v_2_imurot';
-    %    processedSensorData(subjectID,trialID).XStar_0_fp = XStar_0_fp;
+        processedSensorData(subjectID,trialID).XStar_0_fp = XStar_0_fp;
         processedSensorData(subjectID,trialID).t = temp.t_vicon;
         processedSensorData(subjectID,trialID).imu = [a_2_imulin v_2_imurot]';
         processedSensorData(subjectID,trialID).f_0 = f_0';
-       
+        processedSensorData(subjectID,trialID).X_2_imu = X_2_imu;
+        processedSensorData(subjectID,trialID).X_imu_2 = X_imu_2;
         
+       
+        transformsData(subjectID,trialID).X_2_imu = X_2_imu;
+        transformsData(subjectID,trialID).X_imu_2 = X_imu_2;
+        transformsData(subjectID,trialID).XStar_0_fp = XStar_0_fp;
+        transformsData(subjectID,trialID).XStar_fp_0 = XStar_fp_0;
+        transformsData(subjectID,trialID).XStar_1_fp = XStar_1_fp;
+        transformsData(subjectID,trialID).XStar_fp_1 = XStar_fp_1;
     end
 end
 
 if(strcmp(isTest,'true')~=1)
-    save('./experiments/humanFixedBase/preProcessedSensorData.mat','processedSensorData');
+    save('./experiments/humanFixedBase/data/preProcessedSensorData.mat','processedSensorData');
+    save('./tests/RNEAWithiDynTree/transformsData.mat','transformsData');
 end
 
