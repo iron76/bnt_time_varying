@@ -5,7 +5,7 @@ clc
 subjectID = 1;
 trialID = 1;
 
-   data.path        = './experiments/humanFixedBase/data/processedSensorData.mat';
+   data.path        = './experiments/humanFixedBase/intermediateDataFiles/processedSensorData.mat';
 
    sens.parts       = {'leg','torso'}; %force of the forceplate is ingoing into the leg
    sens.labels      = {'fts','imu'};  
@@ -31,7 +31,8 @@ close all
 % if(exist(data.path,'file'))
 %     load(data.path);
 % else    
-    sensorFrameExtraction
+%    computeLinkSensorFrames
+%    organiseSensorData
     [ data ] = organiseBERDYCompatibleSensorData( data, subjectID, trialID );
 % end
 close all
@@ -160,35 +161,35 @@ for i = 1 : dmodel.NB
    end
 end
 
-save(sprintf('./experiments/humanFixedBase/data/savedBERDYresult_subj%d_trial%d.mat',subjectID,trialID));%,'res','data','myMAP');
+save(sprintf('./experiments/humanFixedBase/data/computedBERDYresult_subj%d_trial%d.mat',subjectID,trialID));%,'res','data','myMAP');
 
-
-%% Comparing RNEA/MAP torques
-
-load ('resultsFromCheckRNEA.mat');
-
-fig = figure();
-axes1 = axes('Parent',fig,'FontSize',16);
-box(axes1,'on');
-hold(axes1,'on');
-grid on;
-
-plot1 = plot(data.time,tau(:,1)', 'lineWidth',2.5); hold on;
-set(plot1,'color',[1 0 0]);
-plot2 = plot(data.time,tau(:,2)', 'lineWidth',2.5); hold on;
-set(plot2,'color',[0 0.498039215803146 0]);
-plot3 = plot(data.time,res.tau_ankle', 'lineWidth',1.5,'LineStyle','--'); hold on;
-set(plot3,'color',[1 0 0]);
-plot4 = plot(data.time,res.tau_hip', 'lineWidth',1.5,'LineStyle','--'); hold on;
-set(plot4,'color',[0 0.498039215803146 0]);
-
-leg = legend('$\tau_{1,RNEA}$','$\tau_{2,RNEA}$','$\tau_{1,MAP}$','$\tau_{2,MAP}$','Location','southeast');
-set(leg,'Interpreter','latex');
-set(leg,'FontSize',18);
-xlabel('Time [s]','FontSize',20);
-ylabel('Torque [Nm]','FontSize',20);
-axis tight;
-grid on;
+% 
+% %% Comparing RNEA/MAP torques
+% 
+% %load ('resultsFromCheckRNEA.mat');
+% 
+% fig = figure();
+% axes1 = axes('Parent',fig,'FontSize',16);
+% box(axes1,'on');
+% hold(axes1,'on');
+% grid on;
+% 
+% plot1 = plot(data.time,tau(:,1)', 'lineWidth',2.5); hold on;
+% set(plot1,'color',[1 0 0]);
+% plot2 = plot(data.time,tau(:,2)', 'lineWidth',2.5); hold on;
+% set(plot2,'color',[0 0.498039215803146 0]);
+% plot3 = plot(data.time,res.tau_ankle', 'lineWidth',1.5,'LineStyle','--'); hold on;
+% set(plot3,'color',[1 0 0]);
+% plot4 = plot(data.time,res.tau_hip', 'lineWidth',1.5,'LineStyle','--'); hold on;
+% set(plot4,'color',[0 0.498039215803146 0]);
+% 
+% leg = legend('$\tau_{1,RNEA}$','$\tau_{2,RNEA}$','$\tau_{1,MAP}$','$\tau_{2,MAP}$','Location','southeast');
+% set(leg,'Interpreter','latex');
+% set(leg,'FontSize',18);
+% xlabel('Time [s]','FontSize',20);
+% ylabel('Torque [Nm]','FontSize',20);
+% axis tight;
+% grid on;
 
 
 %berdyResultSensorTest

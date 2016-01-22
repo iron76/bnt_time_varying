@@ -5,10 +5,10 @@ function [ data ] = organiseBERDYCompatibleSensorData( data , subjectID, trialID
 %   matrices in correct form
 
 
-load('./experiments/humanFixedBase/data/preProcessedSensorData.mat','processedSensorData');
+load('./experiments/humanFixedBase/intermediateDataFiles/processedSensorData.mat','processedSensorData');
 
 t = processedSensorData(subjectID,trialID).t;
-f_temp = processedSensorData(subjectID,trialID).f_0;
+f_temp = processedSensorData(subjectID,trialID).f_fp;
 [~,chosenF_ID] = max(f_temp(:,1));
 [~,tminIndex] = max(f_temp(chosenF_ID,1:round(end/2)));
 [~,tmaxIndex] = max(f_temp(chosenF_ID,round(end/2):end));
@@ -36,14 +36,15 @@ data.d2q = [data.ddq1 data.ddq2]';
 
 %IMU from sensor frame extraction is angular-linear. The MAP y requires
 %linear-angular IMU measurement
-data.y_imu = [processedSensorData(subjectID,trialID).a_2_imulin(:, (tminIndex:tmaxIndex));
+data.y_imu = [processedSensorData(subjectID,trialID).a_imu(:, (tminIndex:tmaxIndex));
               zeros(3,length(tminIndex:tmaxIndex))];
 % data.y_imu = [zeros(3,length(tminIndex:tmaxIndex));
 %               processedSensorData(subjectID,trialID).a_2_imulin(:, (tminIndex:tmaxIndex))];
 data.ys_imu = data.y_imu;
 
-
-save('./experiments/humanFixedBase/data/processedSensorData.mat','data');
+data.y_fts = f_temp';
+%data.ys_fts = data.y_fts;
+save('./experiments/humanFixedBase/intermediateDataFiles/berdyFormattedSensorData.mat','data');
 
 
 end
