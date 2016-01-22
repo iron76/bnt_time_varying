@@ -1,6 +1,10 @@
-
-
-% Check with iDynTree lib
+% checkRNEA_iDynTree
+% Script to test if RNEA and iDyntree compuations give same
+% values of dynamic quantities for the Human-Dynamics
+% estimation experiment. 
+%
+% Author: Claudia Latella and Francesco Romano (claudia.latella@iit.it)
+% iCub Facility, Istituto Italiano di Tecnologia, 21 January 2016
 
 model = iDynTree.DynamicsComputations();
 
