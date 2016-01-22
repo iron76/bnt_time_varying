@@ -32,7 +32,7 @@ The execution sequence is as follows :
 
 If step 1 above is executed, main will take care of step 2 & 3 if it is not already existing. Note that any changes to sensorFrameExtraction or imuVICON_synchornise necessiates that you follow this execution sequence again.
 
-The output of 1,2,and 3 produces a .mat file in the subfolder dalled preProcessingDataFiles
+The output of 1,2,and 3 produces a .mat file in the subfolder dalled intermediateDataFiles
 
 Analysis of results
 -------------------
