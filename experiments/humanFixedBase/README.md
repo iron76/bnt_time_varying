@@ -13,6 +13,7 @@ Data characteristics
 --------------------
 
 The data required for the analysis must be independently downloaded into a subfolder called data. The data consists of 2 files : 
+
 1. VICONsaveData.mat
 2. imuExtractedData.mat
 
@@ -23,6 +24,7 @@ Execution
 ---------
 
 The execution sequence is as follows : 
+
 1. synchroniseCaptureData
 2. computeLinkSensorFrames
 3. organiseSensorData
