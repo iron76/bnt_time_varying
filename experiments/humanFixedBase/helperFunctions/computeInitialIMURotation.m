@@ -1,7 +1,13 @@
 function [ R_G_imu0,P_G_imu0 ] = computeInitialIMURotation(P_G_imuAT,P_G_imuBT,P_G_imuCT)
-%COMPUTEINITIALIMUROTATION Summary of this function goes here
-%   Detailed explanation goes here
-    
+%COMPUTEINITIALIMUROTATION Function computes the position rotation of the IMU frame in the
+% Global frame G. The IMU rotation is such that in the global frame, the
+% IMU_x is along G_z, IMU_y is along -G_x and IMU_z is along -G_y.
+% The IMU has 3 markers, A, B, and C. The B is higher than the other two
+% when in the global frame. The marker A coincides with the IMU origin.
+%
+% Author: Naveen Kuppuswamy (naveen.kuppuswamy@iit.it)
+% iCub Facility, Istituto Italiano di Tecnologia, 21 January 2016
+
     %considering initial values only
     numValues = 10;
   	P_G_imuA = mean(P_G_imuAT(1:numValues,:),1);
@@ -24,7 +30,7 @@ function [ R_G_imu0,P_G_imu0 ] = computeInitialIMURotation(P_G_imuAT,P_G_imuBT,P
     
     R_G_imu0 = [x_G_imu_hat',y_G_imu_hat',z_G_imu'] ;
     
-    P_G_imu0 = computeCentroidOfTriangle(P_G_imuA,P_G_imuB,P_G_imuC);
+    P_G_imu0 = P_G_imuA;
    
     
 end
