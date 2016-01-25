@@ -34,16 +34,17 @@ If step 1 above is executed, main will take care of step 2 & 3 if it is not alre
 
 The output of 1,2,and 3 produces a .mat file in the subfolder dalled intermediateDataFiles
 
-Analysis of results
+Tests
 -------------------
-
-TBD
+There are some tests available in the tests subfolder. Add this folder to path to execute the tests. For example, predictSensorMeasurement computes an RNEA based forward dynamics and then predicts sensor measurements based on the computed dynamics.
 
 Frame Information
 -----------------
 For all of the compuations presented here, the frames are assigned as follows : 
 
 ![Frame assignment](https://github.com/iron76/bnt_time_varying/blob/dev/naveen/experiments/humanFixedBase/data/framesViconBowingTaskExperiment.jpg)
+
+![Link Frames assignment](https://github.com/iron76/bnt_time_varying/blob/dev/naveen/experiments/humanFixedBase/data/frames_diagram.png)
 
 
 
