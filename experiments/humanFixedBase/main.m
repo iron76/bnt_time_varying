@@ -7,11 +7,15 @@ trialID = 1;
 
    data.path        = './experiments/humanFixedBase/intermediateDataFiles/processedSensorData.mat';
 
-   sens.parts       = {'leg','torso'}; %force of the forceplate is ingoing into the leg
+   sens.parts       = {'leg','torso'}; %force seen by the forceplate is the body force transmitted by leg to foot
    sens.labels      = {'fts','imu'};  
    sens.ndof        = {6,6};
 
    load(sprintf('./experiments/humanFixedBase/data/humanThreeLinkModelFromURDF_subject%d.mat',subjectID));
+   
+        humanThreeLink_dmodel.linkname = {'leg' 'torso'}; 
+        humanThreeLink_dmodel.jointname = {'ankle' 'hip'}; 
+   
    dmodel  = humanThreeLink_dmodel; %deterministic model
   
    ymodel  = humanThreeLinkSens(dmodel, sens);  % sModel, sUnkown-covarianceOfd 
@@ -194,38 +198,38 @@ save(sprintf('./experiments/humanFixedBase/data/computedBERDYresult_subj%d_trial
 
 %berdyResultSensorTest
 
-% %% Comparing MAP y-pred/
+%% Comparing MAP y-pred/
+
+ for  ind = 1:26
+
+        y_pred = myMAP.simY(res.d);
+
+        fig = figure();
+        axes1 = axes('Parent',fig,'FontSize',16);
+        box(axes1,'on');
+        hold(axes1,'on');
+        grid on;
+
+        plot1 = plot(data.time,y_pred(ind,:), 'lineWidth',1.0, 'LineStyle','--'); hold on;
+        set(plot1,'color',[1 0 0]);
+        plot2 = plot(data.time,data.y(ind,:), 'lineWidth',1.0); hold on;
+        set(plot2,'color',[0 0 1]);
+
+        leg = legend('Map Pred', 'Actual data','Location','northeast');
+        %set(leg,'Interpreter','latex');
+        set(leg,'FontSize',18);
+        xlabel('Time [s]','FontSize',20);
+        %ylabel('Torque[Nm]','FontSize',20);
+        title(sprintf('Figure %d',ind));
+        axis tight;
+        grid on;
+
+%     figure();
+%     y_pred = myMAP.simY(res.d);
 % 
-%  for  ind = 1:26
-% 
-%         y_pred = myMAP.simY(res.d);
-% 
-%         fig = figure();
-%         axes1 = axes('Parent',fig,'FontSize',16);
-%         box(axes1,'on');
-%         hold(axes1,'on');
-%         grid on;
-% 
-%         plot1 = plot(data.time,y_pred(ind,:), 'lineWidth',1.0, 'LineStyle','--'); hold on;
-%         set(plot1,'color',[1 0 0]);
-%         plot2 = plot(data.time,data.y(ind,:), 'lineWidth',1.0); hold on;
-%         set(plot2,'color',[0 0 1]);
-% 
-%         leg = legend('Map Pred', 'Actual data','Location','northeast');
-%         %set(leg,'Interpreter','latex');
-%         set(leg,'FontSize',18);
-%         xlabel('Time [s]','FontSize',20);
-%         %ylabel('Torque[Nm]','FontSize',20);
-%         title(sprintf('Figure %d',ind));
-%         axis tight;
-%         grid on;
-% 
-% %     figure();
-% %     y_pred = myMAP.simY(res.d);
-% % 
-% %     plot(y_pred(ind,:)); 
-% %     hold on; 
-% %     plot(data.y(ind,:), '--');
-% %     legend('Map Pred', 'Actual data');
-% %     title(sprintf('Figure %d',ind));
-%   end
+%     plot(y_pred(ind,:)); 
+%     hold on; 
+%     plot(data.y(ind,:), '--');
+%     legend('Map Pred', 'Actual data');
+%     title(sprintf('Figure %d',ind));
+  end

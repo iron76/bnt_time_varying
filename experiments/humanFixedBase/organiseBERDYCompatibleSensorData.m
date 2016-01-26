@@ -4,8 +4,15 @@ function [ data ] = organiseBERDYCompatibleSensorData( data , subjectID, trialID
 %   loads sensor transfors and organises data to generate the y and ys
 %   matrices in correct form
 
-
+%% load the processed sensor data
 load('./experiments/humanFixedBase/intermediateDataFiles/processedSensorData.mat','processedSensorData');
+
+%% load the sensor link transforms
+load('./experiments/humanFixedBase/intermediateDataFiles/sensorLinkTransforms.mat');
+
+%% Extract the time stamps of interest by looking for spikes in FT 
+% Since the beginning and end of the experiment featured a little hop to
+% generate a spike in the FT.
 
 t = processedSensorData(subjectID,trialID).t;
 f_temp = processedSensorData(subjectID,trialID).f_fp;
@@ -33,16 +40,21 @@ data.dq = [data.dq1 data.dq2]';
 data.d2q = [data.ddq1 data.ddq2]';
 
 %% data from IMU sensor
+%Extracting the transforms
+a_imu = processedSensorData(subjectID,trialID).a_imu;
+fp = processedSensorData(subjectID,trialID).f_fp;
 
-%IMU from sensor frame extraction is angular-linear. The MAP y requires
-%linear-angular IMU measurement
-data.y_imu = [processedSensorData(subjectID,trialID).a_imu(:, (tminIndex:tmaxIndex));
-              zeros(3,length(tminIndex:tmaxIndex))];
-% data.y_imu = [zeros(3,length(tminIndex:tmaxIndex));
-%               processedSensorData(subjectID,trialID).a_2_imulin(:, (tminIndex:tmaxIndex))];
-data.ys_imu = data.y_imu;
+numTSteps = size(a_imu(:, (tminIndex:tmaxIndex)),2);
+X_2_imu = sensorLinkTransforms.X_2_imu;
+y_2_imu = X_2_imu * [zeros(3,numTSteps);processedSensorData(subjectID,trialID).a_imu(:, (tminIndex:tmaxIndex))];
+y_1_fp = sensorLinkTransforms.XStar_1_fpini * fp(:, (tminIndex:tmaxIndex));
 
-data.y_fts = f_temp';
+
+% Putting the IMU Data, accelerometer only, gyroscope consists of 0.
+%data.y_imu = y_2_imu;
+data.ys_imu = y_2_imu;
+%data.y_ft = y_1_fp;
+data.ys_fts = y_1_fp;
 %data.ys_fts = data.y_fts;
 save('./experiments/humanFixedBase/intermediateDataFiles/berdyFormattedSensorData.mat','data');
 

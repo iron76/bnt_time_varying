@@ -139,17 +139,37 @@ for subjectID = subjectList
         r_G_from1toFpm = P_G_fp - mean(P_G_1(1:10,:)) ;
         R_1_G = R_G_1';
         r_1_from1toFpm = R_1_G* r_G_from1toFpm';
-        XStar_1_fp = [R_1_fp    skew(r_1_from1toFpm*1e-3)*R_1_fp;...
+        XStar_1_fpini = [R_1_fp    skew(r_1_from1toFpm*1e-3)*R_1_fp;...
                      zeros(3)   R_1_fp];
         R_fp_1 = R_1_fp';
-        XStar_fp_1 = [R_fp_1    -R_fp_1*skew(r_1_from1toFpm*1e-3);...
+        XStar_fp_1ini = [R_fp_1    -R_fp_1*skew(r_1_from1toFpm*1e-3);...
                       zeros(3)  R_fp_1];
 
-        %% Organising into a structure          
+        %% time varying version of  Xstar_0_fp
+        R_0_1t = cell(size(q1));
+        R_1_0t = cell(size(q1));
+        R_1_fpt = cell(size(q1));
+        XStar_1_fpt = cell(size(q1));
+        XStar_fp_1t = cell(size(q1));
+        for i = 1: length(q1)
+            R_0_1t{i} = euler2dcm([0,q1(i),0]); 
+            R_1_0t{i} = R_0_1t{i}';
+            R_1_fpt{i}= R_1_0t{i} * R_0_fp;
+            
+            XStar_1_fpt{i} = [R_1_fpt{i}    skew(r_1_from1toFpm*1e-3)*R_1_fpt{i};...
+                            zeros(3)   R_1_fpt{i}];
+            R_fp_1t = R_1_fpt{i}';
+            XStar_fp_1t{i} = [R_fp_1t    -R_fp_1t*skew(r_1_from1toFpm*1e-3);...
+                             zeros(3)  R_fp_1t];
+        end
+                  
+                  %% Organising into a structure          
         sensorLinkTransforms(subjectID,trialID).X_2_imu = X_2_imu;
         sensorLinkTransforms(subjectID,trialID).X_imu_2 = X_imu_2;
-        sensorLinkTransforms(subjectID,trialID).XStar_1_fp = XStar_1_fp;
-        sensorLinkTransforms(subjectID,trialID).XStar_fp_1 = XStar_fp_1;
+        sensorLinkTransforms(subjectID,trialID).XStar_1_fpini = XStar_1_fpini;
+        sensorLinkTransforms(subjectID,trialID).XStar_fp_1ini = XStar_fp_1ini;
+        sensorLinkTransforms(subjectID,trialID).XStar_1_fpt = XStar_1_fpt;
+        sensorLinkTransforms(subjectID,trialID).XStar_fp_1t = XStar_fp_1t;
     end
     fprintf('\n');
 end
