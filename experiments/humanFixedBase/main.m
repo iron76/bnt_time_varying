@@ -50,29 +50,28 @@ label_to_plot = {'fts','imu'};
 
 %% Process raw sensor data and bring it in the desired reference frames
 
-% acc_gain = 1; %5.9855e-04;
-% deg_to_rad =  1; %pi/180.0;
-% gyro_gain = 1; %deg_to_rad*7.6274e-03;
-% 
-% for l = 1 : length(label_to_plot)
-%    for i = 1 : length(data.parts)
-%       if strcmp(data.labels{i}, label_to_plot{l})
-%          t    = ['time_' data.labels{i}];
-%          ys   = ['ys_' data.labels{i}];
-%          J = length(eval(data.index{i}));
-%          
+for l = 1 : length(label_to_plot)
+   for i = 1 : length(data.parts)
+      if strcmp(data.labels{i}, label_to_plot{l})
+         t    = ['time_' data.labels{i}];
+         ys   = ['ys_' data.labels{i}];
+         J = length(eval(data.index{i}));
+         
 %          if( strcmp(data.labels{i},'imu') )
 %             eval(['data.ys_' data.labels{i} '(4:6,:) = ' ...
 %                   'deg_to_rad*data.ys_' data.labels{i} '(4:6,:);']);
 %          end
-%        
+%          if( strcmp(data.labels{i},'imu') )
+%                 eval(['data.ys_' data.labels{i} '(4:6,:) = ' ...
+%                       'deg_to_rad*data.ys_' data.labels{i} '(4:6,:);']);
+%          end
 %          if( strcmp(data.labels{i}(end-2:end),'fts') )
 %              eval(['data.ys_' data.labels{i} ' = ' ...
 %                    'data.ys_' data.labels{i} ';']);
 %          end
-%       end
-%    end
-% end
+      end
+   end
+end
 
 %% Build data.y anda data.Sy 
  
@@ -167,44 +166,48 @@ end
 
 save(sprintf('./experiments/humanFixedBase/data/computedBERDYresult_subj%d_trial%d.mat',subjectID,trialID));%,'res','data','myMAP');
 
-% 
-% %% Comparing RNEA/MAP torques
-% 
-% %load ('resultsFromCheckRNEA.mat');
-% 
-% fig = figure();
-% axes1 = axes('Parent',fig,'FontSize',16);
-% box(axes1,'on');
-% hold(axes1,'on');
-% grid on;
-% 
-% plot1 = plot(data.time,tau(:,1)', 'lineWidth',2.5); hold on;
-% set(plot1,'color',[1 0 0]);
-% plot2 = plot(data.time,tau(:,2)', 'lineWidth',2.5); hold on;
-% set(plot2,'color',[0 0.498039215803146 0]);
-% plot3 = plot(data.time,res.tau_ankle', 'lineWidth',1.5,'LineStyle','--'); hold on;
-% set(plot3,'color',[1 0 0]);
-% plot4 = plot(data.time,res.tau_hip', 'lineWidth',1.5,'LineStyle','--'); hold on;
-% set(plot4,'color',[0 0.498039215803146 0]);
-% 
-% leg = legend('$\tau_{1,RNEA}$','$\tau_{2,RNEA}$','$\tau_{1,MAP}$','$\tau_{2,MAP}$','Location','southeast');
-% set(leg,'Interpreter','latex');
-% set(leg,'FontSize',18);
-% xlabel('Time [s]','FontSize',20);
-% ylabel('Torque [Nm]','FontSize',20);
-% axis tight;
-% grid on;
+
+%% Comparing RNEA/MAP torques
+
+%load ('resultsFromCheckRNEA.mat');
+
+fig = figure();
+axes1 = axes('Parent',fig,'FontSize',16);
+box(axes1,'on');
+hold(axes1,'on');
+grid on;
+
+%plot1 = plot(data.time,tau(:,1)', 'lineWidth',2.5); hold on;
+%set(plot1,'color',[1 0 0]);
+%plot2 = plot(data.time,tau(:,2)', 'lineWidth',2.5); hold on;
+%set(plot2,'color',[0 0.498039215803146 0]);
+plot3 = plot(data.time,res.tau_ankle', 'lineWidth',1.5,'LineStyle','--'); hold on;
+set(plot3,'color',[1 0 0]);
+plot4 = plot(data.time,res.tau_hip', 'lineWidth',1.5,'LineStyle','--'); hold on;
+set(plot4,'color',[0 0.498039215803146 0]);
+
+leg = legend('$\tau_{1,RNEA}$','$\tau_{2,RNEA}$','$\tau_{1,MAP}$','$\tau_{2,MAP}$','Location','southeast');
+set(leg,'Interpreter','latex');
+set(leg,'FontSize',18);
+xlabel('Time [s]','FontSize',20);
+ylabel('Torque [Nm]','FontSize',20);
+axis tight;
+grid on;
 
 
 %berdyResultSensorTest
 
 %% Comparing MAP y-pred/
+y_pred = myMAP.simY(res.d);
 
- for  ind = 1:26
+ for  ind = 1:12
 
-        y_pred = myMAP.simY(res.d);
-
-        fig = figure();
+        if(mod(ind,3)==1)
+            fig = figure();
+        else
+            subplot(3,1,mod(ind,3)+1);
+        end
+        
         axes1 = axes('Parent',fig,'FontSize',16);
         box(axes1,'on');
         hold(axes1,'on');
@@ -212,7 +215,7 @@ save(sprintf('./experiments/humanFixedBase/data/computedBERDYresult_subj%d_trial
 
         plot1 = plot(data.time,y_pred(ind,:), 'lineWidth',1.0, 'LineStyle','--'); hold on;
         set(plot1,'color',[1 0 0]);
-        plot2 = plot(data.time,data.y(ind,:), 'lineWidth',1.0); hold on;
+        plot2 = plot(data.time,data.y(ind,:), 'lineWidth',2.0); hold on;
         set(plot2,'color',[0 0 1]);
 
         leg = legend('Map Pred', 'Actual data','Location','northeast');
