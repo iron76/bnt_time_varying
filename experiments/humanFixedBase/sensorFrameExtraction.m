@@ -1,5 +1,5 @@
 
-% loading data from Vicon
+% ======loading data from Vicon
 load('IMU_VICON_ShiftedData.mat');
 
 isTest = 'false';
@@ -44,16 +44,17 @@ for subjectID = subjectList
         P_G_3 = computeCentroidOfTriangle(P_G_lsho,P_G_rsho,P_G_tors);
         
         [R_0_G,P_G_0] = computeFootRotation(P_G_lhee,P_G_rhee,P_G_ltoe,P_G_rtoe); 
-       
+        
         R_G_0 = R_0_G';
         R_G_1 = R_G_0;     % because point P_G_1 is fixed on the foot in URDF
-  
+        
+
         
         %% Computing q1 and q2  angles 
        
         len = size(P_G_1,1);
         
-        % JOINT ANGLE q1
+        % ======JOINT ANGLE q1
         l1 = (P_G_2 - P_G_1);
         q1 = zeros (len, 1);
         
@@ -61,7 +62,7 @@ for subjectID = subjectList
             q1(i) =atan2(-l1(i,2),l1(i,3));
         end
        
-        % JOINT ANGLE q2
+        % ======JOINT ANGLE q2
         l2 = (P_G_3-P_G_2);
         q_temp = zeros (len, 1);
 
@@ -100,10 +101,11 @@ for subjectID = subjectList
               ddq2_sg(n) = dot(diffCoeff(:,3),q2(n - halfWindow:n + halfWindow));
         end
         
-        dq1_sg = dq1_sg ./ 1e-3;
-        dq2_sg = dq2_sg ./ 1e-3;
-        ddq1_sg = ddq1_sg ./ (1e-3)^2;
-        ddq2_sg = ddq2_sg ./ (1e-3)^2;
+        deltaT = 1e-3;
+        dq1_sg = dq1_sg ./deltaT;
+        dq2_sg = dq2_sg ./ deltaT;
+        ddq1_sg = ddq1_sg ./ (deltaT)^2;
+        ddq2_sg = ddq2_sg ./ (deltaT)^2;
         
        
         figure;
@@ -117,7 +119,7 @@ for subjectID = subjectList
         set(leg,'Interpreter','latex');
         set(leg,'FontSize',15);
         xlabel('Time [s]','FontSize',15);
-        ylabel('Joint Angle [deg]','FontSize',15);
+        ylabel('Angle [deg]','FontSize',15);
         axis tight;
         grid on;  
 
@@ -130,7 +132,7 @@ for subjectID = subjectList
         set(leg,'Interpreter','latex');
         set(leg,'FontSize',15);
         xlabel('Time [s]','FontSize',15);
-        ylabel('Joint Velocity [deg/s]','FontSize',15);
+        ylabel('Velocity [deg/s]','FontSize',15);
         axis tight;
         grid on;
         
@@ -143,14 +145,14 @@ for subjectID = subjectList
         set(leg,'Interpreter','latex');
         set(leg,'FontSize',15);
         xlabel('Time [s]','FontSize',15);
-        ylabel('Joint Acceleration [deg/s^2]','FontSize',15);
+        ylabel('Acceleration [deg/s^2]','FontSize',15);
         axis tight;
         grid on;
         
        
         %% IMU sensor
       
-        % Plotting raw data coming from IMU sensor in IMU frame
+        % =======Plotting raw data coming from IMU sensor in IMU frame
         
         figure;
         subplot(211);
@@ -172,20 +174,26 @@ for subjectID = subjectList
         set(legend,'FontSize',15);
         grid on;
         
- 
         
-        % Extracting rotation matrix R_2_imuini
+        % ======Extracting rotation matrix R_2_imuini
         
-        R_0_1ini = euler2dcm([0,mean(q1(1:10)),0]); 
-        R_1_2ini = euler2dcm([0,mean(q2(1:10)),0]); 
-        R_G_2ini = R_G_0 * R_0_1ini * R_1_2ini;
+       R_0_1ini = euler2dcm([0,mean(q1(1:10)),0]);
+       R_1_2ini = euler2dcm([0,mean(q2(1:10)),0]); 
+       R_G_2ini = R_G_0 * R_0_1ini * R_1_2ini;
         
-        [R_G_imuini,~] = computeInitialIMURotation(P_G_imuA,P_G_imuB,P_G_imuC);
-        R_2_imuini = R_G_2ini'* R_G_imuini;
+       [R_G_imuini,~] = computeInitialIMURotation(P_G_imuA,P_G_imuB,P_G_imuC);
+       R_2_imuini = R_G_2ini'* R_G_imuini;
+%   
+%         R_1ini_0 = euler2dcm([0,mean(q1(1:10)),0]); 
+%         R_2ini_1 = euler2dcm([0,mean(q2(1:10)),0]); 
+%         R_2ini_G =R_2ini_1 * R_1ini_0 * R_0_G
+%         
+%         [R_G_imuini,~] = computeInitialIMURotation(P_G_imuA,P_G_imuB,P_G_imuC);
+%         R_2_imuini = R_imuini_G' * R_2ini_G';
+  
+     
         
-   
-        
-        % Computing IMU data in link 2 frame
+        % ======Computing IMU data in link 2 frame
         
         a_2_imulin = zeros(size(q1,1),3);
         v_2_imurot = zeros(size(q1,1),3);
@@ -196,7 +204,7 @@ for subjectID = subjectList
           end
         
           
-        % Plotting data coming from IMU sensor in link 2 frame
+        % ======Plotting data coming from IMU sensor in link 2 frame
           
         figure;
         subplot(211);
@@ -221,20 +229,20 @@ for subjectID = subjectList
         
         %% Force plate sensing
         
-        %fixed rotation from Global and Force plate reference frames
+        %======fixed rotation from Global and Force plate reference frames
         R_G_fp = [-1 0  0;
                    0 1  0; 
                    0 0 -1];   
               
         R_0_fp = R_0_G * R_G_fp; 
         
-        % center of force plate in mm (below the force plate) in Global frame
+        % ======center of force plate in mm (below the force plate) in Global frame
         P_G_fp = [231.75,254,-43.3]; 
         
         r_G_from0toFp = P_G_0 - P_G_fp;
         r_0_from0toFp = R_0_G*r_G_from0toFp';
         
-        r_0_from0toFpm = P_0_from0toFp*1e-3; %converting to m
+        r_0_from0toFpm = r_0_from0toFp*1e-3; %converting to m
 
         f_0 = zeros(length(temp.t_vicon),6);
         XStar_0_fp = [R_0_fp' skew(r_0_from0toFpm)*R_0_fp'; zeros(3) R_0_fp'];
@@ -261,7 +269,7 @@ for subjectID = subjectList
         set(legend,'FontSize',20);
         grid on;
         
-        
+       
         figure;
         subplot(211);
         plot(temp.t_vicon, f_0(:,4:6)); axis tight;
