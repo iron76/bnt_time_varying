@@ -7,12 +7,8 @@
 % - iDynTree - mex
 % - Featherstone toolbox (v2) with ID corrected as in bnt_time_varying repository
 
-clear;clc;
-
-%% Load Drake model
-
-load('humanThreeLinkModelFromURDF_subject1.mat');
-
+clear;clc;  
+   
 %% Check model imported from Drake
 % 
 % leg_R_foot = humanThreeLink_dmodel.Xtree{1}(1:3,1:3);
@@ -58,12 +54,12 @@ dq2 = dq2(tminIndex:tmaxIndex,:); %window filter
 
 
 %GET JOINT ACCELERATIONS
-% ddq1 = processedSensorData.ddq1;
-% ddq1 = ddq1(tminIndex:tmaxIndex,:); %window filter
-% ddq2 = processedSensorData.ddq2;
-% ddq2 = ddq2(tminIndex:tmaxIndex,:); %window filter
-ddq1 = zeros (length(q1),1);
-ddq2 = zeros (length(q2),1);
+ddq1 = processedSensorData.ddq1;
+ddq1 = ddq1(tminIndex:tmaxIndex,:); %window filter
+ddq2 = processedSensorData.ddq2;
+ddq2 = ddq2(tminIndex:tmaxIndex,:); %window filter
+% ddq1 = zeros (length(q1),1);
+% ddq2 = zeros (length(q2),1);
 
 q  = [q1,q2];
 dq  = [dq1,dq2];
@@ -128,19 +124,36 @@ ddq  = [ddq1,ddq2];
 
 %% Computing tau using Newton-Euler with Featherstone toolbox
 
-tau = zeros(size (q));
-% a = cell (size(q));
-% fB_i = cell (size(q));
-% f_i = cell (size(q));
+tau = zeros(size(q));
+a = cell (size(q));
+fB = cell (size(q));
+f = cell (size(q));
+fx = zeros (6,1);
+d_temp = zeros(26*humanThreeLink_dmodel.NB, 1);
+d = zeros (26*humanThreeLink_dmodel.NB, length(q));
 
-for i = 1:size(q)
-      [tau_i, a_i, fB_i, f_i] = ID( humanThreeLink_dmodel, q(i,:), dq(i,:), ddq(i,:));
-      tau(i,:) = tau_i';
-%       a(i,:) = a_i';
-%       fB(i,:) = fB_i';
-%       f(i,:) = f_i';   
+
+fext    = cell(1,2);
+for i = 1 : humanThreeLink_dmodel.NB
+   fext{i}    = fx;
 end
 
+for i = 1:length(q)
+    
+     [tau_i, a_i, fB_i, f_i] = ID( humanThreeLink_dmodel, q(i,:), dq(i,:), ddq(i,:), fext);
+      tau(i,:) = tau_i';
+      a(i,:) = a_i';
+      fB(i,:) = fB_i';
+      f(i,:) = f_i';  
+      
+      for j = 1 : humanThreeLink_dmodel.NB
+            d_temp((1:26)+(j-1)*26) = [a_i{j}; fB_i{j}; f_i{j}; tau(i,j); fx; ddq(i,j)];
+      end
+      
+d(:,i) = d_temp;
+end
+
+       
 % fig = figure();
 % axes1 = axes('Parent',fig,'FontSize',16);
 % box(axes1,'on');
@@ -157,7 +170,6 @@ end
 % xlabel('Time [s]','FontSize',20);
 % ylabel('\tau_{RNEA,Feath.} [Nm]','FontSize',20);
 % axis tight; hold on;   
-
 
 %% Check with iDynTree lib
 % 
@@ -335,4 +347,4 @@ ylabel('Torque [Nm]','FontSize',18);
 axis tight;
 grid on;
 
-save('./experiments/humanFixedBase/resultsFromCheckRNEA.mat', 'tau');
+save('./experiments/humanFixedBase/data/resultsFromCheckRNEA.mat', 'tau','d', 'q', 'dq');
