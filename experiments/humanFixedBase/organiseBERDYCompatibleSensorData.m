@@ -30,7 +30,7 @@ data.ddq2 = processedSensorData(subjectID,trialID).ddq2(tminIndex:tmaxIndex);
 
 data.q = [data.q1 data.q2]';
 data.dq = [data.dq1 data.dq2]';
-data.d2q = [data.ddq1 data.ddq2]';
+data.ddq = [data.ddq1 data.ddq2]';
 
 %% data from force plate sensing
 %f_0 from sensor frame extraction is angular-linear. The MAP y requires
