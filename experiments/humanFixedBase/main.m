@@ -5,29 +5,50 @@ clc
 subjectID = 1;
 trialID = 1;
 
-%%
-%%
-   %%=====structure from files
-   data.path        = './experiments/humanFixedBase/data/processedSensorData.mat';
-   sensorFrameExtraction
-   [data] = organiseBERDYCompatibleSensorData( data, subjectID, trialID );
-   close all;
-    
-   data.parts    = {'leg'         ,'torso'};
-   data.labels   = {'fts'         ,'imu'  };
-   data.ndof     = {6             ,6      };
-   data.index    = {'1:6'         ,'1:6'  };
+% %%
+% %%
+%    %%=====structure from files
+%    data.path        = './experiments/humanFixedBase/data/processedSensorData.mat';
+%    sensorFrameExtraction
+%    [data] = organiseBERDYCompatibleSensorData( data, subjectID, trialID );
+%    close all;
+%
+%    data.parts    = {'leg'         ,'torso'};
+%    data.labels   = {'fts'         ,'imu'  };
+%    data.ndof     = {6             ,6      };
+%    data.index    = {'1:6'         ,'1:6'  };
+%
+%    %%=====structure of sensors for URDF
+%    sens.parts    = {'leg'         ,'torso'};             %force of the forceplate is ingoing into the leg
+%    sens.labels   = {'fts'         ,'imu'  };
+%    sens.ndof     = {6             ,6      };
+%
+%    label_to_plot = {'fts'         ,'imu'  };
+%
+% %% Build models
+%
+%    load(sprintf('./experiments/humanFixedBase/data/humanThreeLinkModelFromURDF_subject%d.mat',subjectID));
+  
+   data.path        = './experiments/humanFixedBase/intermediateDataFiles/processedSensorData.mat';
+   
+   % if(exist(data.path,'file'))
+   %     load(data.path);
+   % else    
+   %    computeLinkSensorFrames
+   %    organiseSensorData
+       [ data ] = organiseBERDYCompatibleSensorData( data, subjectID, trialID );
+   % end
+   close all
 
-   %%=====structure of sensors for URDF
-   sens.parts    = {'leg'         ,'torso'};             %force of the forceplate is ingoing into the leg
-   sens.labels   = {'fts'         ,'imu'  };  
-   sens.ndof     = {6             ,6      };
-   
-   label_to_plot = {'fts'         ,'imu'  };
-   
-%% Build models 
+
+   sens.parts       = {'leg','torso'}; %force seen by the forceplate is the body force transmitted by leg to foot
+   sens.labels      = {'fts','imu'};  
+   sens.ndof        = {6,6};
 
    load(sprintf('./experiments/humanFixedBase/data/humanThreeLinkModelFromURDF_subject%d.mat',subjectID));
+   
+        humanThreeLink_dmodel.linkname = {'leg' 'torso'}; 
+        humanThreeLink_dmodel.jointname = {'ankle' 'hip'}; 
    
    dmodel  = humanThreeLink_dmodel;                     %deterministic model
    ymodel  = humanThreeLinkSens(dmodel, sens);  
@@ -51,7 +72,6 @@ trialID = 1;
 %  Note: in test checkRNEA.m there is a comparison of ID with iDynTree.
 
 %% ======METHOD 1: Computing d using Newton-Euler with Featherstone ID
-
 tic;
 
 tau = zeros(size(data.q))';
@@ -122,7 +142,6 @@ disp('/\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ ')
 %   t_RNEA = toc;
 %   disp(['[1st] CPU time for tau computation with RNEA method is: ' num2str(t_RNEA) '[sec]']);
 
-
 %% =====d check
 
 % if (sum(d-d_RNEA) ~= 0);
@@ -132,6 +151,31 @@ disp('/\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ ')
 %    disp('Methods 1 and 2 are equivalent.')
 % end
 %%
+
+for l = 1 : length(label_to_plot)
+   for i = 1 : length(data.parts)
+      if strcmp(data.labels{i}, label_to_plot{l})
+         t    = ['time_' data.labels{i}];
+         ys   = ['ys_' data.labels{i}];
+         J = length(eval(data.index{i}));
+         
+%          if( strcmp(data.labels{i},'imu') )
+%             eval(['data.ys_' data.labels{i} '(4:6,:) = ' ...
+%                   'deg_to_rad*data.ys_' data.labels{i} '(4:6,:);']);
+%          end
+%          if( strcmp(data.labels{i},'imu') )
+%                 eval(['data.ys_' data.labels{i} '(4:6,:) = ' ...
+%                       'deg_to_rad*data.ys_' data.labels{i} '(4:6,:);']);
+%          end
+%          if( strcmp(data.labels{i}(end-2:end),'fts') )
+%              eval(['data.ys_' data.labels{i} ' = ' ...
+%                    'data.ys_' data.labels{i} ';']);
+%          end
+      end
+   end
+end
+
+
 %% Build data.y anda data.Sy 
  
 %=====data.y
@@ -192,8 +236,7 @@ data.y_rot(25:26,k) = data.y_cla(25:26,k);
 end
 
 
-%test claudia: ordering data.y_rot in the form [y_1, y_2, ... ,
-%y_obj.IDsens.m] -->WRITE BETTER
+%test claudia: ordering data.y_rot in the form [y_1, y_2, ... ,y_obj.IDsens.m] -->WRITE BETTER
 
 data.y_rotOrd = zeros(size(data.y_rot));
 
@@ -339,7 +382,9 @@ for i = 1 : dmodel.NB
       eval(['res.Sd2q_' joint '(:,:,j) = res.Sd(' ind ',' ind ',j);'])
    
    end
- end
+end
+
+save(sprintf('./experiments/humanFixedBase/data/computedBERDYresult_subj%d_trial%d.mat',subjectID,trialID));%,'res','data','myMAP');
 
 % save(sprintf('./experiments/humanFixedBase/data/savedBERDYresult_subj%d_trial%d.mat',subjectID,trialID));%,'res','data','myMAP');
 
@@ -353,11 +398,11 @@ box(axes1,'on');
 hold(axes1,'on');
 grid on;
 
+
 plot1 = plot(data.time,tau(1:len,1), 'lineWidth',2.5); hold on;
 set(plot1,'color',[1 0 0]);
 plot2 = plot(data.time,tau(1:len,2), 'lineWidth',2.5); hold on;
 set(plot2,'color',[0 0.498039215803146 0]);
-
 plot3 = plot(data.time,res.tau_ankle, 'lineWidth',1.5,'LineStyle','--'); hold on;
 set(plot3,'color',[1 0 0]);
 plot4 = plot(data.time,res.tau_hip, 'lineWidth',1.5,'LineStyle','--'); hold on;
@@ -415,6 +460,33 @@ grid on;
         %set(leg,'Interpreter','latex');
         set(leg,'FontSize',15);
         xlabel('Time [s]','FontSize',15);
+
+% %% Comparing MAP y-pred/
+% y_pred = myMAP.simY(res.d);
+%
+%  for  ind = 1:12
+%
+%         if(mod(ind,3)==1)
+%             fig = figure();
+%         else
+%             subplot(3,1,mod(ind,3)+1);
+%         end
+%
+%         axes1 = axes('Parent',fig,'FontSize',16);
+%         box(axes1,'on');
+%         hold(axes1,'on');
+%         grid on;
+%
+%         plot1 = plot(data.time,y_pred(ind,:), 'lineWidth',1.0, 'LineStyle','--'); hold on;
+%         set(plot1,'color',[1 0 0]);
+%         plot2 = plot(data.time,data.y(ind,:), 'lineWidth',2.0); hold on;
+%         set(plot2,'color',[0 0 1]);
+%
+%         leg = legend('Map Pred', 'Actual data','Location','northeast');
+%         %set(leg,'Interpreter','latex');
+%         set(leg,'FontSize',18);
+%         xlabel('Time [s]','FontSize',20);
+
         %ylabel('Torque[Nm]','FontSize',20);
         title(sprintf('Figure %d',ind));
         axis tight;
