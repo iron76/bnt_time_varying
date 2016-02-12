@@ -126,11 +126,12 @@ data.Sy = [data.Sy data.Sy(:,end)];
 %% Build Ymatrix manually
 % Ymatrix has to be consistent with measurements form [f1 a2 ftx1 ftx2 ddq1 ddq2]
 
-load sensorLinkTransforms.mat;
+%load sensorLinkTransforms.mat;
+load('./experiments/humanFixedBase/intermediateDataFiles/sensorLinkTransforms.mat');
 
 Ymatrix = zeros (ymodel.m,26*dmodel.NB); 
 
-Ymatrix(1:6,13:18) = sensorLinkTransforms.XStar_fp_0;
+Ymatrix(1:6,13:18) = sensorLinkTransforms.XStar_fp_0 * sensorLinkTransforms.XStar_0_1;
 Ymatrix(10:12,27:32) = sensorLinkTransforms.X_imu_2(4:6,:);
 Ymatrix(13:18,20:25) = eye(6);
 Ymatrix(19:24,46:51) = eye(6);

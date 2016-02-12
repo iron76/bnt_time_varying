@@ -115,19 +115,20 @@ for subjectID = subjectList
         samples = 10;
        
         [R_G_imu, P_G_imu] = computeInitialIMURotation(P_G_imuA,P_G_imuB,P_G_imuC);
-        r_imu_fromGtoimu = P_G_imu - P_G_G;
+        r_G_fromGtoimu = P_G_imu - P_G_G;
         
         X_imu_G =   [           R_G_imu'                       zeros(3) ; 
-                      -R_G_imu'*skew(r_imu_fromGtoimu)         R_G_imu' ];
+                      -R_G_imu'*skew(r_G_fromGtoimu)         R_G_imu' ];
         
                   
         % Computing 0_X_2     
         X_0_2 = AdjTransfFromLinkToRoot (humanThreeLink_dmodel, mean(q(1:samples,:)), 2);
-
         
         % Computing imu_X_2 
         X_imu_2 = X_imu_G * X_G_0 * X_0_2;
         
+        % Computing 0_XStar_1
+        XStar_0_1 = AdjTransStarfFromLinkToRoot(humanThreeLink_dmodel, mean(q(1:samples,:)), 1);
    
        %% notes: 
        % if we compute 0_X_1 and 1_X_2 as follows:
@@ -167,7 +168,7 @@ for subjectID = subjectList
         %% Organising into a structure          
         sensorLinkTransforms(subjectID,trialID).X_imu_2 = X_imu_2;
         sensorLinkTransforms(subjectID,trialID).XStar_fp_0 = XStar_fp_0;
-        sensorLinkTransforms(subjectID,trialID).X_imu_2 = X_imu_2; 
+        sensorLinkTransforms(subjectID,trialID).XStar_0_1 = XStar_0_1; 
     end
     fprintf('\n');
 end

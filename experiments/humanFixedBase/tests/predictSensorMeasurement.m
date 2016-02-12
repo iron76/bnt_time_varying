@@ -37,7 +37,7 @@ analyseRNEA = false; % Not yet tested with new refactor (pls retain to false)
 plotLinkFramePrediction = true; 
 
 %% Load Drake model
-load('humanThreeLinkModelFromURDF_subject1.mat');
+load('./experiments/humanFixedBase/data/humanThreeLinkModelFromURDF_subject1.mat');
 
 %% Load acquired data
 load('./experiments/humanFixedBase/intermediateDataFiles/processedSensorData.mat','processedSensorData');
@@ -95,15 +95,15 @@ ddq  = [ddq1,ddq2];
 
 %% Computing tau using Newton-Euler with Featherstone toolbox
 
-tau = zeros(size (q));
-f_1 = zeros(size(q,1),6);
-a_2 = zeros(size(q,1),6);
-v_2 = zeros(size(q,1),6);
+tau = zeros(size (q)); % joint torques
+f_1 = zeros(size(q,1),6); % force transmitted to link 0 expressed in link0 frame
+a_2 = zeros(size(q,1),6); % spatial acceleration link 2
+v_2 = zeros(size(q,1),6); % spatial velocity link 2
 
 fprintf('Iterating through time, computing dynamics using RNEA\n');
 %humanThreeLink_dmodel.jtype = {'Ry','Ry'};
 for i = 1:size(q)
-      [tau_i, a_i, v_i, fB_i, f_i] = ID( humanThreeLink_dmodel, q(i,:), dq(i,:), ddq(i,:));
+      [tau_i, a_i, v_i, fB_i, f_i] = IDv( humanThreeLink_dmodel, q(i,:), dq(i,:), ddq(i,:));
       tau(i,:) = tau_i';
        a_2(i,:) = a_i{2}';
        v_2(i,:) = v_i{2}';
@@ -159,30 +159,30 @@ end
 
 load('./experiments/humanFixedBase/intermediateDataFiles/sensorLinkTransforms.mat');
 X_imu_2 = sensorLinkTransforms.X_imu_2;
-XStar_fp_1ini = sensorLinkTransforms.XStar_fp_1ini;
-XStar_fp_1t = sensorLinkTransforms.XStar_fp_1t;
+XStar_fp_0 = sensorLinkTransforms.XStar_fp_0;
+XStar_0_1 = sensorLinkTransforms.XStar_0_1;
 nT = size(a_2,1);
-
-X_2_imu = sensorLinkTransforms.X_2_imu;
-XStar_1_fpini = sensorLinkTransforms.XStar_1_fpini;
-XStar_1_fpt = sensorLinkTransforms.XStar_1_fpt;
 
 S_lin = [zeros(3) eye(3)];
 S_ang = [eye(3) zeros(3)];
 
 %% Computed IMU Prediction
-a_imu = S_lin*(X_imu_2*a_2') + skew(S_ang*X_imu_2*v_2')*(S_lin*X_imu_2*v_2');
+a_imu_s = S_lin*(X_imu_2*a_2') + skew(S_ang*X_imu_2*v_2')*(S_lin*X_imu_2*v_2');
+a_imu = S_lin*(X_imu_2*a_2') + cross((S_ang*X_imu_2*v_2'),(S_lin*X_imu_2*v_2'));
+
 omega_imu = S_ang*(X_imu_2*v_2');
 
 %% Computed Forceplate Prediction
-%f_fp = (XStar_0_fp *fB_1')';
-f_fp = (XStar_fp_1ini *f_1')';
 
-%% Computing inverse predictions (in link frames)
-a2_pred = X_2_imu * (pinv(S_lin)*a_measured);
-v2_pred = X_2_imu * (pinv(S_ang)*omega_measured);
-f1_pred = (XStar_1_fpini * f_measured)';
 
+a_grav = [0;0;0;0;0; -9.8100]; %Featherstone-like notation
+
+I_c = [0.003 0 0; 0 0.009 0; 0 0 0.012]; %values from URDF file for subject_1
+I_0 = createSpatialInertia(I_c,2.057,[0;0;0.026]);
+
+f_0_1 = ( XStar_0_1* f_1')';
+fg0_0 = repmat( (I_0*a_grav)',length(f_0_1),1);
+f_fp = (XStar_fp_0 * (f_0_1-fg0_0)')'; %-I0 g ;
 
 if(plotLinkQuantities)
     figure();
@@ -342,178 +342,5 @@ axis tight;
 grid on;
 
 
-%% Plotting the predicted quantities in a time varying case (Because XStar_1_fp is not exactly a constant)
-if(plotTimeVaryingQuantities)
-    
-    for i = 1:length(data.time)
-        f_fpt(i,:) = (XStar_fp_1t{i} *f_1(i,:)')';
-    end
-    figure();
-    subplot(221);
-    plot(data.time,f_fpt(:,4),'r',data.time,f_fpt(:,5),'b',data.time,f_fpt(:,6),'g', 'lineWidth',2.0);
-    set(leg,'Interpreter','latex');
-    set(leg,'FontSize',18);
-    xlabel('Time [s]','FontSize',18);
-    ylabel('Force Precition(N)','FontSize',18);
-    title('Forceplate Force(timeVarying)','FontSize',15);
-            legend('$F_x$','$F_y$','$F_z$','Location','northeast');
-            set(legend,'Interpreter','latex');
-            set(legend,'FontSize',20);
-    hold on; 
-    axis tight;
-    grid on;
-
-    subplot(223)
-    plot(data.time,f_measured(4,:)','r',data.time,f_measured(5,:)','b',data.time,f_measured(6,:),'g','lineWidth',2.0);
-    set(leg,'Interpreter','latex');
-    set(leg,'FontSize',18);
-    xlabel('Time [s]','FontSize',18);
-    ylabel('Force Actual(N)','FontSize',18);
-            legend('$F_x$','$F_y$','$F_z$','Location','northeast');
-            set(legend,'Interpreter','latex');
-            set(legend,'FontSize',20);
-    axis tight;
-    grid on;
-
-
-    %figure()
-    subplot(222);
-    plot(data.time,f_fpt(:,1),'r',data.time,f_fpt(:,2),'b',data.time,f_fpt(:,3),'g', 'lineWidth',2.0);
-    set(leg,'Interpreter','latex');
-    set(leg,'FontSize',18);
-    xlabel('Time [s]','FontSize',18);
-    ylabel('Momment Prediction(Nm)','FontSize',18);
-    legend('$M_x$','$M_y$','$M_z$','Location','northeast');
-            set(legend,'Interpreter','latex');
-            set(legend,'FontSize',20);
-    title('Forceplate Moment(timeVarying)','FontSize',15);
-    hold on;
-    axis tight;
-    grid on;
-
-    subplot(224)
-    plot(data.time,f_measured(1,:)','r',data.time,f_measured(2,:)','b',data.time,f_measured(3,:),'g','lineWidth',2.0);
-    set(leg,'Interpreter','latex');
-    set(leg,'FontSize',18);
-    xlabel('Time [s]','FontSize',18);
-    ylabel('Momment Actual(Nm)','FontSize',18);
-    legend('$M_x$','$M_y$','$M_z$','Location','northeast');
-            set(legend,'Interpreter','latex');
-            set(legend,'FontSize',20);
-    axis tight;
-    grid on;
-    
-end
-
-%% Plotting the comparisons between link frame predictions and link frame quantities
-if(plotLinkFramePrediction)
-    figure();
-    subplot(221)
-    plot(data.time,a2_pred(4,:),'r',data.time,a2_pred(5,:),'b',data.time,a2_pred(6,:),'g', 'lineWidth',2.0);
-    set(leg,'Interpreter','latex');
-    set(leg,'FontSize',18);
-    xlabel('Time [s]','FontSize',18);
-    ylabel('LinAcceleration Prediction(m/sec^2)','FontSize',18);
-    title('Link Frame LinAcceleration');
-    legend('$a_x$','$a_y$','$a_z$','Location','northeast');
-            set(legend,'Interpreter','latex');
-            set(legend,'FontSize',20);
-    axis tight;
-    grid on; 
-    %hold on;
-    subplot(223)
-    plot(data.time,a_2(:,4),'r',data.time,a_2(:,5),'b',data.time,a_2(:,6),'g','lineWidth',2.0);
-    set(leg,'Interpreter','latex');
-    set(leg,'FontSize',18);
-    xlabel('Time [s]','FontSize',18);
-    ylabel('LinAcceleration Actual(m/sec^2)','FontSize',18);
-    legend('$a_x$','$a_y$','$a_z$','Location','northeast');
-            set(legend,'Interpreter','latex');
-            set(legend,'FontSize',20);
-    axis tight;
-    grid on; 
-
-    %omega
-    %figure();
-    subplot(222)
-    plot(data.time,v2_pred(1,:),'r',data.time,v2_pred(2,:),'b',data.time,v2_pred(3,:),'g', 'lineWidth',2.0);
-    set(leg,'Interpreter','latex');
-    set(leg,'FontSize',18);
-    xlabel('Time [s]','FontSize',18);
-    ylabel('AngVelocity prediction (rad/sec)','FontSize',18);
-    title('Link Frame AngVelocity');
-    legend('$\omega_x$','$\omega_y$','$\omega_z$','Location','northeast');
-            set(legend,'Interpreter','latex');
-            set(legend,'FontSize',20);
-    axis tight;
-    grid on; 
-    %hold on;
-    subplot(224)
-    plot(data.time,v_2(:,1),'r',data.time,v_2(:,2),'b',data.time,v_2(:,3),'g','lineWidth',2.0);
-    set(leg,'Interpreter','latex');
-    set(leg,'FontSize',18);
-    xlabel('Time [s]','FontSize',18);
-    ylabel('AngVelocity Actual (rad/sec)','FontSize',18);
-    legend('$\omega_x$','$\omega_y$','$\omega_z$','Location','northeast');
-            set(legend,'Interpreter','latex');
-            set(legend,'FontSize',20);
-    axis tight;
-    grid on; 
-
-    figure();
-    subplot(221);
-    plot(data.time,f1_pred(:,4),'r',data.time,f1_pred(:,5),'b',data.time,f1_pred(:,6),'g', 'lineWidth',2.0);
-    set(leg,'Interpreter','latex');
-    set(leg,'FontSize',18);
-    xlabel('Time [s]','FontSize',18);
-    ylabel('Force Prediction(N)','FontSize',18);
-    title('Force transmitted to base','FontSize',15);
-            legend('$F_x$','$F_y$','$F_z$','Location','northeast');
-            set(legend,'Interpreter','latex');
-            set(legend,'FontSize',20);
-    hold on; 
-    axis tight;
-    grid on;
-
-    subplot(223)
-    plot(data.time,f_1(:,4),'r',data.time,f_1(:,5),'b',data.time,f_1(:,6),'g','lineWidth',2.0);
-    set(leg,'Interpreter','latex');
-    set(leg,'FontSize',18);
-    xlabel('Time [s]','FontSize',18);
-    ylabel('Force Actual (N)','FontSize',18);
-            legend('$F_x$','$F_y$','$F_z$','Location','northeast');
-            set(legend,'Interpreter','latex');
-            set(legend,'FontSize',20);
-    axis tight;
-    grid on;
-
-
-   % figure()
-    subplot(222);
-    plot(data.time,f1_pred(:,1),'r',data.time,f1_pred(:,2),'b',data.time,f1_pred(:,3),'g', 'lineWidth',2.0);
-    set(leg,'Interpreter','latex');
-    set(leg,'FontSize',18);
-    xlabel('Time [s]','FontSize',18);
-    ylabel('Momment Prediction(Nm)','FontSize',18);
-    legend('$M_x$','$M_y$','$M_z$','Location','northeast');
-            set(legend,'Interpreter','latex');
-            set(legend,'FontSize',20);
-    title('Moment  transmitted to base','FontSize',15);
-    hold on;
-    axis tight;
-    grid on;
-
-    subplot(224)
-    plot(data.time,f_1(:,1)','r',data.time,f_1(:,2)','b',data.time,f_1(:,3),'g','lineWidth',2.0);
-    set(leg,'Interpreter','latex');
-    set(leg,'FontSize',18);
-    xlabel('Time [s]','FontSize',18);
-    ylabel('Momment Actual(Nm)','FontSize',18);
-    legend('$M_x$','$M_y$','$M_z$','Location','northeast');
-            set(legend,'Interpreter','latex');
-            set(legend,'FontSize',20);
-    axis tight;
-    grid on;
-end
 
 
