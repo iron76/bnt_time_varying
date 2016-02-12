@@ -110,7 +110,7 @@ for subjectID = subjectList
         ddq1_sg = ddq1_sg ./ (1e-3)^2;
         ddq2_sg = ddq2_sg ./ (1e-3)^2;
         
-        %% plot q1,q2, q1Dot and q2Dot
+        %% plot q, dq, ddq
         figure;
         subplot(311);
         plot1 = plot(currentTrial.t_vicon(:,1:pSelec),q1.*(180/pi),'lineWidth',1.0); hold on;
@@ -189,6 +189,8 @@ for subjectID = subjectList
           
         
         %% Extracting forceplate wrench (f_fp)
+        
+        % Plotting raw data coming from force plate sensor in sensor frame
         f_fp = currentTrial.f_fp(1:pSelec,:);
         f_fp(:,1:3) = currentTrial.f_fp(:,1:3)*1e-3; % converting moments from Nmm to Nm
         

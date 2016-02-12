@@ -1,7 +1,5 @@
 
 function [ model ] = humanThreeLinkSensStochastic( model )
-%HUMANFIVELINKSENSSTOCHASTIC Summary of this function goes here
-%   Detailed explanation goes here
 %AUTOSENSSTOCHASTIC Add stochastic component to a sensor distribution
 %   This function takes a structure containing sensor distribution (similar
 %   to the one created by autoSensSNEA) and adds to the structure some
@@ -24,17 +22,18 @@ my = 1;
 % su       = 10e+4 * 0.031; % FT - momment
 % sd       = 10e+4 * 50*0.2; % joint acceleration
 
-multConst = 10;
-so       = multConst * 0.7805; %IMU accelerometer
-sa       = multConst * 0.05; %IMU gyroscope
-sf       = multConst * 1.1; % FT moment
-su       = multConst * 1.1;  %0.031; % FT force
-sd       = multConst * 10; % joint acceleration
+multConst = 1;
+so       = multConst * 0.9;           %IMU gyroscope
+sa       = multConst * 0.9;        %IMU accelerometer
+sf       = multConst * 1.6;           % FT moment
+su       = multConst * 1.6;           % FT force
+sd       = multConst * 1;           % joint acceleration
 
 imuS = [sa*eye(3) zeros(3,3); zeros(3,3) so*eye(3)];
 ftsS = [sf*eye(3) zeros(3,3); zeros(3,3) su*eye(3)];
 accS = imuS(1:3, 1:3);
-ftxS = ftsS.*1e-4;
+%ftxS = ftsS.*1e-4;
+ftxS = ftsS;
 d2qS = sd;
 
 for i = 1 : model.ny

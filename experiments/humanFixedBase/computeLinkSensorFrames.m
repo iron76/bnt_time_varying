@@ -1,46 +1,39 @@
-% computeLinkSensorFrames
+%%COMPUTELINKSENSORFRAMES
 % Script to compute the link-sensor frames associated with the
 % Human-Dynamics estimation experiment. The 2 sensors are an IMU
-% placed on the chest and force place on the bottom of my foot. 
-% The transforms being calculated are 2_X_imu, and 0_X_fp and
-% their corresponding inverses.
+% placed on the chest and force place on the bottom of the foot. 
+% The transforms being calculated are imu_X_2, and fp_XStar_2.
 %
-% %% Note on the transforms : 
+%
+%% Note on the transforms : 
 % The Featherstone convention is utilised [Featherstone(2008), 
 % Rigid Body Dynamics Algorithms (2008), pg22]
-% This implies that its a transform for a spatial vector organised in 
+% This implies that it is a transform for a spatial vector organised in 
 % the angular-linear format.
 %
-% The motion vector transform below follows the formula given below
-% X_B_A = [R_B_A  0; (-R_B_A)(px) R_B_A]
 %
-% where if A is located at O and B at P and p is the
-% position vector OP in A coordinates, and R_B_A is the 
-% rotation matrix transforming from A to B coordinates    
-% Corresponding invere is given by,
-% X_A_B = [R_B_A' 0; (px)(R_B_A') R_B_A']
-%
-% The force vector transform below follows the formula given below
-% XStar_B_A = [R_B_A  (-R_B_A)(px); 0  R_B_A]  
-%
-% where if A is located at O and B at P and p is the
-% position vector OP in A coordinates, and R_B_A is the 
-% rotation matrix transforming from A to B coordinates    
-% Corresponding inverse is given by,
-% XStar_A_B = [R_B_A' (px)(R_B_A'); 0 R_B_A']
-%
-% Author: Naveen Kuppuswamy (naveen.kuppuswamy@iit.it)
-% iCub Facility, Istituto Italiano di Tecnologia, 21 January 2016
+%% Assumption of model URDF: 
+% 1) P0, point in link0, origin of frame associated to the link0;
+% 2) P1, point between link0 and link1, origin of frame associated to the link1.
+% The orientation of P1 is the same of link1.
+% 3) P2, point between link1 and link2, origin of frame associated to the link2.
+% The orientation of P2 is the same of link2.
+% 4) P3, point at the top of link2, since link3 doesn't exist.
+
 
 %% load the synchronised dataset (including VICON and IMU data)
 load('./experiments/humanFixedBase/intermediateDataFiles/synchronisedSensorData.mat');
-isTest = 'false';
+isTest = 'false'; 
+
+load(sprintf('./experiments/humanFixedBase/data/humanThreeLinkModelFromURDF_subject%d.mat',1));
+dmodel  = humanThreeLink_dmodel; 
 
 %% selected subjects and trials
 subjectList = 1;
 trialList = 1 ; 
 
 %% iterate through each computing transforms each time
+
 for subjectID = subjectList
     fprintf('\n---------\nSubject : %d\nTrial : ',subjectID);
     for trialID = trialList
@@ -51,6 +44,7 @@ for subjectID = subjectList
         pSelec = size(currentTrial.P_G_lhee,1);
         
         %% Extracting VICON marker trajectories
+        
         P_G_lhee = currentTrial.P_G_lhee(1:pSelec,:);
         P_G_ltoe = currentTrial.P_G_ltoe(1:pSelec,:);
         P_G_rhee = currentTrial.P_G_rhee(1:pSelec,:);
@@ -74,15 +68,12 @@ for subjectID = subjectList
         P_G_2 = computeCentroidOfPoints(P_G_lhip,P_G_rhip);
         P_G_3 = computeCentroidOfTriangle(P_G_lsho,P_G_rsho,P_G_tors);
         
-        %% 0 frame
-        [R_G_0,P_G_0] = computeFootRotation(P_G_lhee,P_G_rhee,P_G_ltoe,P_G_rtoe); 
-       
-        R_0_G = R_G_0';
-        R_G_1 = R_G_0;     % because point P_G_1 is fixed on the foot in URDF
-        R_1_G = R_G_1';
+        [R_0_G,P_G_0] = computeFootRotation(P_G_lhee,P_G_rhee,P_G_ltoe,P_G_rtoe); 
         
-        %% computing joint angles q1 and q2
-        %% Computing q1 and q2  angles 
+        P_G_G = [0,0,0];
+        
+            
+        %% Computing joint angles 
        
         % JOINT ANGLE q1
         len = size(P_G_1,1);
@@ -101,75 +92,82 @@ for subjectID = subjectList
             q_temp(i) = atan2(-l2(i,2),l2(i,3));
         end
         q2 = q_temp-q1;
+        
+        clear q_temp;
+        q = [q1 q2];
 
-        %% Computing rotation matrix R_2_imuini
         
-        R_0_1ini = euler2dcm([0,mean(q1(1:10)),0]); 
-        R_1_2ini = euler2dcm([0,mean(q2(1:10)),0]); 
-        R_G_2ini = R_G_0 * R_0_1ini * R_1_2ini;
-        
-        [R_G_imuini,P_G_Gimuini] = computeInitialIMURotation(P_G_imuA,P_G_imuB,P_G_imuC);
-        R_2_imuini = R_G_2ini'* R_G_imuini;
-        
-        P_G_2imuini = P_G_Gimuini - mean(P_G_2(1:10,:));
-        P_2_2imuini = R_G_2ini'*P_G_2imuini';
-        
-        
-        
-        R_imuini_2 = R_2_imuini';      
-
-        X_imu_2 = [R_imuini_2,                             zeros(3); ...
-                   -R_imuini_2*skew(P_2_2imuini.*1e-3),   R_imuini_2];   
-        X_2_imu = [R_2_imuini,                          zeros(3); ...
-                  skew(P_2_2imuini.*1e-3)*R_2_imuini, R_2_imuini];
-        
+        %% Computing adjoint transform 2_X_imu
+        % we need 2_X_imu for Y matrix . 
+        % We want to compute imu_X_2 = imu_X_G * G_X_0 * 0_X_2
        
-        %% Xstar_0_fp
-        %fixed rotation from Global and Force plate reference frames
-        R_G_fp = [-1 0  0; 0 1  0; 0 0 -1]; 
+        
+        % Computing G_X_0 (const)
+        r_G_from0toG = P_G_G - P_G_0 ;
+        
+        X_G_0 =   [           R_0_G'                  zeros(3) ; 
+                   -R_0_G'*skew(r_G_from0toG)          R_0_G'  ];
+        
                
-        R_0_fp = R_0_G * R_G_fp;
-        R_fp_0 = R_0_fp';
+        % Computing imu_X_G (variant during motion). Since imu_X_G is used
+        % to compute 2_X_imu that is const --> we are going to consider
+        % only the mean of 10 samples for this computation.
+        samples = 10;
+       
+        [R_G_imu, P_G_imu] = computeInitialIMURotation(P_G_imuA,P_G_imuB,P_G_imuC);
+        r_imu_fromGtoimu = P_G_imu - P_G_G;
         
-        % center of force plate in mm (below the force plate) in Global frame
-        P_G_fp = [231.75,254,-43.3]; 
+        X_imu_G =   [           R_G_imu'                       zeros(3) ; 
+                      -R_G_imu'*skew(r_imu_fromGtoimu)         R_G_imu' ];
         
-        R_1_0 = R_0_1ini';
-        R_1_fp = R_1_0 * R_0_fp;
-        r_G_from1toFpm = P_G_fp - mean(P_G_1(1:10,:)) ;
-        R_1_G = R_G_1';
-        r_1_from1toFpm = R_1_G* r_G_from1toFpm';
-        XStar_1_fpini = [R_1_fp    skew(r_1_from1toFpm*1e-3)*R_1_fp;...
-                     zeros(3)   R_1_fp];
-        R_fp_1 = R_1_fp';
-        XStar_fp_1ini = [R_fp_1    -R_fp_1*skew(r_1_from1toFpm*1e-3);...
-                      zeros(3)  R_fp_1];
-
-        %% time varying version of  Xstar_0_fp
-        R_0_1t = cell(size(q1));
-        R_1_0t = cell(size(q1));
-        R_1_fpt = cell(size(q1));
-        XStar_1_fpt = cell(size(q1));
-        XStar_fp_1t = cell(size(q1));
-        for i = 1: length(q1)
-            R_0_1t{i} = euler2dcm([0,q1(i),0]); 
-            R_1_0t{i} = R_0_1t{i}';
-            R_1_fpt{i}= R_1_0t{i} * R_0_fp;
-            
-            XStar_1_fpt{i} = [R_1_fpt{i}    skew(r_1_from1toFpm*1e-3)*R_1_fpt{i};...
-                            zeros(3)   R_1_fpt{i}];
-            R_fp_1t = R_1_fpt{i}';
-            XStar_fp_1t{i} = [R_fp_1t    -R_fp_1t*skew(r_1_from1toFpm*1e-3);...
-                             zeros(3)  R_fp_1t];
-        end
                   
-                  %% Organising into a structure          
-        sensorLinkTransforms(subjectID,trialID).X_2_imu = X_2_imu;
+        % Computing 0_X_2     
+        X_0_2 = AdjTransfFromLinkToRoot (humanThreeLink_dmodel, mean(q(1:samples,:)), 2);
+
+        
+        % Computing imu_X_2 
+        X_imu_2 = X_imu_G * X_G_0 * X_0_2;
+        
+   
+       %% notes: 
+       % if we compute 0_X_1 and 1_X_2 as follows:
+       %            
+       % X_0_1 = AdjTransfFromLinkToRoot (humanThreeLink_dmodel, mean(q(1:samples,:)), 1);                   
+       % X_1_2   = inv(X_0_1) * X_0_2;
+       %
+       % we denote that 0_R_1 in 0_X_1 is not similar to an identity matrix
+       % implying that a rotation has occurred (clearly the same condition is in 0_R_2).
+       % Instead looking 1_R_2 in 1_X_2 is very similar to an identity matrix since there is not a
+       % frame rotation.  
+       % This is a consequence of Drake parsing.
+       
+       
+        %% Computing adjoint transform fp_Xstar_0
+        % we need fp_Xstar_0 for Y matrix
+        
+        %fixed rotation from Global and Force plate reference frames
+        R_fp_G = [-1 0  0;
+                   0 1  0;
+                   0 0 -1];
+               
+        R_fp_0 = R_fp_G * R_0_G';
+       
+        %center of force plate in m (below the force plate) in Global frame
+        P_G_fp =  [0.23175,0.25400,-0.04330]; 
+        
+        %fixed distance between origin of force plate frame and frame
+        %associated to link0
+        r_G_from0tofp= P_G_fp - P_G_0;
+        
+        
+        XStar_fp_0 = [ R_fp_0    -R_fp_0*skew(r_G_from0tofp);
+                      zeros(3)                R_fp_0        ];
+        
+                  
+        %% Organising into a structure          
         sensorLinkTransforms(subjectID,trialID).X_imu_2 = X_imu_2;
-        sensorLinkTransforms(subjectID,trialID).XStar_1_fpini = XStar_1_fpini;
-        sensorLinkTransforms(subjectID,trialID).XStar_fp_1ini = XStar_fp_1ini;
-        sensorLinkTransforms(subjectID,trialID).XStar_1_fpt = XStar_1_fpt;
-        sensorLinkTransforms(subjectID,trialID).XStar_fp_1t = XStar_fp_1t;
+        sensorLinkTransforms(subjectID,trialID).XStar_fp_0 = XStar_fp_0;
+        sensorLinkTransforms(subjectID,trialID).X_imu_2 = X_imu_2; 
     end
     fprintf('\n');
 end

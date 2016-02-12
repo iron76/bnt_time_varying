@@ -39,24 +39,40 @@ data.q = [data.q1 data.q2]';
 data.dq = [data.dq1 data.dq2]';
 data.ddq = [data.ddq1 data.ddq2]';
 
-%% data from IMU sensor
-%Extracting the transforms
-a_imu = processedSensorData(subjectID,trialID).a_imu;
-fp = processedSensorData(subjectID,trialID).f_fp;
 
-numTSteps = size(a_imu(:, (tminIndex:tmaxIndex)),2);
-X_2_imu = sensorLinkTransforms.X_2_imu;
-y_2_imu = X_2_imu * [zeros(3,numTSteps);processedSensorData(subjectID,trialID).a_imu(:, (tminIndex:tmaxIndex))];
-y_1_fp = sensorLinkTransforms.XStar_1_fpini * fp(:, (tminIndex:tmaxIndex));
+%% data expressed in link frame --> data.y_linkFrame
+
+%IMU
+aLin_imu  = processedSensorData(subjectID,trialID).a_imu;               %linear part of a, in imu frame
+numTSteps = size(aLin_imu(:, (tminIndex:tmaxIndex)),2);
+
+a_imu_imu   = [zeros(3,numTSteps);aLin_imu(:, (tminIndex:tmaxIndex))];  %twist in imu frame, ang-lin notation
+y_2_imu     = (sensorLinkTransforms.X_imu_2)' * a_imu_imu;              %twist in frame associate to link2
+data.ys_linkFrame_imu = y_2_imu;
+
+%Force plate
+w_fp_fp = processedSensorData(subjectID,trialID).f_fp;                  %wrench in forceplate frame
+y_fp_fp = w_fp_fp(:, (tminIndex:tmaxIndex));
+y_0_fp  = (sensorLinkTransforms.XStar_fp_0)'* y_fp_fp;                  %wrench in frame associate to link2
+data.ys_linkFrame_fts = y_0_fp;
 
 
-% Putting the IMU Data, accelerometer only, gyroscope consists of 0.
-%data.y_imu = y_2_imu;
-data.ys_imu = y_2_imu;
-%data.y_ft = y_1_fp;
-data.ys_fts = y_1_fp;
-%data.ys_fts = data.y_fts;
 save('./experiments/humanFixedBase/intermediateDataFiles/berdyFormattedSensorData.mat','data');
 
+%% data expressed in sensor frame --> data.y_sensFrame --> for Ymatrix created manually
 
+%IMU
+aLin_imu  = processedSensorData(subjectID,trialID).a_imu;               %linear part of a, in imu frame
+numTSteps = size(aLin_imu(:, (tminIndex:tmaxIndex)),2);
+
+a_imu_imu   = [zeros(3,numTSteps);aLin_imu(:, (tminIndex:tmaxIndex))];  %twist in imu frame, ang-lin notation
+data.ys_sensFrame_imu = a_imu_imu;
+
+%Force plate
+w_fp_fp = processedSensorData(subjectID,trialID).f_fp;                  %wrench in forceplate frame
+y_fp_fp = w_fp_fp(:, (tminIndex:tmaxIndex));
+data.ys_sensFrame_fts = y_fp_fp;
+
+
+save('./experiments/humanFixedBase/intermediateDataFiles/berdyFormattedSensorData.mat','data');
 end

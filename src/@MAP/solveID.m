@@ -34,7 +34,7 @@ function obj = solveID(obj)
 NB = obj.IDmodel.modelParams.NB;
 D = sparse(obj.iDs, obj.jDs, obj.Ds, 19*NB, 26*NB);
 %D = full(D);
-b = sparse(obj.ibs, ones(size(obj.ibs)), obj.bs, 19*NB, 1);
+b_D = sparse(obj.ibs, ones(size(obj.ibs)), obj.bs, 19*NB, 1);
 
 % Dx = D(1:19*NB, 1:19*NB);
 % Dy = D(1:19*NB, 19*NB+1:26*NB);
@@ -53,14 +53,15 @@ else
 end
 
 Y = obj.IDsens.sensorsParams.Y;
+b_Y = obj.IDsens.sensorsParams.b_Y;
 
 y      = obj.IDmeas.y;
 
 S_Dinv = Sv_inv;                                %constraint equation covariance
 S_dinv = blkdiag(zeros(size(Sv_inv)), Sw_inv);  %prior covariance
 S_Yinv = Sy_inv;                                %measurements equation covariance
-b_Y     = zeros(size(y));
-b_D     = b;
+%b_Y     = zeros(size(y));
+%b_D     = b;
 mu_D    = zeros(length(S_dinv), 1);
 mu_d    = zeros(length(S_dinv), 1);
 
@@ -71,14 +72,26 @@ mu_d    = zeros(length(S_dinv), 1);
 % Jinv(J)= 1:length(J);
 % with these definitions [Y(:,J); D(I, J)] is lowertriangular
 
-mu_D   = (inv(D'*S_Dinv*D + S_dinv))*(S_dinv*mu_d - D'*S_Dinv*b_D);
+%% mean and covariance matrix of p(d) ~ N(muBar_D, SBar_D)
 
-Sd   = inv((D'*S_Dinv*D + S_dinv) + Y'*S_Yinv*Y);
-d      = Sd*(Y'*S_Yinv*(y-b_Y) +(D'*S_Dinv*D + S_dinv) * mu_D);
+SBar_D  = inv(D'*S_Dinv*D + S_dinv);
+muBar_D = SBar_D*((S_dinv*mu_d) - D'*S_Dinv*b_D);
+
+%% mean and covariance matrix of p(d|y) ~ N(mu_d|y, S_d|y)
+% Note : mu_d|y --> d (as we are considering MAP estimator);
+%        S_d|y  --> Sd
+
+Sd = inv(inv(SBar_D) + Y'*S_Yinv*Y);
+d  = Sd * (Y'*S_Yinv*(y-b_Y) + (inv(SBar_D) * muBar_D));
+
+
+%%
 obj.d  = d(obj.id,1);
 obj.Sd = Sd(obj.id,obj.id);
 
-%======= Nori version
+
+%% ======= Nori version
+
 % if nargin == 1
 %    d      = (D'*S_Dinv*D + S_dinv + Y'*S_Yinv*Y)\(Y'*S_Yinv*(y-b_Y) - D'*S_Dinv*b_D + S_dinv * mu_D);
 %    obj.d  = d(obj.id,1);

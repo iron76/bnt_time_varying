@@ -97,22 +97,23 @@ for subjectID=1:length(subjectIDList)
         
         synchronisedData(subjectID,trialID).t_vicon = t_vicon;
         
-        synchronisedData(subjectID,trialID).P_G_ltoe = interp1( t_raw_vicon_p,subjectData(subjectID,trialID).markers.ltoe,t_vicon);
-        synchronisedData(subjectID,trialID).P_G_lhee = interp1( t_raw_vicon_p,subjectData(subjectID,trialID).markers.lhee,t_vicon);
-        synchronisedData(subjectID,trialID).P_G_lankle = interp1( t_raw_vicon_p,subjectData(subjectID,trialID).markers.lankle,t_vicon);
-        synchronisedData(subjectID,trialID).P_G_lhip = interp1( t_raw_vicon_p,subjectData(subjectID,trialID).markers.lhip,t_vicon);
-        synchronisedData(subjectID,trialID).P_G_lsho = interp1( t_raw_vicon_p,subjectData(subjectID,trialID).markers.lsho,t_vicon); 
+        %original data in mm --> converted in m
+        synchronisedData(subjectID,trialID).P_G_ltoe =1e-3* interp1( t_raw_vicon_p,subjectData(subjectID,trialID).markers.ltoe,t_vicon);
+        synchronisedData(subjectID,trialID).P_G_lhee = 1e-3*interp1( t_raw_vicon_p,subjectData(subjectID,trialID).markers.lhee,t_vicon);
+        synchronisedData(subjectID,trialID).P_G_lankle =1e-3* interp1( t_raw_vicon_p,subjectData(subjectID,trialID).markers.lankle,t_vicon);
+        synchronisedData(subjectID,trialID).P_G_lhip = 1e-3*interp1( t_raw_vicon_p,subjectData(subjectID,trialID).markers.lhip,t_vicon);
+        synchronisedData(subjectID,trialID).P_G_lsho =1e-3* interp1( t_raw_vicon_p,subjectData(subjectID,trialID).markers.lsho,t_vicon); 
         
-        synchronisedData(subjectID,trialID).P_G_rtoe = interp1( t_raw_vicon_p,subjectData(subjectID,trialID).markers.rtoe,t_vicon);
-        synchronisedData(subjectID,trialID).P_G_rhee = interp1( t_raw_vicon_p,subjectData(subjectID,trialID).markers.rhee,t_vicon);
-        synchronisedData(subjectID,trialID).P_G_rankle = interp1( t_raw_vicon_p,subjectData(subjectID,trialID).markers.rankle,t_vicon);
-        synchronisedData(subjectID,trialID).P_G_rhip = interp1( t_raw_vicon_p,subjectData(subjectID,trialID).markers.rhip,t_vicon);
-        synchronisedData(subjectID,trialID).P_G_rsho = interp1( t_raw_vicon_p,subjectData(subjectID,trialID).markers.rsho,t_vicon); 
+        synchronisedData(subjectID,trialID).P_G_rtoe =1e-3* interp1( t_raw_vicon_p,subjectData(subjectID,trialID).markers.rtoe,t_vicon);
+        synchronisedData(subjectID,trialID).P_G_rhee = 1e-3*interp1( t_raw_vicon_p,subjectData(subjectID,trialID).markers.rhee,t_vicon);
+        synchronisedData(subjectID,trialID).P_G_rankle =1e-3* interp1( t_raw_vicon_p,subjectData(subjectID,trialID).markers.rankle,t_vicon);
+        synchronisedData(subjectID,trialID).P_G_rhip = 1e-3*interp1( t_raw_vicon_p,subjectData(subjectID,trialID).markers.rhip,t_vicon);
+        synchronisedData(subjectID,trialID).P_G_rsho = 1e-3*interp1( t_raw_vicon_p,subjectData(subjectID,trialID).markers.rsho,t_vicon); 
         
-        synchronisedData(subjectID,trialID).P_G_tors = interp1( t_raw_vicon_p,subjectData(subjectID,trialID).markers.tors,t_vicon); 
-        synchronisedData(subjectID,trialID).P_G_imuA = interp1( t_raw_vicon_p,subjectData(subjectID,trialID).markers.imuA,t_vicon);
-        synchronisedData(subjectID,trialID).P_G_imuB = interp1( t_raw_vicon_p,subjectData(subjectID,trialID).markers.imuB,t_vicon);
-        synchronisedData(subjectID,trialID).P_G_imuC = interp1( t_raw_vicon_p,subjectData(subjectID,trialID).markers.imuC,t_vicon);
+        synchronisedData(subjectID,trialID).P_G_tors =1e-3* interp1( t_raw_vicon_p,subjectData(subjectID,trialID).markers.tors,t_vicon); 
+        synchronisedData(subjectID,trialID).P_G_imuA = 1e-3*interp1( t_raw_vicon_p,subjectData(subjectID,trialID).markers.imuA,t_vicon);
+        synchronisedData(subjectID,trialID).P_G_imuB = 1e-3*interp1( t_raw_vicon_p,subjectData(subjectID,trialID).markers.imuB,t_vicon);
+        synchronisedData(subjectID,trialID).P_G_imuC =1e-3* interp1( t_raw_vicon_p,subjectData(subjectID,trialID).markers.imuC,t_vicon);
         
         synchronisedData(subjectID,trialID).f_fp = interp1( t_raw_vicon_f,[subjectData(subjectID,trialID).analogsMOM,subjectData(subjectID,trialID).analogsFOR],t_vicon);
 
