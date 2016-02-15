@@ -461,7 +461,7 @@ grid on;
     a_imu_2real(:,i) = data.y(7:12,i) - b_Y(7:12,i); 
  
     % in frame associated to link2 
-    a_2_2real(:,i) = (X_imu_2)'* a_imu_2real(:,i);
+    a_2_2real(:,i) = (sensorLinkTransforms.X_imu_2)'* a_imu_2real(:,i);
  
  end
  

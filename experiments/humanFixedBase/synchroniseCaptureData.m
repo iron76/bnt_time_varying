@@ -11,36 +11,41 @@
 % Author: Naveen Kuppuswamy (naveen.kuppuswamy@iit.it)
 % iCub Facility, Istituto Italiano di Tecnologia, 21 January 2016
 
+clear; 
+close all;
+
 
 %% load data sources
-load('./experiments/humanFixedBase/data/VICONsaveData.mat');
-load('./experiments/humanFixedBase/data/imuExtractedData.mat');
+load('./experiments/humanFixedBase/data/newData/VICONsaveDataGen16.mat');
+load('./experiments/humanFixedBase/data/newData/imuExtractedData.mat');
 addpath('./experiments/humanFixedBase/helperFunctions/');
 
 subjectIDList = 1;
-trialIDList = 1:3;
+trialIDList = 1;%1:4;
+
+samplingFrequency = (1/500);
 
 %% iterate through each trial c
-for subjectID=1:length(subjectIDList)
-    for trialID=1:length(trialIDList)
+for subjectID = subjectIDList
+    for trialID = trialIDList
         
         %% compute VICON, IMU time difference
         figure;
-        subplot(3,1,1);
+        subplot(2,2,1);
         
         f_raw = subjectData(subjectID,trialID).analogsFOR;
-        t_raw_vicon_f = 0:(1/100):(0.01*size(f_raw,1));
+        t_raw_vicon_f = 0:(1/100):((1/100)*size(f_raw,1));
         t_raw_vicon_f = t_raw_vicon_f(1:end-1)./10;
 
-        t_vicon = 0:(1/1000):t_raw_vicon_f(end);
+        t_vicon = 0:(samplingFrequency):t_raw_vicon_f(end);
         f = interp1(t_raw_vicon_f,f_raw,t_vicon);
 
         plot(t_vicon,f);
-        xlabel('A','FontSize',15);
-        ylabel('B','FontSize',15);
+        xlabel('t (sec)','FontSize',15);
+        ylabel('A','FontSize',15);
         axis tight;
         grid on;
-
+      
         title(sprintf('Subject : %d, Trial : %d',subjectID,trialID));
         accl_raw = imuData(subjectID,trialID).accln;
         omega_raw = imuData(subjectID,trialID).gyro;
@@ -53,15 +58,18 @@ for subjectID=1:length(subjectIDList)
         end
         
 
-        t_imu = 0:(1/1000):t_imu_raw(end);
-        accl = interp1(t_imu_raw,accl_raw,t_imu);
-        omega = interp1(t_imu_raw,omega_raw,t_imu);
+        t_imu = 0:(samplingFrequency):t_imu_raw(end);
+        accl = interp1(t_imu_raw,accl_raw,t_imu,'cubic');
+        omega = interp1(t_imu_raw,omega_raw,t_imu,'cubic');
 
-        subplot(3,1,2);
+        subplot(2,2,3);
         plot(t_imu,accl);
         axis tight;
         grid on;
-
+        xlabel('t (sec)','FontSize',15);
+        ylabel('B','FontSize',15);
+       % legend('1','2','3');
+        
         %[~,chosenF_ID] = max(f(1,:));
         chosenF_ID = 3;
         [~,timeIndexToPeak1_f] = max(f(1:round(end*0.5),chosenF_ID));
@@ -72,30 +80,62 @@ for subjectID=1:length(subjectIDList)
 
         timeToPeak1_accl = t_imu(timeIndexToPeak1_accl);
 
-        indicesToShift = timeIndexToPeak1_accl - timeIndexToPeak1_f;
-        delta_t_time = t_imu(indicesToShift);
+        if(timeToPeak1_accl>timeToPeak1_f)
+            indicesToShift = timeIndexToPeak1_accl - timeIndexToPeak1_f;
+            delta_t_time = t_imu(indicesToShift);
 
-        t_imu_shifted = t_imu(indicesToShift:end) - t_imu(indicesToShift);
-        accl_shifted = accl(indicesToShift:end,:);
-        omega_shifted = omega(indicesToShift:end,:);
+            t_imu_shifted = t_imu(indicesToShift:end) - t_imu(indicesToShift);
+            accl_shifted = accl(indicesToShift:end,:);
+            omega_shifted = omega(indicesToShift:end,:);
 
-        subplot(3,1,3);
+            %% acceleration timeshift resultStore
+ 
+            t_viconShifted = t_vicon;
+
+        else
+            indicesToShift = timeIndexToPeak1_accl - timeIndexToPeak1_f;
+            indicesToShift = abs(indicesToShift);
+            delta_f_time = t_vicon(indicesToShift);
+            
+            t_viconShifted = t_vicon(indicesToShift:end) - t_vicon(indicesToShift);
+            t_vicon = t_vicon(indicesToShift:end);
+
+            t_imu_shifted = t_imu;
+            accl_shifted = accl;
+            omega_shifted = omega;
+            
+            tSelLen_imu = length(t_imu_shifted);
+            tSelLen_vicon = length(t_viconShifted);
+            
+            % incase lengths are not same (i.e. one has longer timeseries)
+            % then truncate the other
+            if(tSelLen_vicon>tSelLen_imu)
+                t_vicon = t_vicon(1:tSelLen_imu);
+                t_viconShifted = t_viconShifted(1:tSelLen_imu);
+            else
+                t_imu_shifted = t_imu_shifted(1:tSelLen_vicon);
+                accl_shifted = accl(1:tSelLen_vicon,:);
+                omega_shifted = omega(1:tSelLen_vicon,:);            
+            end
+            
+        end
+        subplot(2,2,4);
         plot(t_imu_shifted,accl_shifted);
         axis tight;
         grid on;
+        ylabel('Ashifted','FontSize',15);
         
         
-        %% acceleration timeshift resultStore
+
+        %% VICON interpolation, variable rename and resultStore
+        t_raw_vicon_p = 0:(1/100):(0.01*size(subjectData(subjectID,trialID).markers.ltoe,1));
+        t_raw_vicon_p = t_raw_vicon_p(1:end-1);
+
+        
+        synchronisedData(subjectID,trialID).t_vicon = t_viconShifted;
         synchronisedData(subjectID,trialID).t_imu = t_imu_shifted;
         synchronisedData(subjectID,trialID).a_imu_imulin = accl_shifted;
         synchronisedData(subjectID,trialID).v_imu_imurot = omega_shifted;
-
-        %% VICON interpolation, variable rename and resultStore
-        
-        t_raw_vicon_p = 0:(1/100):(0.01*size(subjectData(subjectID,trialID).markers.ltoe,1));
-        t_raw_vicon_p = t_raw_vicon_p(1:end-1);
-        
-        synchronisedData(subjectID,trialID).t_vicon = t_vicon;
         
         %original data in mm --> converted in m
         synchronisedData(subjectID,trialID).P_G_ltoe =1e-3* interp1( t_raw_vicon_p,subjectData(subjectID,trialID).markers.ltoe,t_vicon);
@@ -117,6 +157,12 @@ for subjectID=1:length(subjectIDList)
         
         synchronisedData(subjectID,trialID).f_fp = interp1( t_raw_vicon_f,[subjectData(subjectID,trialID).analogsMOM,subjectData(subjectID,trialID).analogsFOR],t_vicon);
 
+        subplot(2,2,2);
+        plot(t_vicon,synchronisedData(subjectID,trialID).f_fp(:,4:6));
+        axis tight;
+        grid on;
+        ylabel('Bshifted','FontSize',15);
+        
       
     end
 end
