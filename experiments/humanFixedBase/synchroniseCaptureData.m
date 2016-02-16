@@ -23,20 +23,29 @@ addpath('./experiments/humanFixedBase/helperFunctions/');
 subjectIDList = 1;
 trialIDList = 1;%1:4;
 
-samplingFrequency = (1/500);
+%% Sampling and filter settings
+samplingFrequency = (1/100);
+filterOpt.imu.window = 57;
+filterOpt.imu.order = 3;
+filterOpt.vicon.window = 23;
+filterOpt.vicon.order = 4;
+
 
 %% iterate through each trial c
 for subjectID = subjectIDList
     for trialID = trialIDList
         
+        %% Prefiltering
+        [viconDataFilt,imuDataFilt] = filterData(subjectData(subjectID,trialID),imuData(subjectID,trialID),filterOpt);
+
         %% compute VICON, IMU time difference
         figure;
         subplot(2,2,1);
         
-        f_raw = subjectData(subjectID,trialID).analogsFOR;
+        f_raw = viconDataFilt.analogsFOR;
+        
         t_raw_vicon_f = 0:(1/100):((1/100)*size(f_raw,1));
         t_raw_vicon_f = t_raw_vicon_f(1:end-1)./10;
-
         t_vicon = 0:(samplingFrequency):t_raw_vicon_f(end);
         f = interp1(t_raw_vicon_f,f_raw,t_vicon);
 
@@ -47,20 +56,19 @@ for subjectID = subjectIDList
         grid on;
       
         title(sprintf('Subject : %d, Trial : %d',subjectID,trialID));
-        accl_raw = imuData(subjectID,trialID).accln;
-        omega_raw = imuData(subjectID,trialID).gyro;
+        accl_raw = imuDataFilt.accln;
+        omega_raw = imuDataFilt.gyro;
         
-        if(~isempty(find(diff(imuData(subjectID,trialID).t)<=0)))
+        if(~isempty(find(diff(imuDataFilt.t)<=0)))
             ttemp = imuData(subjectID,trialID).t;
             t_imu_raw = linspace(0,ttemp(end),length(ttemp))./1000;
         else
-            t_imu_raw = imuData(subjectID,trialID).t./1000;
+            t_imu_raw = imuDataFilt.t./1000;
         end
-        
-
+      
         t_imu = 0:(samplingFrequency):t_imu_raw(end);
-        accl = interp1(t_imu_raw,accl_raw,t_imu,'cubic');
-        omega = interp1(t_imu_raw,omega_raw,t_imu,'cubic');
+        accl = interp1(t_imu_raw,accl_raw,t_imu);
+        omega = interp1(t_imu_raw,omega_raw,t_imu);
 
         subplot(2,2,3);
         plot(t_imu,accl);
@@ -138,24 +146,24 @@ for subjectID = subjectIDList
         synchronisedData(subjectID,trialID).v_imu_imurot = omega_shifted;
         
         %original data in mm --> converted in m
-        synchronisedData(subjectID,trialID).P_G_ltoe =1e-3* interp1( t_raw_vicon_p,subjectData(subjectID,trialID).markers.ltoe,t_vicon);
-        synchronisedData(subjectID,trialID).P_G_lhee = 1e-3*interp1( t_raw_vicon_p,subjectData(subjectID,trialID).markers.lhee,t_vicon);
-        synchronisedData(subjectID,trialID).P_G_lankle =1e-3* interp1( t_raw_vicon_p,subjectData(subjectID,trialID).markers.lankle,t_vicon);
-        synchronisedData(subjectID,trialID).P_G_lhip = 1e-3*interp1( t_raw_vicon_p,subjectData(subjectID,trialID).markers.lhip,t_vicon);
-        synchronisedData(subjectID,trialID).P_G_lsho =1e-3* interp1( t_raw_vicon_p,subjectData(subjectID,trialID).markers.lsho,t_vicon); 
+        synchronisedData(subjectID,trialID).P_G_ltoe =1e-3* interp1( t_raw_vicon_p,viconDataFilt.markers.ltoe,t_vicon);
+        synchronisedData(subjectID,trialID).P_G_lhee = 1e-3*interp1( t_raw_vicon_p,viconDataFilt.markers.lhee,t_vicon);
+        synchronisedData(subjectID,trialID).P_G_lankle =1e-3* interp1( t_raw_vicon_p,viconDataFilt.markers.lankle,t_vicon);
+        synchronisedData(subjectID,trialID).P_G_lhip = 1e-3*interp1( t_raw_vicon_p,viconDataFilt.markers.lhip,t_vicon);
+        synchronisedData(subjectID,trialID).P_G_lsho =1e-3* interp1( t_raw_vicon_p,viconDataFilt.markers.lsho,t_vicon); 
         
-        synchronisedData(subjectID,trialID).P_G_rtoe =1e-3* interp1( t_raw_vicon_p,subjectData(subjectID,trialID).markers.rtoe,t_vicon);
-        synchronisedData(subjectID,trialID).P_G_rhee = 1e-3*interp1( t_raw_vicon_p,subjectData(subjectID,trialID).markers.rhee,t_vicon);
-        synchronisedData(subjectID,trialID).P_G_rankle =1e-3* interp1( t_raw_vicon_p,subjectData(subjectID,trialID).markers.rankle,t_vicon);
-        synchronisedData(subjectID,trialID).P_G_rhip = 1e-3*interp1( t_raw_vicon_p,subjectData(subjectID,trialID).markers.rhip,t_vicon);
-        synchronisedData(subjectID,trialID).P_G_rsho = 1e-3*interp1( t_raw_vicon_p,subjectData(subjectID,trialID).markers.rsho,t_vicon); 
+        synchronisedData(subjectID,trialID).P_G_rtoe =1e-3* interp1( t_raw_vicon_p,viconDataFilt.markers.rtoe,t_vicon);
+        synchronisedData(subjectID,trialID).P_G_rhee = 1e-3*interp1( t_raw_vicon_p,viconDataFilt.markers.rhee,t_vicon);
+        synchronisedData(subjectID,trialID).P_G_rankle =1e-3* interp1( t_raw_vicon_p,viconDataFilt.markers.rankle,t_vicon);
+        synchronisedData(subjectID,trialID).P_G_rhip = 1e-3*interp1( t_raw_vicon_p,viconDataFilt.markers.rhip,t_vicon);
+        synchronisedData(subjectID,trialID).P_G_rsho = 1e-3*interp1( t_raw_vicon_p,viconDataFilt.markers.rsho,t_vicon); 
         
-        synchronisedData(subjectID,trialID).P_G_tors =1e-3* interp1( t_raw_vicon_p,subjectData(subjectID,trialID).markers.tors,t_vicon); 
-        synchronisedData(subjectID,trialID).P_G_imuA = 1e-3*interp1( t_raw_vicon_p,subjectData(subjectID,trialID).markers.imuA,t_vicon);
-        synchronisedData(subjectID,trialID).P_G_imuB = 1e-3*interp1( t_raw_vicon_p,subjectData(subjectID,trialID).markers.imuB,t_vicon);
-        synchronisedData(subjectID,trialID).P_G_imuC =1e-3* interp1( t_raw_vicon_p,subjectData(subjectID,trialID).markers.imuC,t_vicon);
+        synchronisedData(subjectID,trialID).P_G_tors =1e-3* interp1( t_raw_vicon_p,viconDataFilt.markers.tors,t_vicon); 
+        synchronisedData(subjectID,trialID).P_G_imuA = 1e-3*interp1( t_raw_vicon_p,viconDataFilt.markers.imuA,t_vicon);
+        synchronisedData(subjectID,trialID).P_G_imuB = 1e-3*interp1( t_raw_vicon_p,viconDataFilt.markers.imuB,t_vicon);
+        synchronisedData(subjectID,trialID).P_G_imuC =1e-3* interp1( t_raw_vicon_p,viconDataFilt.markers.imuC,t_vicon);
         
-        synchronisedData(subjectID,trialID).f_fp = interp1( t_raw_vicon_f,[subjectData(subjectID,trialID).analogsMOM,subjectData(subjectID,trialID).analogsFOR],t_vicon);
+        synchronisedData(subjectID,trialID).f_fp = interp1( t_raw_vicon_f,[viconDataFilt.analogsMOM,viconDataFilt.analogsFOR],t_vicon);
 
         subplot(2,2,2);
         plot(t_vicon,synchronisedData(subjectID,trialID).f_fp(:,4:6));

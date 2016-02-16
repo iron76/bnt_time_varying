@@ -105,10 +105,14 @@ for subjectID = subjectList
               ddq2_sg(n) = dot(diffCoeff(:,3),q2(n - halfWindow:n + halfWindow));
         end
         
-        dq1_sg = dq1_sg ./ 1e-3;
-        dq2_sg = dq2_sg ./ 1e-3;
-        ddq1_sg = ddq1_sg ./ (1e-3)^2;
-        ddq2_sg = ddq2_sg ./ (1e-3)^2;
+        %% Time step 
+        % depends on sampling frequency so we extract it from time stamps
+        delT = mean(diff(currentTrial.t_vicon(:,1:pSelec)));
+        
+        dq1_sg = dq1_sg ./ delT;
+        dq2_sg = dq2_sg ./ delT;
+        ddq1_sg = ddq1_sg ./ (delT)^2;
+        ddq2_sg = ddq2_sg ./ (delT)^2;
         
         %% plot q, dq, ddq
         figure;

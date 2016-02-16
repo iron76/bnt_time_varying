@@ -128,8 +128,11 @@ for subjectID = subjectList
         X_imu_2 = X_imu_G * X_G_0 * X_0_2;
         
         % Computing 0_XStar_1
-        XStar_0_1 = AdjTransStarfFromLinkToRoot(humanThreeLink_dmodel, mean(q(1:samples,:)), 1);
-   
+        XStar_0_1 = cell(size(q,1),1);
+        for i = 1:size(q,1)
+            XStar_0_1{i} = AdjTransStarfFromLinkToRoot(humanThreeLink_dmodel, q(i,:),1);
+        end
+        
        %% notes: 
        % if we compute 0_X_1 and 1_X_2 as follows:
        %            

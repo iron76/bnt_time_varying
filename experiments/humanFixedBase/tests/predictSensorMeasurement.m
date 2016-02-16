@@ -42,6 +42,13 @@ load('./experiments/humanFixedBase/data/humanThreeLinkModelFromURDF_subject1.mat
 %% Load acquired data
 load('./experiments/humanFixedBase/intermediateDataFiles/processedSensorData.mat','processedSensorData');
 
+%% Load Link Sensor Transforms
+load('./experiments/humanFixedBase/intermediateDataFiles/sensorLinkTransforms.mat');
+
+X_imu_2 = sensorLinkTransforms.X_imu_2;
+XStar_fp_0 = sensorLinkTransforms.XStar_fp_0;
+XStar_0_1 = sensorLinkTransforms.XStar_0_1;
+
 t = processedSensorData(1,1).t;
 f_capture = processedSensorData(1,1).f_fp;
 
@@ -100,6 +107,8 @@ f_1 = zeros(size(q,1),6); % force transmitted to link 0 expressed in link0 frame
 a_2 = zeros(size(q,1),6); % spatial acceleration link 2
 v_2 = zeros(size(q,1),6); % spatial velocity link 2
 
+f_0_1 = zeros(size(q,1),6);
+
 fprintf('Iterating through time, computing dynamics using RNEA\n');
 %humanThreeLink_dmodel.jtype = {'Ry','Ry'};
 for i = 1:size(q)
@@ -108,6 +117,10 @@ for i = 1:size(q)
        a_2(i,:) = a_i{2}';
        v_2(i,:) = v_i{2}';
        f_1(i,:) = f_i{1}';
+       
+       if(iscell(XStar_0_1)==1)
+           f_0_1(i,:) = ( XStar_0_1{i}* f_1(i,:)')';
+       end
       % f(i,:) = f_i';   
 end
 
@@ -157,10 +170,6 @@ end
 
 %% Computing the sensor measurement in its frame
 
-load('./experiments/humanFixedBase/intermediateDataFiles/sensorLinkTransforms.mat');
-X_imu_2 = sensorLinkTransforms.X_imu_2;
-XStar_fp_0 = sensorLinkTransforms.XStar_fp_0;
-XStar_0_1 = sensorLinkTransforms.XStar_0_1;
 nT = size(a_2,1);
 
 S_lin = [zeros(3) eye(3)];
@@ -180,7 +189,7 @@ a_grav = [0;0;0;0;0; -9.8100]; %Featherstone-like notation
 I_c = [0.003 0 0; 0 0.009 0; 0 0 0.012]; %values from URDF file for subject_1
 I_0 = createSpatialInertia(I_c,2.057,[0;0;0.026]);
 
-f_0_1 = ( XStar_0_1* f_1')';
+
 fg0_0 = repmat( (I_0*a_grav)',length(f_0_1),1);
 f_fp = (XStar_fp_0 * (f_0_1-fg0_0)')'; %-I0 g ;
 
