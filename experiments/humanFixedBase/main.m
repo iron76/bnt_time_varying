@@ -131,7 +131,9 @@ load('./experiments/humanFixedBase/intermediateDataFiles/sensorLinkTransforms.ma
 
 Ymatrix = zeros (ymodel.m,26*dmodel.NB); 
 
-Ymatrix(1:6,13:18) = sensorLinkTransforms.XStar_fp_0 * sensorLinkTransforms.XStar_0_1;
+% The next line is time varying so must be moved inside loop.
+%Ymatrix(1:6,13:18) = sensorLinkTransforms.XStar_fp_0 * sensorLinkTransforms.XStar_0_1;
+
 Ymatrix(10:12,27:32) = sensorLinkTransforms.X_imu_2(4:6,:);
 Ymatrix(13:18,20:25) = eye(6);
 Ymatrix(19:24,46:51) = eye(6);
@@ -162,6 +164,8 @@ clear B;
 %% Computing MAP method
 
 for i = 1 : len
+    % reseting one transform in the Ymatrix
+   Ymatrix(1:6,13:18) = sensorLinkTransforms.XStar_fp_0 * sensorLinkTransforms.XStar_0_1{i}; 
     
    myMAP = myMAP.setState(data.q(:,i), data.dq(:,i));
    myMAP = myMAP.setY(data.y(:,i));
