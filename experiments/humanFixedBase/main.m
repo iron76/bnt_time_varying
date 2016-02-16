@@ -144,7 +144,7 @@ Ymatrix(26,52) = eye(1);
 b_Y = zeros (size(data.y)); 
 R_imu_2 = sensorLinkTransforms.X_imu_2(1:3,1:3);
 
-a_grav = [0;0;0;0;0; -9.8100]; %Featherstone-like notation
+a_grav = [0;0;0;0;0;-9.8100]; %Featherstone-like notation
 
 I_c = [0.003 0 0; 0 0.009 0; 0 0 0.012]; %values from URDF file for subject_1
 I_0 = createSpatialInertia(I_c,2.057,[0;0;0.026]);
@@ -261,7 +261,7 @@ for i = 1 : dmodel.NB
       ind  = '20 + 26*(i-1) : 26*(i-1) + 25';
       eval(['res.fx_'   link '(:,j)   =  res.d(' ind '        ,j);'])
       eval(['res.Sfx_'  link '(:,:,j) = res.Sd(' ind ',' ind ',j);'])
-      %d2q
+      %ddq
       ind  = '26 + 26*(i-1) : 26*(i-1) + 26';
       eval(['res.d2q_'  joint '(:,j)   =  res.d(' ind '        ,j);'])
       eval(['res.Sd2q_' joint '(:,:,j) = res.Sd(' ind ',' ind ',j);'])
@@ -303,9 +303,9 @@ d_RNEA = zeros (26*myRNEA.IDmodel.modelParams.NB,len);
         b_RNEA(:,i) = myRNEA.b.matrix;
    end
    
-%we want ot obtain:   | D |     | b_D |   | 0 |
-%                     |   | d + |     | = |   |
-%                     | Y |     | b_Y |   | y |
+% since:       | D |     | b_D |   | 0 |
+%              |   | d + |     | = |   |
+%              | Y |     | b_Y |   | y |
 %                       
 %                   D_invDyn   b_invDyn  y_invDyn
 
@@ -336,7 +336,6 @@ d_RNEA = zeros (26*myRNEA.IDmodel.modelParams.NB,len);
 %% ======================= COMPARISON RNEA/MAP/LS =========================
 %% Comparing RNEA/MAP torques
 
-%load ('resultsFromCheckRNEA.mat');
 
 fig = figure();
 axes1 = axes('Parent',fig,'FontSize',16);
@@ -356,7 +355,7 @@ set(plot3,'color',[1 0 0]);
 plot4 = plot(data.time,res.tau_hip, 'lineWidth',1.5,'LineStyle','--'); hold on;
 set(plot4,'color',[0 0.498039215803146 0]);
 
-% LS
+% % LS
 % plot5 = plot(data.time,d_ls(19,:), 'lineWidth',1.5,'LineStyle',':'); hold on;
 % set(plot5,'color',[1 0 0]);
 % plot6 = plot(data.time,d_ls(45,:), 'lineWidth',1.5,'LineStyle',':'); hold on;
@@ -440,7 +439,8 @@ grid on;
 
  end
 
- 
+ %% ============================= tests ==================================
+ load ('sensorLinkTransforms.mat');
  %% test 1 : comparison between a_2 measured by sensor and a_2 in vector d_RNEA
  
  %  
@@ -451,7 +451,7 @@ grid on;
  % -a_2 measured is in imu frame;
  % -a_2 in vector d_RNEA is in frame associated to link2;
  % -both a_2 are compared in frame associated to link2
- 
+
  
  a_imu_2real = zeros (6,len);
  a_2_2real   = zeros (6,len);
@@ -462,73 +462,33 @@ grid on;
  
     % in frame associated to link2 
     a_2_2real(:,i) = (X_imu_2)'* a_imu_2real(:,i);
- 
  end
  
+ % now we can compare a_2_2real measured of sensor (transformed in link
+ % frame) with a_2_2 of d vector.
  
-  %% test 2 : comparison between f measured by sensor and f in vector d_RNEA  ->doesn't work!
+  %% test 2 : comparison between f measured by sensor and f in vector d_RNEA  
  
  % -f_1 measured is in imu frame;
  % -f_1 in vector d_RNEA is in frame associated to link1;
  % -both f_1 are compared in frame associated to link1 
  
-%  
-%  % computing 1_XStar_fp :   1_XStar_fp = 1_XStar_0 * 0_XStar_fp
-% 
-%  %rotation between frame associated to link 1 and to link 0 is non
-%  %constant and changes during motion 
-% 
-%  
-%  R_1_0    = [ cos(data.q2(200,1))  -sin(data.q2(200,1))    0;
-%                   0                      0                -1;
-%               sin(data.q2(200,1))   cos(data.q2(200,1))    0];
-%           
-%  XStar_1_0_lin = [zeros(3)    R_1_0];
-%         
-%  XStar_1_fp_lin = XStar_1_0_lin * (XStar_fp_0(4:6,:))';
-%  
-% 
-%  % in sensor frame
-%  f_fp_1real = data.y(4:6,200) + b_Y(4:6,200); 
-%  
-%  % in frame associated to link2 
-%  f_1_1real = XStar_1_fp_lin * f_fp_1real;
+f_fp_1real = length (a_imu_2real);
+f_1_1real = length (a_imu_2real);
 
- %%
-%  
-%   for  ind = 1:3
-%      
-%         figure;
-%                 
-%        
-%         %====== Comparison between MAP prediction and actual data
-%         
-%         %== simulate output in MAP
-%         y_pred_MAP= myMAP.simY(res.d);     % without b_Y
-%         y_pred_MAP = y_pred_MAP + b_Y;     % adding b_Y
-%         
-%         Claudia = y_pred_MAP(10:12,:);
-%         ClaudiaReal = a_imu_2real(3:6,:);
-%         
-%         
-%         subplot(2,1,1);
-%         plot1 = plot(data.time,Claudia(ind,:), 'lineWidth',1.0, 'LineStyle','--'); hold on;
-%         set(plot1,'color',[1 0 0]);
-%         plot2 = plot(data.time,ClaudiaReal(ind,:), 'lineWidth',1.0); hold on;
-%         set(plot2,'color',[0 0 1]);
-% 
-%         leg = legend('MAP Pred','Input data','Location','northeast');
-%         %set(leg,'Interpreter','latex');
-%         set(leg,'FontSize',15);
-%         xlabel('Time [s]','FontSize',15);
-%         %ylabel('Torque[Nm]','FontSize',20);
-%         
-%         
-%         axis tight;
-%         grid on;
-%         
-%   end
-%  
-%  
-%  
+ % computing 1_XStar_fp :   1_XStar_fp = 1_XStar_0 * 0_XStar_fp
+  XStar_1_fp = (XStar_0_1)' * (XStar_fp_0)';
+
+
+for i = 1:len
+    % in sensor frame
+    f_fp_1real(:,i) = data.y(1:6,i) + b_Y(1:6,i);
+    
+    % in frame associated to link1 
+    f_1_1real(:,i) = XStar_1_fp * f_fp_1real(:,i);
+end
+ 
+ % now we can compare f_1_1real measured of sensor (transformed in link
+ % frame) with f_1_1 of d vector.
+ 
  

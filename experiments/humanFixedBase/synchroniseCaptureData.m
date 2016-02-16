@@ -97,7 +97,7 @@ for subjectID=1:length(subjectIDList)
         
         synchronisedData(subjectID,trialID).t_vicon = t_vicon;
         
-        %original data in mm --> converted in m
+        %original data from Vicon in mm --> converted in m
         synchronisedData(subjectID,trialID).P_G_ltoe =1e-3* interp1( t_raw_vicon_p,subjectData(subjectID,trialID).markers.ltoe,t_vicon);
         synchronisedData(subjectID,trialID).P_G_lhee = 1e-3*interp1( t_raw_vicon_p,subjectData(subjectID,trialID).markers.lhee,t_vicon);
         synchronisedData(subjectID,trialID).P_G_lankle =1e-3* interp1( t_raw_vicon_p,subjectData(subjectID,trialID).markers.lankle,t_vicon);
@@ -115,7 +115,9 @@ for subjectID=1:length(subjectIDList)
         synchronisedData(subjectID,trialID).P_G_imuB = 1e-3*interp1( t_raw_vicon_p,subjectData(subjectID,trialID).markers.imuB,t_vicon);
         synchronisedData(subjectID,trialID).P_G_imuC =1e-3* interp1( t_raw_vicon_p,subjectData(subjectID,trialID).markers.imuC,t_vicon);
         
-        synchronisedData(subjectID,trialID).f_fp = interp1( t_raw_vicon_f,[subjectData(subjectID,trialID).analogsMOM,subjectData(subjectID,trialID).analogsFOR],t_vicon);
+        %original force data from FP in Nm;
+        %original moment data from FP in Nmm --> converted in Nm;
+        synchronisedData(subjectID,trialID).f_fp = interp1(t_raw_vicon_f,[1e-3*subjectData(subjectID,trialID).analogsMOM,subjectData(subjectID,trialID).analogsFOR],t_vicon);
 
       
     end

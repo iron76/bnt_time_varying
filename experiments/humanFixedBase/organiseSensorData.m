@@ -46,18 +46,17 @@ for subjectID = subjectList
         P_G_imuB = currentTrial.P_G_imuB(1:pSelec,:);
         P_G_imuC = currentTrial.P_G_imuC(1:pSelec,:);
         
-        %% Computing q1 and q2  angles 
+        %% Computing q1 and q2 angles 
 
         % computing P_G_1, P_G_2, P_G_3 for all the time
         P_G_1 = computeCentroidOfPoints(P_G_lankle,P_G_rankle);
         P_G_2 = computeCentroidOfPoints(P_G_lhip,P_G_rhip);
-        P_G_3 = computeCentroidOfTriangle(P_G_lsho,P_G_rsho,P_G_tors);
-
+        %P_G_3 = computeCentroidOfTriangle(P_G_lsho,P_G_rsho,P_G_tors);
+        P_G_3 = computeCentroidOfPoints(P_G_lsho,P_G_rsho);
         
         % JOINT ANGLE q1
         len = size(P_G_1,1);
         
-        % JOINT ANGLE q1
         l1 = (P_G_2 - P_G_1);
         q1 = zeros (len, 1);
         
@@ -104,13 +103,15 @@ for subjectID = subjectList
               ddq1_sg(n) = dot(diffCoeff(:,3),q1(n - halfWindow:n + halfWindow));
               ddq2_sg(n) = dot(diffCoeff(:,3),q2(n - halfWindow:n + halfWindow));
         end
-        
+       
+        % dt = 10^-3 since sampling rate is 1kHz (to be set in case of downsampling)
         dq1_sg = dq1_sg ./ 1e-3;
         dq2_sg = dq2_sg ./ 1e-3;
         ddq1_sg = ddq1_sg ./ (1e-3)^2;
         ddq2_sg = ddq2_sg ./ (1e-3)^2;
         
         %% plot q, dq, ddq
+        
         figure;
         subplot(311);
         plot1 = plot(currentTrial.t_vicon(:,1:pSelec),q1.*(180/pi),'lineWidth',1.0); hold on;
@@ -191,22 +192,22 @@ for subjectID = subjectList
         %% Extracting forceplate wrench (f_fp)
         
         % Plotting raw data coming from force plate sensor in sensor frame
-        f_fp = currentTrial.f_fp(1:pSelec,:);
-        f_fp(:,1:3) = currentTrial.f_fp(:,1:3)*1e-3; % converting moments from Nmm to Nm
-        
+        f_fp_fp = currentTrial.f_fp(1:pSelec,:);
+        f_fp_fp(:,1:3) = currentTrial.f_fp(:,1:3);
+       
         figure;
         subplot(211);
-        plot(currentTrial.t_vicon,f_fp(:,4:6)); axis tight;
+        plot(currentTrial.t_vicon,f_fp_fp(:,4:6)); axis tight;
         xlabel('Time [s]','FontSize',15);
         ylabel('Force [N]','Fontsize',15);
-        title('Wrench measured in force plate (Fp) frame','FontSize',15);
+        title('Wrench measured in force plate (Fp frame)','FontSize',15);
         legend('$F_x$','$F_y$','$F_z$','Location','northeast');
         set(legend,'Interpreter','latex');
         set(legend,'FontSize',20);
         grid on;
         
         subplot(212);
-        plot(currentTrial.t_vicon,f_fp(:,1:3)); axis tight;
+        plot(currentTrial.t_vicon,f_fp_fp(:,1:3)); axis tight;
         xlabel('Time [s]','FontSize',15);
         ylabel('Moment [Nm]','FontSize',15);
         legend('$M_x$','$M_y$','$M_z$','Location','northeast');
@@ -226,7 +227,7 @@ for subjectID = subjectList
         processedSensorData(subjectID,trialID).omega_imu = omega_imu';
         processedSensorData(subjectID,trialID).t = currentTrial.t_vicon;
         processedSensorData(subjectID,trialID).imu = [a_imu omega_imu]';
-        processedSensorData(subjectID,trialID).f_fp = f_fp';
+        processedSensorData(subjectID,trialID).f_fp_fp = f_fp_fp';
     end
     fprintf('\n');
 end

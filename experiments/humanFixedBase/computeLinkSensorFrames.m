@@ -63,14 +63,16 @@ for subjectID = subjectList
         P_G_imuA = currentTrial.P_G_imuA(1:pSelec,:);
         P_G_imuB = currentTrial.P_G_imuB(1:pSelec,:);
         P_G_imuC = currentTrial.P_G_imuC(1:pSelec,:);
-            
-        P_G_1 = computeCentroidOfPoints(P_G_lankle,P_G_rankle);
-        P_G_2 = computeCentroidOfPoints(P_G_lhip,P_G_rhip);
-        P_G_3 = computeCentroidOfTriangle(P_G_lsho,P_G_rsho,P_G_tors);
+        
         
         [R_0_G,P_G_0] = computeFootRotation(P_G_lhee,P_G_rhee,P_G_ltoe,P_G_rtoe); 
         
+        P_G_1 = computeCentroidOfPoints(P_G_lankle,P_G_rankle);
+        P_G_2 = computeCentroidOfPoints(P_G_lhip,P_G_rhip);
+        P_G_3 = computeCentroidOfTriangle(P_G_lsho,P_G_rsho,P_G_tors);
+       
         P_G_G = [0,0,0];
+        P_fp_fp = [0,0,0];
         
             
         %% Computing joint angles 
@@ -97,7 +99,7 @@ for subjectID = subjectList
         q = [q1 q2];
 
         
-        %% Computing adjoint transform 2_X_imu
+        %% Computing adjoint transform 2_X_imu  --> for Ymatrix
         % we need 2_X_imu for Y matrix . 
         % We want to compute imu_X_2 = imu_X_G * G_X_0 * 0_X_2
        
@@ -127,8 +129,6 @@ for subjectID = subjectList
         % Computing imu_X_2 
         X_imu_2 = X_imu_G * X_G_0 * X_0_2;
         
-        % Computing 0_XStar_1
-        XStar_0_1 = AdjTransStarfFromLinkToRoot(humanThreeLink_dmodel, mean(q(1:samples,:)), 1);
    
        %% notes: 
        % if we compute 0_X_1 and 1_X_2 as follows:
@@ -143,27 +143,31 @@ for subjectID = subjectList
        % This is a consequence of Drake parsing.
        
        
-        %% Computing adjoint transform fp_Xstar_0
+        %% Computing adjoint transform fp_Xstar_0  --> for Ymatrix
         % we need fp_Xstar_0 for Y matrix
         
-        %fixed rotation from Global and Force plate reference frames
+        %fixed rotation from Global and Force plate frames
         R_fp_G = [-1 0  0;
                    0 1  0;
-                   0 0 -1];
-               
-        R_fp_0 = R_fp_G * R_0_G';
-       
-        %center of force plate in m (below the force plate) in Global frame
+                   0 0 -1];    
+   
+        %origin of fp frame in G frame (consider the frce plate heigt -0.04330 m)       
         P_G_fp =  [0.23175,0.25400,-0.04330]; 
         
-        %fixed distance between origin of force plate frame and frame
-        %associated to link0
-        r_G_from0tofp= P_G_fp - P_G_0;
+        %we want to compute r_fp_from0tofp
+        r_G_from0tofp = P_G_fp - P_G_0;
+        r_fp_from0tofp = R_fp_G * r_G_from0tofp';
         
+        R_fp_0 = R_fp_G * R_0_G';
+ 
+        XStar_fp_0 = [  R_fp_0    -R_fp_0*skew(r_fp_from0tofp);
+                       zeros(3)                R_fp_0         ];
         
-        XStar_fp_0 = [ R_fp_0    -R_fp_0*skew(r_G_from0tofp);
-                      zeros(3)                R_fp_0        ];
-        
+                  
+        %% Computing adjoint transform 0_XStar_1  --> for Ymatrix
+   
+        % to be modified --> time varying
+        XStar_0_1 = AdjTransfStarfFromLinkToRoot(humanThreeLink_dmodel, mean(q(1:samples,:)), 1);
                   
         %% Organising into a structure          
         sensorLinkTransforms(subjectID,trialID).X_imu_2 = X_imu_2;
