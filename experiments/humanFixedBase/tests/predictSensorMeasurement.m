@@ -1,15 +1,15 @@
 % predictSensorMeasurement
-% function makes a prediction of the sensor measurements of the Human
+% script makes a prediction of the sensor measurements of the Human
 % Dynamics Estimation Experiment. The sensors are the VICON markers, IMU
-% placed on the chest and force place on the bottom of my foot. The method
-% loads the sensor measurements (q, qDot) and the link sensor Transforms 
+% placed on the chest and force place on the bottom of the foot. The method
+% loads the sensor measurements (q, dq) and the link sensor transforms 
 % from the intermediateDataFiles folder. 
 %
 % It can be useful exploiting this analysis as a benchmark.
 %
 % Toolbox requirements:
 % - iDynTree - mex
-% - Featherstone toolbox (v2) with ID corrected as in bnt_time_varying repository
+% - Featherstone toolbox (v2)
 % 
 % Prerequisite : 
 % Run synchroniseCaptureData, computeLinkSensorFrames and
@@ -19,16 +19,14 @@
 % iCub Facility, Istituto Italiano di Tecnologia, 21 January 2016
 
 clear;clc;close all;
+%colors = colormap (parula(128));
 
 %% testOptions
-% q_i, qDot_i and tau_i
+% q_i, dq_i and tau_i
 plotJointQuantities = true;
 
 % Quatities in link frame associated to sensor measurements (i.e. a2_linear,v2_angular, and f1)
 plotLinkQuantities = false; % Link Frame prediction test below will plot same quantities again..
-
-% To analyse X_fp_1(t) accuracy (instead of assuming its a constant since joint 1 rotation changes the rotation matrix slightly)
-plotTimeVaryingQuantities = false; 
 
 % To run checkRNEA against iDynTree
 analyseRNEA = false; % Not yet tested with new refactor (pls retain to false)
@@ -36,10 +34,8 @@ analyseRNEA = false; % Not yet tested with new refactor (pls retain to false)
 % Project sensor quantities in link frame to compare with link quantities
 plotLinkFramePrediction = true; 
 
-%% Load Drake model
+%% Load Drake model and data
 load('./experiments/humanFixedBase/data/humanThreeLinkModelFromURDF_subject1.mat');
-
-%% Load acquired data
 load('./experiments/humanFixedBase/intermediateDataFiles/processedSensorData.mat','processedSensorData');
 
 %% Load Link Sensor Transforms
@@ -103,9 +99,9 @@ ddq  = [ddq1,ddq2];
 %% Computing tau using Newton-Euler with Featherstone toolbox
 
 tau = zeros(size (q)); % joint torques
-f_1 = zeros(size(q,1),6); % force transmitted to link 0 expressed in link0 frame
-a_2 = zeros(size(q,1),6); % spatial acceleration link 2
-v_2 = zeros(size(q,1),6); % spatial velocity link 2
+f_1_1 = zeros(size(q,1),6); % force transmitted from link0 to link1 expressed in link0 frame
+a_2_2 = zeros(size(q,1),6); % spatial acceleration link2
+v_2_2 = zeros(size(q,1),6); % spatial velocity link2
 
 f_0_1 = zeros(size(q,1),6);
 
@@ -113,20 +109,26 @@ fprintf('Iterating through time, computing dynamics using RNEA\n');
 %humanThreeLink_dmodel.jtype = {'Ry','Ry'};
 for i = 1:size(q)
       [tau_i, a_i, v_i, fB_i, f_i] = IDv( humanThreeLink_dmodel, q(i,:), dq(i,:), ddq(i,:));
+
       tau(i,:) = tau_i';
-       a_2(i,:) = a_i{2}';
-       v_2(i,:) = v_i{2}';
-       f_1(i,:) = f_i{1}';
+       a_2_2(i,:) = a_i{2}';
+       v_2_2(i,:) = v_i{2}';
+       f_1_1(i,:) = f_i{1}';
        
        if(iscell(XStar_0_1)==1)
-           f_0_1(i,:) = ( XStar_0_1{i}* f_1(i,:)')';
+           f_0_1(i,:) = ( XStar_0_1{i}* f_1_1(i,:)')';
        end
-      % f(i,:) = f_i';   
 end
 
 if(plotJointQuantities)
-    %% raw ID components
-    figure();
+    %% Plot raw ID components
+    
+    fig = figure();
+    axes1 = axes('Parent',fig,'FontSize',16);
+    box(axes1,'on');
+    hold(axes1,'on');
+    grid on;
+    
     subplot(311);
     plot1 = plot(data.time,(180/pi)*q1,'lineWidth',2.0); hold on;
     set(plot1,'color',[1 0 0]);
@@ -139,7 +141,6 @@ if(plotJointQuantities)
     ylabel('Joint Angle [deg]','FontSize',18);
     axis tight;
     grid on;
-    title('RNEA inputs : q, \dot{q}, \ddot{q} (Actual)');
 
     subplot(312);
     plot1 = plot(data.time,(180/pi)*dq1,'lineWidth',2.0); hold on;
@@ -168,69 +169,93 @@ if(plotJointQuantities)
     grid on;
 end
 
-%% Computing the sensor measurement in its frame
+%%  ========================= Sensor prediction ===========================
+% Measurements equations are:
+% y_2(acc)  = S_lin*(imu_X_2 * a_2_2) + S_ang*(imu_X_2 * v_2_2) x S_lin*(imu_X_2 * v_2_2)
+% y_2(gyro) = S_ang*(imu_X_2 * v_2_2)
+% y_1(fp)   = fp_XStar_0 * (0_XStar_1* f_1_1 - I_0 * ag)
+%
+% To predict  measurements we use quantities coming from ID Featherstone
 
-nT = size(a_2,1);
+
+%nT = size(a_2,1);
+load('./experiments/humanFixedBase/intermediateDataFiles/sensorLinkTransforms.mat');
+X_imu_2 = sensorLinkTransforms.X_imu_2;
+XStar_fp_0 = sensorLinkTransforms.XStar_fp_0;
+XStar_0_1 = sensorLinkTransforms.XStar_0_1;
+%nT = size(a_2_2,1);
 
 S_lin = [zeros(3) eye(3)];
 S_ang = [eye(3) zeros(3)];
 
-%% Computed IMU Prediction
-a_imu_s = S_lin*(X_imu_2*a_2') + skew(S_ang*X_imu_2*v_2')*(S_lin*X_imu_2*v_2');
-a_imu = S_lin*(X_imu_2*a_2') + cross((S_ang*X_imu_2*v_2'),(S_lin*X_imu_2*v_2'));
+ 
 
-omega_imu = S_ang*(X_imu_2*v_2');
+% IMU PREDICTION
+a_imu_imu = S_lin*(X_imu_2*a_2_2') + skew(S_ang*X_imu_2*v_2_2')*(S_lin*X_imu_2*v_2_2'); %skew or cross product are equivalent
+omega_imu_imu = S_ang*(X_imu_2*v_2_2');
 
-%% Computed Forceplate Prediction
-
-
-a_grav = [0;0;0;0;0; -9.8100]; %Featherstone-like notation
+% FORCE PLATE PREDICTION
+a_grav = [0;0;0;0;0;-9.8100]; %Featherstone-like notation
 
 I_c = [0.003 0 0; 0 0.009 0; 0 0 0.012]; %values from URDF file for subject_1
 I_0 = createSpatialInertia(I_c,2.057,[0;0;0.026]);
 
-
 fg0_0 = repmat( (I_0*a_grav)',length(f_0_1),1);
-f_fp = (XStar_fp_0 * (f_0_1-fg0_0)')'; %-I0 g ;
+f_fp = (XStar_fp_0 * (f_0_1-fg0_0)')'; 
 
+%% Plot link quantities from ID Featherstone
 if(plotLinkQuantities)
-    figure();
+
+    
+    fig = figure();
+    axes1 = axes('Parent',fig,'FontSize',16);
+    box(axes1,'on');
+    hold(axes1,'on');
+    grid on;
+    
     subplot(211);
-    plot1 = plot(data.time,S_lin*a_2','lineWidth',2.0); hold on;
+    plot1 = plot(data.time,S_lin*a_2_2','lineWidth',2.0); hold on; 
+    leg = legend('$a_x$','$a_y$','$a_z$','Location','northeast');
     set(leg,'Interpreter','latex');
     set(leg,'FontSize',18);
-    xlabel('Time [s]','FontSize',18);
-    ylabel('Linacceleration (m/sec^2)','FontSize',18);
-    title('Link 2 LinAcceleration and AngVelocity');
-    legend('$a_x$','$a_y$','$az$','Location','northeast');
-    axis tight; grid on;
+    xlabel('Time [s]','FontSize',15);
+    ylabel('Lin Acceleration (m/sec^2)','FontSize',15);
+    title('Lin Acceleration and Ang Velocity in frame associated to link2','FontSize',14);
+    axis tight; 
+    grid on;
+    
     subplot(212);
-    plot1 = plot(data.time,S_ang*v_2','lineWidth',2.0); hold on;
+    plot2 = plot(data.time,S_ang*v_2_2','lineWidth',2.0); hold on;
+    leg = legend('$w_x$','$w_y$','$w_z$','Location','northeast');
     set(leg,'Interpreter','latex');
     set(leg,'FontSize',18);
-    xlabel('Time [s]','FontSize',18);
-    ylabel('Angvelocity (rad/sec)','FontSize',18);
-    legend('$w_x$','$w_y$','$wz$','Location','northeast');
-    axis tight; grid on;
+    xlabel('Time [s]','FontSize',15);
+    ylabel('Ang Velocity (rad/sec)','FontSize',15);
+    axis tight; 
+    grid on;
+    
     
     figure()
     subplot(211)
-    plot1 = plot(data.time,f_1(:,4:6),'lineWidth',2.0); hold on;
+    plot3 = plot(data.time,f_1_1(:,4:6),'lineWidth',2.0); hold on;
+    leg = legend('$F_x$','$F_y$','$F_z$','Location','northeast');
     set(leg,'Interpreter','latex');
     set(leg,'FontSize',18);
-    xlabel('Time [s]','FontSize',18);
-    ylabel('Wrench Force(N)','FontSize',18);
-    title('Link1 transmitted wrench');
-    legend('$F_x$','$F_y$','$Fz$','Location','northeast');
-    axis tight; grid on;
+    xlabel('Time [s]','FontSize',15);
+    ylabel('Force (N)','FontSize',15);
+    title('Wrench in frame associated to link1 ','FontSize',14);
+    axis tight; 
+    grid on;
+    
     subplot(212)
-    plot1 = plot(data.time,f_1(:,1:3),'lineWidth',2.0); hold on;
+    plot4 = plot(data.time,f_1_1(:,1:3),'lineWidth',2.0); hold on;
+    leg = legend('$\mu_x$','$\mu_y$','$\mu_z$','Location','northeast');
     set(leg,'Interpreter','latex');
     set(leg,'FontSize',18);
-    xlabel('Time [s]','FontSize',18);
-    ylabel('Wrench Moment(Nm)','FontSize',18);
-    legend('$\mu_x$','$\mu_y$','$\mu_z$','Location','northeast');
-    axis tight; grid on;    
+    xlabel('Time [s]','FontSize',15);
+    ylabel('Moment (Nm)','FontSize',15);
+    axis tight; 
+    grid on;    
 end
 
 fprintf('Predicting sensor measurement using current sensor-link transforms\n');
@@ -241,115 +266,114 @@ end
 
 
 %% Accelerometer prediction comparison
-figure();
+
+fig = figure();
+% fig = figure('name','xxx');
+axes1 = axes('Parent',fig,'FontSize',16);
+box(axes1,'on');
+hold(axes1,'on');
+grid on;
+
+
 subplot(221)
-plot(data.time,a_imu(1,:),'r',data.time,a_imu(2,:),'b',data.time,a_imu(3,:),'g', 'lineWidth',2.0);
+plot(data.time,a_imu_imu(1,:),data.time,a_imu_imu(2,:),data.time,a_imu_imu(3,:), 'lineWidth',2.0);
+leg = legend('$a_x$','$a_y$','$a_z$','Location','northeast');
 set(leg,'Interpreter','latex');
 set(leg,'FontSize',18);
-xlabel('Time [s]','FontSize',18);
-ylabel('LinAcceleration prediction(m/sec^2)','FontSize',18);
-title('Accelerometer');
-legend('$a_x$','$a_y$','$a_z$','Location','northeast');
-        set(legend,'Interpreter','latex');
-        set(legend,'FontSize',20);
+xlabel('Time [s]','FontSize',15);
+ylabel('Prediction ','FontSize',15);
+title('Linear acceleration (m/sec^2)','FontSize',14);
 axis tight;
 grid on; 
-%hold on;
+
 subplot(223)
-plot(data.time,a_measured(1,:),'r',data.time,a_measured(2,:),'b',data.time,a_measured(3,:),'g','lineWidth',2.0);
+plot(data.time,a_measured(1,:),data.time,a_measured(2,:),data.time,a_measured(3,:),'lineWidth',2.0);
+leg = legend('$a_x$','$a_y$','$a_z$','Location','northeast');
 set(leg,'Interpreter','latex');
 set(leg,'FontSize',18);
-xlabel('Time [s]','FontSize',18);
-ylabel('LinAccleration Actual(m/sec^2)','FontSize',18);
-legend('$a_x$','$a_y$','$a_z$','Location','northeast');
-        set(legend,'Interpreter','latex');
-        set(legend,'FontSize',20);
+xlabel('Time [s]','FontSize',15);
+ylabel('Actual','FontSize',15);
 axis tight;
 grid on; 
+
 
 %% Gyroscope prediction comparison
-%omega
+
 subplot(222)
-plot(data.time,omega_imu(1,:),'r',data.time,omega_imu(2,:),'b',data.time,omega_imu(3,:),'g', 'lineWidth',2.0);
+plot(data.time,omega_imu_imu(1,:),data.time,omega_imu_imu(2,:),data.time,omega_imu_imu(3,:), 'lineWidth',2.0);
+leg = legend('$\omega_x$','$\omega_y$','$\omega_z$','Location','northeast');
 set(leg,'Interpreter','latex');
 set(leg,'FontSize',18);
-xlabel('Time [s]','FontSize',18);
-ylabel('AngVelocity Prediction(rad/sec)','FontSize',18);
-title('Gyroscope');
-legend('$\omega_x$','$\omega_y$','$\omega_z$','Location','northeast');
-        set(legend,'Interpreter','latex');
-        set(legend,'FontSize',20);
-axis tight;
-grid on; 
-%hold on;
-subplot(224)
-plot(data.time,omega_measured(1,:),'r',data.time,omega_measured(2,:),'b',data.time,omega_measured(3,:),'g','lineWidth',2.0);
-set(leg,'Interpreter','latex');
-set(leg,'FontSize',18);
-xlabel('Time [s]','FontSize',18);
-ylabel('AngVelocity Actual(rad/sec)','FontSize',18);
-legend('$\omega_x$','$\omega_y$','$\omega_z$','Location','northeast');
-        set(legend,'Interpreter','latex');
-        set(legend,'FontSize',20);
+xlabel('Time [s]','FontSize',15);
+ylabel('Prediction','FontSize',15);
+title('Angular velocity (rad/sec)','FontSize',14);
 axis tight;
 grid on; 
 
-%% Forceplate prediction comparison (assuming constant XStar_1_fp)
-figure();
-subplot(221);
-plot(data.time,f_fp(:,4),'r',data.time,f_fp(:,5),'b',data.time,f_fp(:,6),'g', 'lineWidth',2.0);
+subplot(224)
+plot(data.time,omega_measured(1,:),data.time,omega_measured(2,:),data.time,omega_measured(3,:),'lineWidth',2.0);
+leg = legend('$\omega_x$','$\omega_y$','$\omega_z$','Location','northeast');
 set(leg,'Interpreter','latex');
 set(leg,'FontSize',18);
-xlabel('Time [s]','FontSize',18);
-ylabel('Force Prediction(N)','FontSize',18);
-title('Force in forceplate','FontSize',15);
-        legend('$F_x$','$F_y$','$F_z$','Location','northeast');
-        set(legend,'Interpreter','latex');
-        set(legend,'FontSize',20);
+xlabel('Time [s]','FontSize',15);
+ylabel('Actual','FontSize',15);
+axis tight;
+grid on; 
+
+axes('Position',[0 0 1 1],'Xlim',[0 1],'Ylim',[0 1],'Box','off','Visible','off','Units','normalized','clipping' ,'off');
+text(0.5, 0.99,'\bf Prediction comparison (IMU frame)','HorizontalAlignment','center','VerticalAlignment', 'top','FontSize',14);
+
+%% Force prediction comparison 
+
+figure();
+subplot(221);
+plot(data.time,f_fp(:,4),data.time,f_fp(:,5),data.time,f_fp(:,6), 'lineWidth',2.0);
+leg = legend('$F_x$','$F_y$','$F_z$','Location','southeast');
+set(leg,'Interpreter','latex');
+set(leg,'FontSize',18);
+xlabel('Time [s]','FontSize',15);
+ylabel('Prediction','FontSize',15);
+title('Force (N)','FontSize',15);
 hold on; 
 axis tight;
 grid on;
 
 subplot(223)
-plot(data.time,f_measured(4,:)','r',data.time,f_measured(5,:)','b',data.time,f_measured(6,:),'g','lineWidth',2.0);
+plot(data.time,f_measured(4,:)',data.time,f_measured(5,:)',data.time,f_measured(6,:),'lineWidth',2.0);
+leg = legend('$F_x$','$F_y$','$F_z$','Location','southeast');
 set(leg,'Interpreter','latex');
 set(leg,'FontSize',18);
-xlabel('Time [s]','FontSize',18);
-ylabel('Force Actual(N)','FontSize',18);
-        legend('$F_x$','$F_y$','$F_z$','Location','northeast');
-        set(legend,'Interpreter','latex');
-        set(legend,'FontSize',20);
+xlabel('Time [s]','FontSize',15);
+ylabel('Actual','FontSize',15);
 axis tight;
 grid on;
 
+%% Moment prediction comparison 
 
-%figure()
 subplot(222);
-plot(data.time,f_fp(:,1),'r',data.time,f_fp(:,2),'b',data.time,f_fp(:,3),'g', 'lineWidth',2.0);
+plot(data.time,f_fp(:,1),data.time,f_fp(:,2),data.time,f_fp(:,3), 'lineWidth',2.0);
+leg = legend('$M_x$','$M_y$','$M_z$','Location','northeast');
 set(leg,'Interpreter','latex');
 set(leg,'FontSize',18);
-xlabel('Time [s]','FontSize',18);
-ylabel('Momment Prediction(Nm)','FontSize',18);
-legend('$M_x$','$M_y$','$M_z$','Location','northeast');
-        set(legend,'Interpreter','latex');
-        set(legend,'FontSize',20);
-title('Moment in forceplate','FontSize',15);
+xlabel('Time [s]','FontSize',15);
+ylabel('Prediction','FontSize',15);
+title('Moment (Nm)','FontSize',15);
 hold on;
 axis tight;
 grid on;
 
 subplot(224)
-plot(data.time,f_measured(1,:)','r',data.time,f_measured(2,:)','b',data.time,f_measured(3,:),'g','lineWidth',2.0);
+plot(data.time,f_measured(1,:)',data.time,f_measured(2,:)',data.time,f_measured(3,:),'lineWidth',2.0);
+leg = legend('$M_x$','$M_y$','$M_z$','Location','northeast');
 set(leg,'Interpreter','latex');
 set(leg,'FontSize',18);
-xlabel('Time [s]','FontSize',18);
-ylabel('Momment Actual(Nm)','FontSize',18);
-legend('$M_x$','$M_y$','$M_z$','Location','northeast');
-        set(legend,'Interpreter','latex');
-        set(legend,'FontSize',20);
+xlabel('Time [s]','FontSize',15);
+ylabel('Actual','FontSize',15);
 axis tight;
 grid on;
 
 
+axes('Position',[0 0 1 1],'Xlim',[0 1],'Ylim',[0 1],'Box','off','Visible','off','Units','normalized','clipping' ,'off');
+text(0.5, 0.99,'\bf Prediction comparison (Fp frame)','HorizontalAlignment','center','VerticalAlignment', 'top','FontSize',14);
 
 

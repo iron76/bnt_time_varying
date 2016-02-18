@@ -46,18 +46,17 @@ for subjectID = subjectList
         P_G_imuB = currentTrial.P_G_imuB(1:pSelec,:);
         P_G_imuC = currentTrial.P_G_imuC(1:pSelec,:);
         
-        %% Computing q1 and q2  angles 
+        %% Computing q1 and q2 angles 
 
         % computing P_G_1, P_G_2, P_G_3 for all the time
         P_G_1 = computeCentroidOfPoints(P_G_lankle,P_G_rankle);
         P_G_2 = computeCentroidOfPoints(P_G_lhip,P_G_rhip);
-        P_G_3 = computeCentroidOfTriangle(P_G_lsho,P_G_rsho,P_G_tors);
-
+        %P_G_3 = computeCentroidOfTriangle(P_G_lsho,P_G_rsho,P_G_tors);
+        P_G_3 = computeCentroidOfPoints(P_G_lsho,P_G_rsho);
         
         % JOINT ANGLE q1
         len = size(P_G_1,1);
         
-        % JOINT ANGLE q1
         l1 = (P_G_2 - P_G_1);
         q1 = zeros (len, 1);
         
@@ -115,6 +114,7 @@ for subjectID = subjectList
         ddq2_sg = ddq2_sg ./ (delT)^2;
         
         %% plot q, dq, ddq
+        
         figure;
         subplot(311);
         plot1 = plot(currentTrial.t_vicon(:,1:pSelec),q1.*(180/pi),'lineWidth',1.0); hold on;
@@ -196,14 +196,13 @@ for subjectID = subjectList
         
         % Plotting raw data coming from force plate sensor in sensor frame
         f_fp = currentTrial.f_fp(1:pSelec,:);
-        f_fp(:,1:3) = currentTrial.f_fp(:,1:3)*1e-3; % converting moments from Nmm to Nm
-        
+       
         figure;
         subplot(211);
         plot(currentTrial.t_vicon,f_fp(:,4:6)); axis tight;
         xlabel('Time [s]','FontSize',15);
         ylabel('Force [N]','Fontsize',15);
-        title('Wrench measured in force plate (Fp) frame','FontSize',15);
+        title('Wrench measured in force plate (Fp frame)','FontSize',15);
         legend('$F_x$','$F_y$','$F_z$','Location','northeast');
         set(legend,'Interpreter','latex');
         set(legend,'FontSize',20);

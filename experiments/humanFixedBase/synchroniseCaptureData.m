@@ -25,10 +25,18 @@ trialIDList = 1;%1:4;
 
 %% Sampling and filter settings
 samplingFrequency = (1/100);
+
+filterOpt.imu.toFilter = 'yes';
 filterOpt.imu.window = 57;
 filterOpt.imu.order = 3;
+
+filterOpt.vicon.toFilter = 'no';
 filterOpt.vicon.window = 23;
 filterOpt.vicon.order = 4;
+
+filterOpt.forcePlate.toFilter = 'yes';
+filterOpt.forcePlate.window = 57;
+filterOpt.forcePlate.order = 3;
 
 
 %% iterate through each trial c
@@ -44,8 +52,8 @@ for subjectID = subjectIDList
         
         f_raw = viconDataFilt.analogsFOR;
         
-        t_raw_vicon_f = 0:(1/100):((1/100)*size(f_raw,1));
-        t_raw_vicon_f = t_raw_vicon_f(1:end-1)./10;
+        t_raw_vicon_f = 0:(1/1000):((1/1000)*size(f_raw,1));
+        t_raw_vicon_f = t_raw_vicon_f(1:end-1);
         t_vicon = 0:(samplingFrequency):t_raw_vicon_f(end);
         f = interp1(t_raw_vicon_f,f_raw,t_vicon);
 
@@ -136,7 +144,7 @@ for subjectID = subjectIDList
         
 
         %% VICON interpolation, variable rename and resultStore
-        t_raw_vicon_p = 0:(1/100):(0.01*size(subjectData(subjectID,trialID).markers.ltoe,1));
+        t_raw_vicon_p = 0:(1/100):(0.01*size(viconDataFilt(subjectID,trialID).markers.ltoe,1));
         t_raw_vicon_p = t_raw_vicon_p(1:end-1);
 
         
@@ -163,7 +171,8 @@ for subjectID = subjectIDList
         synchronisedData(subjectID,trialID).P_G_imuB = 1e-3*interp1( t_raw_vicon_p,viconDataFilt.markers.imuB,t_vicon);
         synchronisedData(subjectID,trialID).P_G_imuC =1e-3* interp1( t_raw_vicon_p,viconDataFilt.markers.imuC,t_vicon);
         
-        synchronisedData(subjectID,trialID).f_fp = interp1( t_raw_vicon_f,[viconDataFilt.analogsMOM,viconDataFilt.analogsFOR],t_vicon);
+        %% multiplying moments alone with 1e-3 to take Nmm to Nm
+        synchronisedData(subjectID,trialID).f_fp = interp1( t_raw_vicon_f,[viconDataFilt.analogsMOM .* 1e-3,viconDataFilt.analogsFOR],t_vicon);
 
         subplot(2,2,2);
         plot(t_vicon,synchronisedData(subjectID,trialID).f_fp(:,4:6));
