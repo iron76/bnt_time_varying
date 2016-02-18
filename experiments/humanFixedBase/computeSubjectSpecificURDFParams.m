@@ -26,7 +26,7 @@ for subjectID = 1:length(subjectList)
         
        P_G_tors = mean(temp.P_G_tors(1:pSelec,:));
         
-       fx_PWAPWA_1 = mean(temp.fx_PWAPWA_1(1:pSelec,:));
+       f_fp = mean(temp.f_fp(1:pSelec,:));
                 
        P_G_1 = computeCentroidOfPoints(P_G_lankle,P_G_rankle);
        P_G_2 = computeCentroidOfPoints(P_G_lhip,P_G_rhip);
@@ -68,7 +68,7 @@ for subjectID = 1:length(subjectList)
         
         
        totalV = footV+legV+torsoV;
-       Totalm = norm(fx_PWAPWA_1(:,1:3)) ./ 9.81;
+       Totalm = norm(f_fp(:,1:3)) ./ 9.81;
        footm = Totalm * (footV/totalV);
        legm = Totalm * (legV/totalV);
        torsom = Totalm * (torsoV/totalV);
@@ -126,7 +126,7 @@ for subjectID = 1:length(subjectList)
     end
 end
 
-save('./experiments/humanFixedBase/subjectSizeParams.mat','subjectParams');
+save('./experiments/humanFixedBase/data/subjectSizeParams.mat','subjectParams');
 
 
 

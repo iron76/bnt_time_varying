@@ -19,7 +19,9 @@
 %       setQ - set the current value for the position q
 %      setDq - set the current value for the velocity dq
 %       setY - set the current value for the measurement y
-%
+% setYmatrix - set matrix Y
+%    setBias - set b_Y vector
+% 
 % Author: Francesco Nori
 % Genova, Dec 2014
 
@@ -179,6 +181,8 @@ classdef deterministicMAPsolver
 
       end % setState
       
+      
+      % ===set measurements
       function obj = setY(obj,y)
          [m,n] = size(y);
          if (m ~= obj.IDmeas.m) || (n ~= 1)
@@ -187,11 +191,26 @@ classdef deterministicMAPsolver
          obj.IDmeas.y = y;
       end 
       
-      function y = simY(obj, d)
-         % fprintf('Calling the deterministicMAPsolver simY method \n');
-         y = cell2mat(obj.IDsens.sensorsParams.Y)*d;
-      end 
       
+      % ===set Y matrix
+      function obj = setYmatrix(obj,Y)
+          obj.IDsens.sensorsParams.Y = Y;
+      end      
+
+      
+      % ===set bias b_Y
+      function obj = setBias(obj,b_Y)
+          obj.IDsens.sensorsParams.b_Y = b_Y;
+      end 
+        
+      
+      % ===simulate Y matrix from output
+      function y = simY(obj, d)
+      % fprintf('Calling the deterministicMAPsolver simY method \n');
+      y = (obj.IDsens.sensorsParams.Y)*d;
+      %y = cell2mat(obj.IDsens.sensorsParams.Y)*d;
+      end 
+   
       % obj = solveMAP(obj)
    end
    

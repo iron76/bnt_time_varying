@@ -1,4 +1,4 @@
-function obj = solveID(obj, computeVariance)
+function obj = solveID(obj)
 %solveID Inverse Dynamics with sparse Newton-Euler Algorithm (SNEA)
 %   This function solves the inverse dynamics problem with the sparse
 %   Newton-Euler algorithm, as described in the paper "BERDY: Bayesian 
@@ -12,7 +12,7 @@ function obj = solveID(obj, computeVariance)
 %
 %   d_i = [a_i, fB_i, f_i, tau_i, fx_i, d2q_i]
 %
-%   and a_i is the link-i spatial accelration, fB_i is the net spatial
+%   and a_i is the link-i spatial acceleration, fB_i is the net spatial
 %   force on the link-i, f_i is spatial wrench transmitted to link-i from
 %   its parent, tau_i is torque on joint-i, fx_i is the external force on
 %   link-i and d2q_i is acceleration of joint-i. The input to the algorithm
@@ -33,7 +33,8 @@ function obj = solveID(obj, computeVariance)
 
 NB = obj.IDmodel.modelParams.NB;
 D = sparse(obj.iDs, obj.jDs, obj.Ds, 19*NB, 26*NB);
-b = sparse(obj.ibs, ones(size(obj.ibs)), obj.bs, 19*NB, 1);
+%D = full(D);
+b_D = sparse(obj.ibs, ones(size(obj.ibs)), obj.bs, 19*NB, 1);
 
 % Dx = D(1:19*NB, 1:19*NB);
 % Dy = D(1:19*NB, 19*NB+1:26*NB);
@@ -44,17 +45,25 @@ Sv_inv = obj.IDmodel.modelParams.Sv_inv.matrix;
 Sw_inv = obj.IDmodel.modelParams.Sw_inv.matrix;
 % Sw     = obj.IDmodel.modelParams.Sw.matrix;
 % Sy_inv = eye(my)   ./sMeas;
-Sy_inv = obj.IDsens.sensorsParams.Sy_inv.matrix;
+%Sy_inv = obj.IDsens.sensorsParams.Sy_inv.matrix;
+if isa(obj.IDsens.sensorsParams.Sy_inv, 'submatrixSparse')
+   Sy_inv = obj.IDsens.sensorsParams.Sy_inv.matrix;
+else
+   Sy_inv = obj.IDsens.sensorsParams.Sy_inv;
+end
 
-Y = obj.IDsens.sensorsParams.Ys;
+Y = obj.IDsens.sensorsParams.Y;
+b_Y = obj.IDsens.sensorsParams.b_Y;
 
 y      = obj.IDmeas.y;
-S_Dinv = Sv_inv;
-S_dinv = blkdiag(zeros(size(Sv_inv)), Sw_inv);
-S_Yinv = Sy_inv;
-bY     = zeros(size(y));
-bD     = b;
-muD    = zeros(length(S_dinv), 1);
+
+S_Dinv = Sv_inv;                                %constraint equation covariance
+S_dinv = blkdiag(zeros(size(Sv_inv)), Sw_inv);  %prior covariance
+S_Yinv = Sy_inv;                                %measurements equation covariance
+%b_Y     = zeros(size(y));
+%b_D     = b;
+mu_D    = zeros(length(S_dinv), 1);
+mu_d    = zeros(length(S_dinv), 1);
 
 % permutations corresponding to the RNEA 
 % I      = [obj.ia; obj.ifB; obj.iF(end:-1:1, 1); obj.itau];
@@ -63,17 +72,36 @@ muD    = zeros(length(S_dinv), 1);
 % Jinv(J)= 1:length(J);
 % with these definitions [Y(:,J); D(I, J)] is lowertriangular
 
-if nargin == 1
-   d      = (D'*S_Dinv*D + S_dinv + Y'*S_Yinv*Y)\(Y'*S_Yinv*(y-bY) - D'*S_Dinv*bD + S_dinv * muD);
-   obj.d  = d(obj.id,1);
-elseif (nargin == 2) && strcmp(computeVariance, 'variance')
-   Sd     = inv(D'*S_Dinv*D + S_dinv + Y'*S_Yinv*Y);
-   d      = Sd*(Y'*S_Yinv*(y-bY) - D'*S_Dinv*bD + S_dinv * muD);
-   obj.d  = d(obj.id,1);
-   obj.Sd = Sd(obj.id,obj.id);
-end
-   
+%% mean and covariance matrix of p(d) ~ N(muBar_D, SBar_D)
+
+SBar_D  = inv(D'*S_Dinv*D + S_dinv);
+muBar_D = SBar_D*((S_dinv*mu_d) - D'*S_Dinv*b_D);
+
+%% mean and covariance matrix of p(d|y) ~ N(mu_d|y, S_d|y)
+% Note : mu_d|y --> d (as we are considering MAP estimator);
+%        S_d|y  --> Sd
+
+Sd = inv(inv(SBar_D) + Y'*S_Yinv*Y);
+d  = Sd * (Y'*S_Yinv*(y-b_Y) + (inv(SBar_D) * muBar_D));
 
 
+%%
+obj.d  = d(obj.id,1);
+obj.Sd = Sd(obj.id,obj.id);
+
+
+%% ======= Nori version
+
+% if nargin == 1
+%    d      = (D'*S_Dinv*D + S_dinv + Y'*S_Yinv*Y)\(Y'*S_Yinv*(y-b_Y) - D'*S_Dinv*b_D + S_dinv * mu_D);
+%    obj.d  = d(obj.id,1);
+%
+% elseif (nargin == 2) && strcmp(computeVariance, 'variance')
+%    Sd     = inv(D'*S_Dinv*D + S_dinv + Y'*S_Yinv*Y);
+%    d      = Sd*(Y'*S_Yinv*(y-b_Y) - D'*S_Dinv*b_D + S_dinv * mu_D);
+%    obj.d  = d(obj.id,1);
+%    obj.Sd = Sd(obj.id,obj.id);
+% end
+%    
 
 end % solveID

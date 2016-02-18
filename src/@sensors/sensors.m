@@ -19,7 +19,7 @@ classdef sensors
       m
    end
    
-   properties(SetAccess = private, GetAccess = public)
+   properties(SetAccess = public, GetAccess = public)
       sensorsParams
    end
    

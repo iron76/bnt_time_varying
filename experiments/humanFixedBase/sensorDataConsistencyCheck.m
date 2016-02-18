@@ -7,7 +7,7 @@ data = struct();
 humanThreeLink
 data = organiseBERDYCompatibleSensorData(data,subjectID,trialID);
 %load('./experiments/humanFixedBase/organiseBerdyCompatibleSensorData.mat');
-load('./experiments/humanFixedBase/preProcessedSensorData.mat','processedSensorData');
+load('./experiments/humanFixedBase/data/preProcessedSensorData.mat','processedSensorData');
 sensor_imu = data.y_imu';%processedSensorData(subjectID,trialID).imu;
 sensor_ftx = data.y_ftx';%processedSensorData(subjectID,trialID).ftx;
 R_G_2 = processedSensorData(subjectID,trialID).R_G_2;
@@ -49,7 +49,7 @@ for i = 1:size(q)
      %q(i,:) = zeros(1,2);
      %dq(i,:) = zeros(1,2);
      %ddq(i,:) = zeros(1,2);
-      [tau_i, a_i, fB_i, f_i, v_i,fBase_i] = ID( humanThreeLink_dmodel, q(i,:), dq(i,:), ddq(i,:));
+      [tau_i, a_i,  v_i, fB_i, f_i,fBase_i] = ID( humanThreeLink_dmodel, q(i,:), dq(i,:), ddq(i,:));
       tau(i,:) = tau_i';      
       %a_1(i,:) = a_i{1}';
       a_2_2(i,:) = a_i{2}(4:6)';% + [0 0 -9.8];
@@ -163,9 +163,6 @@ if(strcmp(plots,'noplots')~=1)
     ylabel('Torrque (Nm)');
     legend('\tau_1','\tau_2');
     axis tight;
-    %subplot(2,1,1);
-
-    %subplot(2,1,2);
-    %plot(t,
+  
 end
 end
