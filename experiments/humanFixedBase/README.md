@@ -12,7 +12,7 @@ Requirements :
 Data characteristics
 --------------------
 
-The data required for the analysis must be independently downloaded into a subfolder called data. The data consists of 2 files : 
+The data required for the analysis must be independently downloaded into a subfolder called data. The data consists of 2 files like these: 
 
 1. VICONsaveData.mat
 2. imuExtractedData.mat
@@ -26,13 +26,15 @@ Execution
 The execution sequence is as follows : 
 
 1. synchroniseCaptureData
-2. computeLinkSensorFrames
-3. organiseSensorData
-4. main.m
+2. organiseSensorData
+3. computeSubjectSpecificURDFParams (createUrdfModelFromSubjectParams: step to be computed only for the first time)
+4. loadModelFromURDF
+5. computeLinkSensorFrame
+6. organiseBERDYCompatibleSensorData
+7. main
 
-If step 1 above is executed, main will take care of step 2 & 3 if it is not already existing. Note that any changes to sensorFrameExtraction or imuVICON_synchornise necessiates that you follow this execution sequence again.
 
-The output of 1,2,and 3 produces a .mat file in the subfolder dalled intermediateDataFiles
+The output of 1,2,5,6,7, produces a .mat file in the subfolder called intermediateDataFiles)
 
 Tests
 -------------------
