@@ -1,26 +1,27 @@
 % organiseSensorData
-% Script to organise the collected sensor data of the Human-Dynamics 
-% estimation experiment. The sensors are the VICON markers, IMU
-% placed on the chest and force place on the bottom of the foot. 
-% The quantities being computed are joint angles q1, q2, qDot1, qDot2,
-% the 3D linear acceleration a_imu, 3D angular velocity omega_imu, and the 6D wrench
-% measurements from the force place. The IMU and forceplate information
-% is organised in the senor frames.
-%
-% Author: Naveen Kuppuswamy (naveen.kuppuswamy@iit.it)
-% iCub Facility, Istituto Italiano di Tecnologia, 21 January 2016
+% Script to organise the collected sensor data.  
+% Computed clustered quantities are:
+% - joint angles q1 and q2;
+% - joint velocities dq1 and dq2;
+% - joint accelerations ddq1 and ddq2;
+% Measured clustered quantities are:
+% - linear acceleration from IMU a_imu;
+% - angular velocity from IMU omega_imu;
+% - wrench from force plate f_fp_fp;
+% Measured quantities are in sensor frame.
 
+clc; clear; close all;
 
-%% load the synchronised dataset (including VICON and IMU data)
-load('./experiments/humanFixedBase/intermediateDataFiles/synchronisedSensorData.mat');
+%% load the synchronised dataset
+load('./experiments/humanFixedBase/intermediateDataFiles/synchronisedData.mat');
 
 isTest = 'false';
 
-subjectList = 1;
-trialList = 1 ; 
+subjectList = 1:12;
+trialList = 1:4 ; 
 
 
-%% iterate through each trial computing transforms each time
+%% iterate through each trial 
 for subjectID = subjectList
     fprintf('\n---------\nSubject : %d\nTrial : ',subjectID);
     for trialID = trialList
@@ -28,35 +29,36 @@ for subjectID = subjectList
         
         currentTrial = synchronisedData(subjectID,trialID);
         
-        pSelec = size(currentTrial.P_G_lhee,1);
+        P_G_lhee = currentTrial.P_G_lhee;
+        P_G_ltoe = currentTrial.P_G_ltoe;
+        P_G_rhee = currentTrial.P_G_rhee;
+        P_G_rtoe = currentTrial.P_G_rtoe;
+        P_G_lankle = currentTrial.P_G_lankle;
+        P_G_lhip = currentTrial.P_G_lhip;
+        P_G_lsho = currentTrial.P_G_lsho;
+        P_G_rankle = currentTrial.P_G_rankle;
+        P_G_rhip = currentTrial.P_G_rhip;
+        P_G_rsho = currentTrial.P_G_rsho;
+        P_G_tors = currentTrial.P_G_tors;
+        P_G_imuA = currentTrial.P_G_imuA;
+        P_G_imuB = currentTrial.P_G_imuB;
+        P_G_imuC = currentTrial.P_G_imuC;
         
-        %% Extracting VICON marker trajectories
-        P_G_lhee = currentTrial.P_G_lhee(1:pSelec,:);
-        P_G_ltoe = currentTrial.P_G_ltoe(1:pSelec,:);
-        P_G_rhee = currentTrial.P_G_rhee(1:pSelec,:);
-        P_G_rtoe = currentTrial.P_G_rtoe(1:pSelec,:);
-        P_G_lankle = currentTrial.P_G_lankle(1:pSelec,:);
-        P_G_lhip = currentTrial.P_G_lhip(1:pSelec,:);
-        P_G_lsho = currentTrial.P_G_lsho(1:pSelec,:);
-        P_G_rankle = currentTrial.P_G_rankle(1:pSelec,:);
-        P_G_rhip = currentTrial.P_G_rhip(1:pSelec,:);
-        P_G_rsho = currentTrial.P_G_rsho(1:pSelec,:);
-        P_G_tors = currentTrial.P_G_tors(1:pSelec,:);
-        P_G_imuA = currentTrial.P_G_imuA(1:pSelec,:);
-        P_G_imuB = currentTrial.P_G_imuB(1:pSelec,:);
-        P_G_imuC = currentTrial.P_G_imuC(1:pSelec,:);
+        samplingTime = currentTrial.samplingTime;
+        dataTime = currentTrial.dataTime;
+        len = length(P_G_lhee);
         
-        %% Computing q1 and q2 angles 
+        aLin_imu_imu = currentTrial.aLin_imu_imu;
+        omega_imu_imu = currentTrial.omega_imu_imu;
+        wrench_fp_fp = currentTrial.wrench_fp_fp;
+        
+        %% computing q1 and q2 angles 
 
-        % computing P_G_1, P_G_2, P_G_3 for all the time
         P_G_1 = computeCentroidOfPoints(P_G_lankle,P_G_rankle);
         P_G_2 = computeCentroidOfPoints(P_G_lhip,P_G_rhip);
-        %P_G_3 = computeCentroidOfTriangle(P_G_lsho,P_G_rsho,P_G_tors);
         P_G_3 = computeCentroidOfPoints(P_G_lsho,P_G_rsho);
         
         % JOINT ANGLE q1
-        len = size(P_G_1,1);
-        
         l1 = (P_G_2 - P_G_1);
         q1 = zeros (len, 1);
         
@@ -73,161 +75,154 @@ for subjectID = subjectList
         end
         
         q2 = q_temp-q1;
-    
-        
-        %% Using Savitzky-Golay filtering for computing derivatives
+          
+        %% computing dq1,dq2,ddq1,ddq2
 
-        % to do: tune window and polyn order.
-        window = 57;
-        [~, diffCoeff] = sgolay_wrapper(3, window);
-        %diffCoeff is a matrix of (polynomialOrder-1) columns where:
-        %- ( ,1) --> coefficient for S-Golay as smoother;
-        %- ( ,2) --> coefficient for S-Golay as 1st differentiator;
-        %- ( ,3) --> coefficient for S-Golay as 2nd differentiator;
-        %  .   
-        %  .
-        %  .
-        %- ( ,polynomialOrder-1) --> coefficient for S-Golay as (polynomialOrder) differentiator;
-        
-        halfWindow  = ((window+1)/2) -1;
-        dq1_sg = zeros(len, 1);
-        dq2_sg = zeros(len, 1);
-        ddq1_sg = zeros(len, 1);
-        ddq2_sg = zeros(len, 1);
-        
-        for n = (window+1)/2:len-(window+1)/2,
-              % 1st differential
-              dq1_sg(n) = dot(diffCoeff(:,2),q1(n - halfWindow:n + halfWindow));
-              dq2_sg(n) = dot(diffCoeff(:,2),q2(n - halfWindow:n + halfWindow));
-              % 2nd differential
-              ddq1_sg(n) = dot(diffCoeff(:,3),q1(n - halfWindow:n + halfWindow));
-              ddq2_sg(n) = dot(diffCoeff(:,3),q2(n - halfWindow:n + halfWindow));
-        end
-       
-        % dt = 10^-3 since sampling rate is 1kHz (to be set in case of downsampling)
-        dq1_sg = dq1_sg ./ 1e-3;
-        dq2_sg = dq2_sg ./ 1e-3;
-        ddq1_sg = ddq1_sg ./ (1e-3)^2;
-        ddq2_sg = ddq2_sg ./ (1e-3)^2;
+        [dq1,ddq1] = SgolayDerivation(3,57,q1,samplingTime);
+        [dq2,ddq2] = SgolayDerivation(3,57,q2,samplingTime);
         
         %% plot q, dq, ddq
         
-        figure;
-        subplot(311);
-        plot1 = plot(currentTrial.t_vicon(:,1:pSelec),q1.*(180/pi),'lineWidth',1.0); hold on;
-        set(plot1,'color',[1 0 0]);
-        plot2= plot(currentTrial.t_vicon(:,1:pSelec),q2.*(180/pi),'lineWidth',1.0); hold on;
-        set(plot2,'color',[0 0.498039215803146 0]);
-        leg = legend('$q_1$','$q_2$','Location','northeast');
-        title('Joint Quantities','FontSize',15);
-        set(leg,'Interpreter','latex');
-        set(leg,'FontSize',15);
-        xlabel('Time [s]','FontSize',15);
-        ylabel('Joint Angle [deg]','FontSize',15);
-        axis tight;
-        grid on;  
-
-        subplot(312);
-        plot1 = plot(currentTrial.t_vicon(:,1:pSelec),(180/pi)*dq1_sg,'lineWidth',1.0); hold on;
-        set(plot1,'color',[1 0 0]);
-        plot2= plot(currentTrial.t_vicon(:,1:pSelec),(180/pi)*dq2_sg,'lineWidth',1.0); hold on;
-        set(plot2,'color',[0 0.498039215803146 0]);
-        leg = legend('$\dot q_{1}$','$\dot q_{2}$','Location','northeast');
-        set(leg,'Interpreter','latex');
-        set(leg,'FontSize',15);
-        xlabel('Time [s]','FontSize',15);
-        ylabel('Joint Velocity [deg/s]','FontSize',15);
-        axis tight;
-        grid on;
-        
-        subplot(313);
-        plot1 = plot(currentTrial.t_vicon(:,1:pSelec),(180/pi)*ddq1_sg,'lineWidth',1.0); hold on;
-        set(plot1,'color',[1 0 0]);
-        plot2= plot(currentTrial.t_vicon(:,1:pSelec),(180/pi)*ddq2_sg,'lineWidth',1.0); hold on;
-        set(plot2,'color',[0 0.498039215803146 0]);
-        leg = legend('$\ddot q_{1}$','$\ddot q_{2}$','Location','northeast');
-        set(leg,'Interpreter','latex');
-        set(leg,'FontSize',15);
-        xlabel('Time [s]','FontSize',15);
-        ylabel('Joint Acceleration [deg/s^2]','FontSize',15);
-        axis tight;
-        grid on;
+%         fig = figure();
+%         axes1 = axes('Parent',fig,'FontSize',16);
+%         box(axes1,'on');
+%         hold(axes1,'on');
+%         grid on;
+%         
+%         subplot(311);
+%         plot1 = plot(dataTime,q1.*(180/pi),'lineWidth',1.0); hold on;
+%         set(plot1,'color',[1 0 0]);
+%         plot2= plot(dataTime,q2.*(180/pi),'lineWidth',1.0); hold on;
+%         set(plot2,'color',[0 0.498039215803146 0]);
+%         leg = legend('$q_1$','$q_2$','Location','northeast');
+%         %title('Joint Quantities','FontSize',15);
+%         set(leg,'Interpreter','latex');
+%         set(leg,'FontSize',15);
+%         xlabel('Time [s]','FontSize',15);
+%         ylabel('Angle [deg]','FontSize',15);
+%         axis tight;
+%         grid on;  
+%         title(sprintf('Subject %d, Trial %d, Joint Quantities',subjectID,trialID));
+%         
+%         subplot(312);
+%         plot1 = plot(dataTime,(180/pi)*dq1,'lineWidth',1.0); hold on;
+%         set(plot1,'color',[1 0 0]);
+%         plot2= plot(dataTime,(180/pi)*dq2,'lineWidth',1.0); hold on;
+%         set(plot2,'color',[0 0.498039215803146 0]);
+%         leg = legend('$\dot q_{1}$','$\dot q_{2}$','Location','northeast');
+%         set(leg,'Interpreter','latex');
+%         set(leg,'FontSize',15);
+%         xlabel('Time [s]','FontSize',15);
+%         ylabel('Velocity [deg/s]','FontSize',15);
+%         axis tight;
+%         grid on;
+%         
+%         subplot(313);
+%         plot1 = plot(dataTime,(180/pi)*ddq1,'lineWidth',1.0); hold on;
+%         set(plot1,'color',[1 0 0]);
+%         plot2= plot(dataTime,(180/pi)*ddq2,'lineWidth',1.0); hold on;
+%         set(plot2,'color',[0 0.498039215803146 0]);
+%         leg = legend('$\ddot q_{1}$','$\ddot q_{2}$','Location','northeast');
+%         set(leg,'Interpreter','latex');
+%         set(leg,'FontSize',15);
+%         xlabel('Time [s]','FontSize',15);
+%         ylabel('Acceleration [deg/s^2]','FontSize',15);
+%         axis tight;
+%         grid on;
         
        
         %% IMU data (a_imuLin, omega_imu)
       
-        % Plotting raw data coming from IMU sensor in IMU frame
+%         % Plotting raw data coming from IMU sensor in IMU frame     
+%         fig = figure();
+%         axes1 = axes('Parent',fig,'FontSize',16);
+%         box(axes1,'on');
+%         hold(axes1,'on');
+%         grid on; 
+%         
+%         subplot(211);
+%         plot(dataTime, aLin_imu_imu); axis tight;
+%         leg = legend('$a_x$','$a_y$','$a_z$','Location','northeast');
+%         set(leg,'Interpreter','latex');
+%         set(leg,'FontSize',15);
+%         xlabel('Time [s]','FontSize',15);
+%         ylabel('Linear Acceleration [m/sec^2]','FontSize',15);
+%         %title('Raw IMU data of link 2 (IMU frame)','FontSize',15);
+%         grid on;
+%         title(sprintf('Subject %d, Trial %d, Raw IMU data of link 2 (IMU frame)',subjectID,trialID));
+%         
+%         subplot(212);
+%         plot(dataTime,omega_imu_imu);  axis tight;
+%         leg = legend('$w_x$','$w_y$','$w_z$','Location','northeast');
+%         set(leg,'Interpreter','latex');
+%         set(leg,'FontSize',15);
+%         xlabel('Time [s]','FontSize',15);
+%         ylabel('Angular Velocity [rad/s]','FontSize',15);
+%         grid on;
+%   
+        %% forceplate wrench data (f_fp_fp)
         
-        figure;
-        subplot(211);
-        plot(currentTrial.t_imu,currentTrial.a_imu_imulin'); axis tight;
-        xlabel('Time [s]','FontSize',15);
-        ylabel('Linear Acceleration [m/sec^2]','FontSize',15);
-        legend('$a_x$','$a_y$','$a_z$','Location','northeast');
-        set(legend,'Interpreter','latex');
-        set(legend,'FontSize',15);
-        legend('a^{IMU}_x','a^{IMU}_y','a^{IMU}_z','Location','northeast');
-        title('Raw IMU data of link 2 (IMU frame)','FontSize',15);
-        grid on;
-        
-        subplot(212);
-        plot(currentTrial.t_imu,currentTrial.v_imu_imurot');  axis tight;
-        xlabel('Time [s]','FontSize',15);
-        ylabel('Angular Velocity [rad/s]','FontSize',15);
-        legend('$w_x$','$w_y$','$w_z$','Location','northeast');
-        set(legend,'Interpreter','latex');
-        set(legend,'FontSize',15);
-        legend('w^{IMU}_x','w^{IMU}_y','w^{IMU}_z','Location','northeast');
-        grid on;
-        
-        a_imu = zeros(size(q1,1),3);
-        omega_imu = zeros(size(q1,1),3);
-        
-          for i = 1:length(currentTrial.t_vicon)   
-                a_imu(i,:) =  currentTrial.a_imu_imulin(i,:); 
-                omega_imu(i,:) =  currentTrial.v_imu_imurot(i,:); 
-          end
-          
-        
-        %% Extracting forceplate wrench (f_fp)
-        
-        % Plotting raw data coming from force plate sensor in sensor frame
-        f_fp_fp = currentTrial.f_fp(1:pSelec,:);
-        f_fp_fp(:,1:3) = currentTrial.f_fp(:,1:3);
-       
-        figure;
-        subplot(211);
-        plot(currentTrial.t_vicon,f_fp_fp(:,4:6)); axis tight;
-        xlabel('Time [s]','FontSize',15);
-        ylabel('Force [N]','Fontsize',15);
-        title('Wrench measured in force plate (Fp frame)','FontSize',15);
-        legend('$F_x$','$F_y$','$F_z$','Location','northeast');
-        set(legend,'Interpreter','latex');
-        set(legend,'FontSize',20);
-        grid on;
-        
-        subplot(212);
-        plot(currentTrial.t_vicon,f_fp_fp(:,1:3)); axis tight;
-        xlabel('Time [s]','FontSize',15);
-        ylabel('Moment [Nm]','FontSize',15);
-        legend('$M_x$','$M_y$','$M_z$','Location','northeast');
-        set(legend,'Interpreter','latex');
-        set(legend,'FontSize',20);
-        grid on;
+%         % Plotting raw data coming from force plate sensor in sensor frame      
+%         fig = figure();
+%         axes1 = axes('Parent',fig,'FontSize',16);
+%         box(axes1,'on');
+%         hold(axes1,'on');
+%         grid on;
+%         
+%         subplot(211);
+%         plot(dataTime,wrench_fp_fp(:,4:6)); axis tight;
+%         leg =legend('$F_x$','$F_y$','$F_z$','Location','northeast');
+%         set(leg,'Interpreter','latex');
+%         set(leg,'FontSize',15);
+%         xlabel('Time [s]','FontSize',15);
+%         ylabel('Force [N]','Fontsize',15);
+%         %title('Wrench measured in force plate (Fp frame)','FontSize',15);
+%         grid on;
+%         title(sprintf('Subject %d, Trial %d, Wrench measured in force plate (Fp frame)',subjectID,trialID));
+%          
+%         subplot(212);
+%         plot(dataTime,wrench_fp_fp(:,1:3)); axis tight;
+%         leg = legend('$M_x$','$M_y$','$M_z$','Location','northeast');
+%         set(leg,'Interpreter','latex');
+%         set(leg,'FontSize',15);
+%         xlabel('Time [s]','FontSize',15);
+%         ylabel('Moment [Nm]','FontSize',15);
+%         grid on;
  
-        %% Organising into a structure
+        %% data storing
         
+        processedSensorData(subjectID,trialID).samplingTime = samplingTime;
         processedSensorData(subjectID,trialID).q1 = q1;
         processedSensorData(subjectID,trialID).q2 = q2;
-        processedSensorData(subjectID,trialID).dq1 = dq1_sg;
-        processedSensorData(subjectID,trialID).dq2 = dq2_sg;
-        processedSensorData(subjectID,trialID).ddq1 = ddq1_sg;
-        processedSensorData(subjectID,trialID).ddq2 = ddq2_sg;
-        processedSensorData(subjectID,trialID).a_imu = a_imu';
-        processedSensorData(subjectID,trialID).omega_imu = omega_imu';
-        processedSensorData(subjectID,trialID).t = currentTrial.t_vicon;
-        processedSensorData(subjectID,trialID).imu = [a_imu omega_imu]';
-        processedSensorData(subjectID,trialID).f_fp_fp = f_fp_fp';
+        processedSensorData(subjectID,trialID).dq1 = dq1;
+        processedSensorData(subjectID,trialID).dq2 = dq2;
+        processedSensorData(subjectID,trialID).ddq1 = ddq1;
+        processedSensorData(subjectID,trialID).ddq2 = ddq2;
+        processedSensorData(subjectID,trialID).dataTime = dataTime;
+        processedSensorData(subjectID,trialID).imu = [aLin_imu_imu omega_imu_imu];
+        processedSensorData(subjectID,trialID).wrench_fp_fp = wrench_fp_fp;
+        
+        processedSensorData(subjectID,trialID).P_G_ltoe =P_G_ltoe;
+        processedSensorData(subjectID,trialID).P_G_lhee =P_G_lhee;
+        processedSensorData(subjectID,trialID).P_G_lankle =P_G_lankle;
+        processedSensorData(subjectID,trialID).P_G_lhip =P_G_lhip;
+        processedSensorData(subjectID,trialID).P_G_lsho =P_G_lsho; 
+        
+        processedSensorData(subjectID,trialID).P_G_rtoe =P_G_rtoe;
+        processedSensorData(subjectID,trialID).P_G_rhee = P_G_rhee;
+        processedSensorData(subjectID,trialID).P_G_rankle =P_G_rankle;
+        processedSensorData(subjectID,trialID).P_G_rhip = P_G_rhip;
+        processedSensorData(subjectID,trialID).P_G_rsho = P_G_rsho;
+        
+        processedSensorData(subjectID,trialID).P_G_tors =P_G_tors;
+        processedSensorData(subjectID,trialID).P_G_imuA = P_G_imuA;
+        processedSensorData(subjectID,trialID).P_G_imuB =P_G_imuB;
+        processedSensorData(subjectID,trialID).P_G_imuC =P_G_imuC;
+        
+        processedSensorData(subjectID,trialID).P_G_1 = P_G_1;
+        processedSensorData(subjectID,trialID).P_G_2 = P_G_2;
+        processedSensorData(subjectID,trialID).P_G_3 = P_G_3;
+        
     end
     fprintf('\n');
 end
