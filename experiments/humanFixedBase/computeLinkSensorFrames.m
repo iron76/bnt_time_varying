@@ -72,13 +72,16 @@ for subjectID = subjectList
         %% Computing adjoint transform 2_X_imu  --> for Ymatrix
         % we need 2_X_imu for Y matrix . 
         % We want to compute imu_X_2 = imu_X_G * G_X_0 * 0_X_2
-       
+         
+        currentModel = humanThreeLinkModelFromURDF(subjectID).dmodel;
+        dmodel = currentModel;
         
         % Computing G_X_0 (const)
         r_G_from0toG = P_G_G - P_G_0 ;
+        r_0_from0toG = R_0_G * r_G_from0toG';
         
         X_G_0 =   [           R_0_G'                  zeros(3) ; 
-                   -R_0_G'*skew(r_G_from0toG)          R_0_G'  ];
+                   -R_0_G'*skew(r_0_from0toG)          R_0_G'  ];
         
                
         % Computing imu_X_G (variant during motion). Since imu_X_G is used
@@ -89,15 +92,16 @@ for subjectID = subjectList
         [R_G_imu, P_G_imu] = computeInitialIMURotation(P_G_imuA,P_G_imuB,P_G_imuC);
         r_G_fromGtoimu = P_G_imu - P_G_G;
         
-        X_imu_G =   [           R_G_imu'                       zeros(3) ; 
+        X_imu_G =   [           R_G_imu'                     zeros(3) ; 
                       -R_G_imu'*skew(r_G_fromGtoimu)         R_G_imu' ];
         
                   
         % Computing 0_X_2     
-        X_0_2 = AdjTransfFromLinkToRoot (humanThreeLinkModelFromURDF(subjectID).dmodel, mean(q(1:samples,:)), 2);
+        X_0_2 = AdjTransfFromLinkToRoot (dmodel, mean(q(1:samples,:)), 2);
         
         % Computing imu_X_2 
         X_imu_2 = X_imu_G * X_G_0 * X_0_2;
+
         
    
        %% notes: 
@@ -126,11 +130,11 @@ for subjectID = subjectList
         
         %we want to compute r_fp_from0tofp
         r_G_from0tofp = P_G_fp - P_G_0;
-        r_fp_from0tofp = R_fp_G * r_G_from0tofp';
+        r_0_from0tofp = R_0_G * r_G_from0tofp';
         
         R_fp_0 = R_fp_G * R_0_G';
  
-        XStar_fp_0 = [  R_fp_0    -R_fp_0*skew(r_fp_from0tofp);
+        XStar_fp_0 = [  R_fp_0    -R_fp_0*skew(r_0_from0tofp);
                        zeros(3)                R_fp_0         ];
         
            
@@ -139,11 +143,10 @@ for subjectID = subjectList
         XStar_0_1 = cell(size(q,1),1);
         
         for i = 1:size(q,1)
-            XStar_0_1{i} = AdjTransfStarfFromLinkToRoot(humanThreeLinkModelFromURDF(subjectID).dmodel, q(i,:),1);
+            XStar_0_1{i} = AdjTransfStarfFromLinkToRoot(dmodel, q(i,:),1);
         end
-
                   
-        %% Organising into a structure          
+        %% Organising into a structure    
         sensorLinkTransforms(subjectID,trialID).X_imu_2 = X_imu_2;
         sensorLinkTransforms(subjectID,trialID).XStar_fp_0 = XStar_fp_0;
         sensorLinkTransforms(subjectID,trialID).XStar_0_1 = XStar_0_1; 
