@@ -20,7 +20,7 @@ plotSensorFramePrediction = true;
 
 %% selected subjects and trials
 subjectList = 1;
-trialList = 1;  
+trialList = 1:4;  
 
 for subjectID = subjectList
     fprintf('\n---------\nSubject : %d\nTrial : ',subjectID);
@@ -28,7 +28,7 @@ for subjectID = subjectList
          fprintf('%d, ',trialID);
          
     %% Load Drake model and data
-    load('./experiments/humanFixedBase/intermediateDataFiles/humanThreeLinkModelFromURDF.mat');
+    
     load('./experiments/humanFixedBase/intermediateDataFiles/processedSensorData.mat');
 
     currentTrial = processedSensorData(subjectID,trialID);
@@ -50,7 +50,9 @@ for subjectID = subjectList
     imu = currentTrial.imu;
 
     %% Computing tau using Newton-Euler with Featherstone toolbox
-
+    
+    load('./experiments/humanFixedBase/intermediateDataFiles/humanThreeLinkModelFromURDF.mat');
+    
     currentModel = humanThreeLinkModelFromURDF(subjectID).dmodel;
     dmodel = currentModel;
     
@@ -137,6 +139,7 @@ for subjectID = subjectList
     load('./experiments/humanFixedBase/intermediateDataFiles/sensorLinkTransforms.mat');
 
     currentTrialSens = sensorLinkTransforms(subjectID,trialID);
+    
     X_imu_2 = currentTrialSens.X_imu_2;
     XStar_fp_0 = currentTrialSens.XStar_fp_0;
     XStar_0_1 = currentTrialSens.XStar_0_1;
@@ -145,6 +148,7 @@ for subjectID = subjectList
     load('./experiments/humanFixedBase/data/subjectSizeParams.mat');
     
     currentParams = subjectParams(subjectID);
+    
     footMass =  currentParams.footMass;
     posP_0 = [0; 0; (0.5*currentParams.footHeight)];
     footIxx =  currentParams.footIxx;
@@ -154,6 +158,7 @@ for subjectID = subjectList
     S_lin = [zeros(3) eye(3)];
     S_ang = [eye(3) zeros(3)];
 
+    
     % ====IMU PREDICTION
     a_imu_imuPred = S_lin*(X_imu_2*a_2_2') + skew(S_ang*X_imu_2*v_2_2')*(S_lin*X_imu_2*v_2_2'); %skew or cross product are equivalent
     omega_imu_imuPred = S_ang*(X_imu_2*v_2_2');
@@ -161,11 +166,7 @@ for subjectID = subjectList
     % ====FORCE PLATE PREDICTION
     a_grav = [0;0;0;0;0;-9.8100]; %Featherstone-like notation
     
-    I_cBar = [footIxx     0        0   ; 
-              0        footIyy     0   ; 
-              0           0     footIzz]; 
-          
-    I_0 = createSpatialInertia(I_cBar,footMass,posP_0);
+    I_0 = createSpatialInertia(footIxx,footIyy,footIzz,footMass,posP_0);
     
     f_fp_fpPred = zeros(6,len);
     f_0_1 = zeros(6,len);
@@ -174,7 +175,7 @@ for subjectID = subjectList
     for i = 1 : len
         
          f_0_1(:,i) = (XStar_0_1{i,1} * f_1_1(:,i)); 
-         f_fp_fpPred(:,i) = XStar_fp_0 * ((f_0_1(:,i)));%-(I_0*a_grav));
+         f_fp_fpPred(:,i) = XStar_fp_0 * ((f_0_1(:,i))-(I_0*a_grav));
     end
     
     %% Plot link quantities from ID Featherstone
