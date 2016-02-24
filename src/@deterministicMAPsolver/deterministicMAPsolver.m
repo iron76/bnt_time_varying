@@ -19,6 +19,7 @@
 %       setQ - set the current value for the position q
 %      setDq - set the current value for the velocity dq
 %    setBias - set the current b_Y vector
+% setYmatrix - set the current Y matrix
 %       setY - set the current value for the measurement y
 %
 % Author: Francesco Nori
@@ -181,13 +182,29 @@ classdef deterministicMAPsolver
 
 
 
-      %%
+      %% 
       function obj = setY(obj,y)
          [m,n] = size(y);
          if (m ~= obj.IDmeas.m) || (n ~= 1)
             error('[ERROR] The input y should be provided as a column vector with ymodel.m rows');
          end
          obj.IDmeas.y = y;
+      end
+
+
+      %% SETMATRIX
+      function obj = setYmatrix(obj,Y)
+          if (iscell(Y))
+              %if is cell we directly copy it
+              obj.IDsens.sensorsParams.Y = Y;
+              obj.IDsens.sensorsParams.Ys = sparse(cell2mat(Y));
+          else
+              %we transform the full matrix into a cell array of matrices
+              %we assume the size of the single cells do not change w.r.t.
+              %the current one
+              obj.IDsens.sensorsParams.Y = mat2cell(Y,cell2mat(obj.IDsens.sensorsParams.sizes)',obj.IDsens.sensorsParams.m * ones(1, obj.IDsens.sensorsParams.NB));
+              obj.IDsens.sensorsParams.Ys = sparse(Y);
+          end
       end
 
       %% SETBIAS
