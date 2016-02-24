@@ -1,5 +1,5 @@
 
-function [I_O] = createSpatialInertia (I_cBar, m, c)
+function [I_O] = createSpatialInertia (footIxx,footIyy,footIzz, m, c)
 
 
 %CREATESPATIALINERTIA compute spatial inertia in Featherstone-like
@@ -13,6 +13,9 @@ function [I_O] = createSpatialInertia (I_cBar, m, c)
 %     c    position of point 0 (the same one in URDF
 %          <inertial> section).
 
+I_cBar = [footIxx         0      0      ; 
+              0      footIyy     0      ; 
+              0           0     footIzz ];
 
 I_O = [ I_cBar + m*skew(c)*(skew(c))'   m*skew(c);
               m*(skew(c))'              m*eye(3) ];
