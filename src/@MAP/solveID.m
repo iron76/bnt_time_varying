@@ -52,10 +52,16 @@ y      = obj.IDmeas.y;
 S_Dinv = Sv_inv;
 S_dinv = blkdiag(zeros(size(Sv_inv)), Sw_inv);
 S_Yinv = Sy_inv;
-bY     = zeros(size(y));
 bD     = b;
 muD    = zeros(length(S_dinv), 1);
 
+if isfield(obj.IDsens.sensorsParams, 'bias')
+    bY     = cell2mat(obj.IDsens.sensorsParams.bias);
+else
+    bY     = zeros(size(y));
+end
+    
+    
 % permutations corresponding to the RNEA 
 % I      = [obj.ia; obj.ifB; obj.iF(end:-1:1, 1); obj.itau];
 % J      = [obj.jfx; obj.jd2q; obj.ja; obj.jfB; obj.jF(end:-1:1, 1); obj.jtau];
