@@ -1,19 +1,21 @@
+clear;clc;close all;
 
-clc; clear; close all;
+%% testOptions
+
+plotMAPtorques = true;
 
 %% selected subjects and trials
-subjectList = 1:12;
-trialList = 1:4;  
+subjectList = 1;
+trialList = 1:2;  
 
 
 for subjectID = subjectList
     fprintf('\n---------\nSubject : %d\nTrial : ',subjectID);
     for trialID = trialList
-         fprintf('%d, ',trialID);
+        fprintf('%d, ',trialID);
         
     %% load BERDY compatible data and sensor link transforms
     load('./experiments/humanFixedBase/intermediateDataFiles/BERDYFormattedSensorData.mat');
-    load('./experiments/humanFixedBase/intermediateDataFiles/sensorLinkTransforms.mat');
    
     currentTrial = BERDYFormattedSensorData(subjectID,trialID); 
     data = currentTrial.data;
@@ -22,20 +24,22 @@ for subjectID = subjectList
     dq = currentTrial.data.dq';
     ddq = currentTrial.data.ddq';
     len = length(dataTime);
-
+ 
+    load('./experiments/humanFixedBase/intermediateDataFiles/sensorLinkTransforms.mat');
+    
     currentTrialSens = sensorLinkTransforms(subjectID,trialID);
     X_imu_2 = currentTrialSens.X_imu_2;
     XStar_fp_0 = currentTrialSens.XStar_fp_0;
     XStar_0_1 = currentTrialSens.XStar_0_1;
     
     
-    %%=====structure from files
+    % =====structure from files
     data.parts    = {'leg'         ,'torso'};
     data.labels   = {'fts'         ,'imu'  };
     data.ndof     = {6             ,6      };
     data.index    = {'1:6'         ,'1:6'  };
 
-    %%=====structure of sensors
+    % =====structure of sensors
     sens.parts    = {'leg'         ,'torso'};       %force of the forceplate is trasmitted into the leg
     sens.labels   = {'fts'         ,'imu'  };
     sens.ndof     = {6             ,6      };
@@ -46,6 +50,9 @@ for subjectID = subjectList
     load('./experiments/humanFixedBase/intermediateDataFiles/humanThreeLinkModelFromURDF.mat');
     
     currentModel = humanThreeLinkModelFromURDF(subjectID);
+    
+    humanThreeLink_dmodel.linkname = {'leg' 'torso'}; 
+    humanThreeLink_dmodel.jointname = {'ankle' 'hip'}; 
    
     dmodel = currentModel.dmodel;                       %deterministic model 
     ymodel  = humanThreeLinkSens(dmodel, sens);  
@@ -97,12 +104,12 @@ for subjectID = subjectList
         d(:,i) = d_temp;
     end
 
-clear d_temp;
-clear tau_i; 
-clear a_i;
-clear fB_i;
-clear f_i;
-clear v_i;
+    clear d_temp;
+    clear tau_i; 
+    clear a_i;
+    clear fB_i;
+    clear f_i;
+    clear v_i;
     % ========end RNEA
     %% Build data.y anda data.Sy 
     % data.y are ordered in:  
@@ -126,30 +133,37 @@ clear v_i;
     for i = 1 : length(myMAP.IDsens.sensorsParams.labels)
          data.Sy = [data.Sy; diag(myMAP.IDsens.sensorsParams.Sy{i})];
     end
-    data.Sy = repmat(data.Sy, 1, len-1);
+    data.Sy = repmat(data.Sy, 1, len);
     data.Sy = [data.Sy data.Sy(:,end)];
 
     %% ================================ MAP ===================================
     %% Build Ymatrix manually
     % Ymatrix has to be consistent with measurements form [f1 a2 ftx1 ftx2 ddq1 ddq2]
+    
+    Y = zeros (ymodel.m,26*dmodel.NB);
+    Y(10:12,27:32) = X_imu_2(4:6,:);
+    Y(13:18,20:25) = eye(6);
+    Y(19:24,46:51) = eye(6);
+    Y(25,26) = eye(1);
+    Y(26,52) = eye(1);
 
-    Ymatrix = zeros (ymodel.m,26*dmodel.NB); 
-
-    % The next line is time varying so must be moved inside loop.
-    %Ymatrix(1:6,13:18) = sensorLinkTransforms.XStar_fp_0 * sensorLinkTransforms.XStar_0_1;
-
-    Ymatrix(10:12,27:32) = X_imu_2(4:6,:);
-    Ymatrix(13:18,20:25) = eye(6);
-    Ymatrix(19:24,46:51) = eye(6);
-    Ymatrix(25,26) = eye(1);
-    Ymatrix(26,52) = eye(1);
-
+    
+    Ymatrix = cell(len,1);
+    for i = 1 : len
+        %the only row in Ymatrix that is time varying
+        Y(1:6,13:18) = XStar_fp_0 * XStar_0_1{i};
+        Ymatrix{i} = Y; 
+    end
+    
+    clear Y;
+   
     %% Build bias b_Y manually
     % b_Y has to be consistent with Ymatrix
     
     load('./experiments/humanFixedBase/data/subjectSizeParams.mat');
     
     currentParams = subjectParams(subjectID);
+    
     footMass =  currentParams.footMass;
     posP_0 = [0; 0; (0.5*currentParams.footHeight)];
     footIxx =  currentParams.footIxx;
@@ -160,12 +174,8 @@ clear v_i;
     R_imu_2 = X_imu_2(1:3,1:3);
 
     a_grav = [0;0;0;0;0;-9.8100]; %Featherstone-like notation
-
-    I_c = [footIxx     0        0   ; 
-              0     footIyy     0   ; 
-              0        0     footIzz]; 
           
-    I_0 = createSpatialInertia(I_c,footMass,posP_0);
+    I_0 = createSpatialInertia(footIxx,footIyy,footIzz,footMass,posP_0);
 
     b_Y(1:6,1:len)   = repmat((-XStar_fp_0 * I_0 * a_grav),1,len);
     
@@ -180,20 +190,18 @@ clear v_i;
     %% Computing MAP method
 
     for i = 1 : len
-    
-        % reseting the only row in Ymatrix that is time varying
-        Ymatrix(1:6,13:18) = XStar_fp_0 * XStar_0_1{i};
-    
+
         myMAP = myMAP.setState(data.q(i,:)', data.dq(i,:)');
         myMAP = myMAP.setY(data.y(:,i));
-        myMAP = myMAP.setYmatrix(Ymatrix);
+        myMAP = myMAP.setYmatrix(Ymatrix{i});
         myMAP = myMAP.setBias(b_Y(:,i));
         myMAP = myMAP.solveID();
   
         res.d(:,i)    = myMAP.d;
         res.Sd(:,:,i) = myMAP.Sd; %full() passing from sparse to double matrix
-        res.y(:,i)    = (Ymatrix * res.d(:,i)) + b_Y(:,i); 
-        res.Sy(:,:,i) = Ymatrix * res.Sd(:,:,i) * Ymatrix';
+        res.Ymatrix{i,1} = myMAP.IDsens.sensorsParams.Y; 
+        res.y(:,i)    = (Ymatrix{i} * res.d(:,i)) + b_Y(:,i); 
+        res.Sy(:,:,i) = Ymatrix{i} * res.Sd(:,:,i) * Ymatrix{i}';
     
          if mod(i-1,100) == 0
                 fprintf('Processing %d %% of the dataset\n', round(i/len*100));
@@ -207,44 +215,6 @@ clear v_i;
 % title('Y matrix','FontSize',15);
 
 % ========end MAP
-%% Plot overlapped plots
-% 
-% py = [0; cumsum(cell2mat(myMAP.IDsens.sensorsParams.sizes))];
-% for l = 1 : length(label_to_plot)
-%    for k = 1 : myMAP.IDsens.sensorsParams.ny
-%       if strcmp(myMAP.IDsens.sensorsParams.labels{k}, label_to_plot{l})
-%          figure
-%          J = myMAP.IDsens.sensorsParams.sizes{k};
-%          I = py(k)+1 : py(k)+J;
-%          colors = ['r', 'g', 'b'];
-%          for j = 1 : J
-%             subplot(2, ceil(J/2), j)
-%              hold on;
-%             shadedErrorBar(data.time, data.y(I(j),:), sqrt(data.Sy(I(j), :)), {[colors(mod(j,3)+1) '--'] , 'LineWidth', 1}, 0);
-%             plot(data.time, data.y(I(j),:), colors(mod(j,3)+1) , 'LineWidth', 1);
-% 
-%             title(strrep(myMAP.IDsens.sensorsParams.labels{k}, '_', '~'));
-%          end
-%       end
-%    end
-% end
-%%
-% % Plotting covariance matrices (some examples)
-% 
-% %===Covariance Sigma(d|y)
-% figure
-% subplot(2,1,1)
-% imagesc(res.Sd(:,:,1))
-% colorbar
-% title('Covariance Sigma(d|y) matrix','FontSize',15);
-% 
-% %===Covariance Sigma(y)
-% subplot(2,1,2)
-% imagesc(res.Sy(:,:,1))
-% colorbar
-% title('Covariance Sigma(y) matrix','FontSize',15);
-
-
     %% Rerrange solution
  
     % d  = zeros(26*dmodel.NB, len);
@@ -287,8 +257,6 @@ clear v_i;
    
          end
     end
-    %% organising MAP results
-       MAPresults(subjectID,trialID).res = res;
 
     %% ======================= LEAST SQUARE SOLUTION ==========================
     %  
@@ -353,92 +321,49 @@ clear v_i;
     % % ========end LS
     
     %% ======================= COMPARISON RNEA/MAP/LS =========================
-    %%
+    if(plotMAPtorques)    
+        %% Comparing RNEA/MAP torques
+
+        fig = figure();
+        axes1 = axes('Parent',fig,'FontSize',16);
+        box(axes1,'on');
+        hold(axes1,'on');
+        grid on;
+        title(sprintf('Subject: %d, Trial: %d',subjectID, trialID))
+        
+        %RNEA
+        plot1 = plot(dataTime,tau(:,1), 'lineWidth',2.5); hold on;
+        set(plot1,'color',[1 0 0]);
+        plot2 = plot(dataTime,tau(:,2), 'lineWidth',2.5); hold on;
+        set(plot2,'color',[0 0.498039215803146 0]);
+
+        %MAP
+        plot3 = plot(dataTime,res.tau_ankle, 'lineWidth',1.5,'LineStyle','--'); hold on;
+        set(plot3,'color',[1 0 0]);
+        plot4 = plot(dataTime,res.tau_hip, 'lineWidth',1.5,'LineStyle','--'); hold on;
+        set(plot4,'color',[0 0.498039215803146 0]);
+
+        % %LS
+        % plot5 = plot(data.time,d_ls(19,:), 'lineWidth',1.5,'LineStyle',':'); hold on;
+        % set(plot5,'color',[1 0 0]);
+        % plot6 = plot(data.time,d_ls(45,:), 'lineWidth',1.5,'LineStyle',':'); hold on;
+        % set(plot6,'color',[0 0.498039215803146 0]);
+
+        %leg = legend('$\tau_{1,RNEA}$','$\tau_{2,RNEA}$','$\tau_{2,MAP}$','$\tau_{2,MAP}$','$\tau_{1,LS}$','$\tau_{2,LS}$','Location','southeast');
+        leg = legend('$\tau_{1,RNEA}$','$\tau_{2,RNEA}$','$\tau_{2,MAP}$','$\tau_{2,MAP}$','Location','southeast');
+        set(leg,'Interpreter','latex');
+        set(leg,'FontSize',18);
+        xlabel('Time [s]','FontSize',20);
+        ylabel('Torque [Nm]','FontSize',20);
+        axis tight;
+        grid on;
+    end
+    %% Organising into a structure    
+    MAPresults(subjectID,trialID).MAPres = res;
+    %MAPresults(subjectID,trialID).Ymatrix = Ymatrix;
+    MAPresults(subjectID,trialID).b_Y = b_Y;
+    clear res;
     
-    q = currentTrial.data.q;
-    dq = currentTrial.data.dq;
-    ddq = currentTrial.data.ddq;
-    
-    fig = figure();
-    axes1 = axes('Parent',fig,'FontSize',16);
-    box(axes1,'on');
-    hold(axes1,'on');
-    grid on;
-    
-    subplot(311);
-    plot1 = plot(dataTime,(180/pi)*q(:,1),'lineWidth',2.0); hold on;
-    set(plot1,'color',[1 0 0]);
-    plot2= plot(dataTime,(180/pi)*q(:,2),'lineWidth',2.0); hold on;
-    set(plot2,'color',[0 0.498039215803146 0]);
-    leg = legend('$q_1$','$q_2$','Location','northeast');
-    set(leg,'Interpreter','latex');
-    set(leg,'FontSize',18);
-    xlabel('Time [s]','FontSize',18);
-    ylabel('Joint Angle [deg]','FontSize',18);
-    axis tight;
-    grid on;
-
-    subplot(312);
-    plot1 = plot(dataTime,(180/pi)*dq(:,1),'lineWidth',2.0); hold on;
-    set(plot1,'color',[1 0 0]);
-    plot2= plot(dataTime,(180/pi)*dq(:,2),'lineWidth',2.0); hold on;
-    set(plot2,'color',[0 0.498039215803146 0]);
-    leg = legend('$\dot q_1$','$\dot q_2$','Location','northeast');
-    set(leg,'Interpreter','latex');
-    set(leg,'FontSize',18);
-    xlabel('Time [s]','FontSize',18);
-    ylabel('Joint Velocity [deg/s]','FontSize',18);
-    axis tight;
-    grid on;
-
-    subplot(313);
-    plot1 = plot(dataTime,tau(:,1), 'lineWidth',2.0); hold on;
-    set(plot1,'color',[1 0 0]);
-    plot2 = plot(dataTime,tau(:,2), 'lineWidth',2.0); hold on;
-    set(plot2,'color',[0 0.498039215803146 0]);
-    leg = legend('$\tau_1$','$\tau_2$','Location','northeast');
-    set(leg,'Interpreter','latex');
-    set(leg,'FontSize',18);
-    xlabel('Time [s]','FontSize',18);
-    ylabel('Torque [Nm]','FontSize',18);
-    axis tight;
-    grid on;
-    
-    %% Comparing RNEA/MAP torques
-
-    fig = figure();
-    axes1 = axes('Parent',fig,'FontSize',16);
-    box(axes1,'on');
-    hold(axes1,'on');
-    grid on;
-
-    % RNEA
-    plot1 = plot(dataTime,tau(:,1), 'lineWidth',2.5); hold on;
-    set(plot1,'color',[1 0 0]);
-    plot2 = plot(dataTime,tau(:,2), 'lineWidth',2.5); hold on;
-    set(plot2,'color',[0 0.498039215803146 0]);
-
-    % MAP
-    plot3 = plot(dataTime,res.tau_ankle, 'lineWidth',1.5,'LineStyle','--'); hold on;
-    set(plot3,'color',[1 0 0]);
-    plot4 = plot(dataTime,res.tau_hip, 'lineWidth',1.5,'LineStyle','--'); hold on;
-    set(plot4,'color',[0 0.498039215803146 0]);
-
-    % % LS
-    % plot5 = plot(data.time,d_ls(19,:), 'lineWidth',1.5,'LineStyle',':'); hold on;
-    % set(plot5,'color',[1 0 0]);
-    % plot6 = plot(data.time,d_ls(45,:), 'lineWidth',1.5,'LineStyle',':'); hold on;
-    % set(plot6,'color',[0 0.498039215803146 0]);
-
-    %leg = legend('$\tau_{1,RNEA}$','$\tau_{2,RNEA}$','$\tau_{2,MAP}$','$\tau_{2,MAP}$','$\tau_{1,LS}$','$\tau_{2,LS}$','Location','southeast');
-    leg = legend('$\tau_{1,RNEA}$','$\tau_{2,RNEA}$','$\tau_{2,MAP}$','$\tau_{2,MAP}$','Location','southeast');
-    set(leg,'Interpreter','latex');
-    set(leg,'FontSize',18);
-    xlabel('Time [s]','FontSize',20);
-    ylabel('Torque [Nm]','FontSize',20);
-    axis tight;
-    grid on;
-
     end
     fprintf('\n');
 end
@@ -457,13 +382,13 @@ save('./experiments/humanFixedBase/intermediateDataFiles/MAPresults.mat','MAPres
 %         %====== Comparison between MAP prediction and actual data
 %         
 %         %== simulate output in MAP
-%         y_pred_MAP= myMAP.simY(res.d);     % without b_Y
-%         y_pred_MAP = y_pred_MAP + b_Y;     % adding b_Y
+%         y_pred_MAP= myMAP.simY(res.d(:,1));     % without b_Y
+%         y_pred_MAP = y_pred_MAP + b_Y(:,1);     % adding b_Y
 %         
 %         subplot(2,1,1);
-%         plot1 = plot(data.time,y_pred_MAP(ind,:), 'lineWidth',1.0, 'LineStyle','--'); hold on;
+%         plot1 = plot(dataTime,y_pred_MAP(ind,1), 'lineWidth',1.0, 'LineStyle','--'); hold on;
 %         set(plot1,'color',[1 0 0]);
-%         plot2 = plot(data.time,data.y(ind,:), 'lineWidth',1.0); hold on;
+%         plot2 = plot(dataTime,data.y(ind,1), 'lineWidth',1.0); hold on;
 %         set(plot2,'color',[0 0 1]);
 % 
 %         leg = legend('MAP Pred','Input data','Location','northeast');
@@ -492,8 +417,9 @@ save('./experiments/humanFixedBase/intermediateDataFiles/MAPresults.mat','MAPres
 %         
 %         axis tight;
 %         grid on;
-%         
-%         
+%        
+
+%        
 %         %====== Comparison between RNEA prediction and actual data
 %         
 %         %== simulate output in RNEA
@@ -516,7 +442,7 @@ save('./experiments/humanFixedBase/intermediateDataFiles/MAPresults.mat','MAPres
 % 
 %  end
 % 
-%  %% ============================= tests ==================================
+ %% ============================= tests ==================================
 %  load ('sensorLinkTransforms.mat');
 %  %% test 1 : comparison between a_2 measured by sensor and a_2 in vector d_RNEA
 %  

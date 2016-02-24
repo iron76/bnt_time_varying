@@ -21,6 +21,13 @@
 
 clc; clear; close all;
 
+%% testOptions
+plotRawData = false;
+plotFirstCutData = false;
+plotSecondCutData = false;
+plotSettlingTimeCutData = false;
+plotFinalConvertedData = false;
+
 %% load data sources
 load('./experiments/humanFixedBase/data/VICONsaveDataGen16.mat');
 load('./experiments/humanFixedBase/data/imuExtractedDataGen16.mat');
@@ -56,26 +63,6 @@ for subjectID = subjectIDList
         f = interp1(t_f_raw,f_raw,t_f);
         mom = interp1(t_f_raw,mom_raw,t_f);
         
-        fig = figure();
-        axes1 = axes('Parent',fig,'FontSize',16);
-        box(axes1,'on');
-        hold(axes1,'on');
-        grid on;
-        subplot(411);
-        plot(t_f,f, 'lineWidth',2.0);
-        xlabel('Time [s]','FontSize',12);
-        ylabel('Force [N]','FontSize',12);
-        axis tight;
-        grid on;
-        title(sprintf('Subject : %d, Trial : %d',subjectID,trialID));
-        subplot(412);
-        plot(t_f,mom, 'lineWidth',2.0);
-        xlabel('Time [s]','FontSize',12);
-        ylabel('Moment [Nmm]','FontSize',12);
-        axis tight;
-        grid on;
-    
-        
         % imu raw data
         accl_raw = imuData(subjectID,trialID).accln;
         omega_raw = imuData(subjectID,trialID).gyro;
@@ -91,18 +78,40 @@ for subjectID = subjectIDList
         accl = interp1(t_imu_raw,accl_raw,t_imu);
         omega = interp1(t_imu_raw,omega_raw,t_imu);
 
-        subplot(413);
-        plot(t_imu,accl, 'lineWidth',2.0);
-        xlabel('Time [s]','FontSize',12);
-        ylabel('LinAcc [m/s^2]','FontSize',12);
-        axis tight;
-        grid on;
-        subplot(414);
-        plot(t_imu,omega, 'lineWidth',2.0);
-        xlabel('Time [s]','FontSize',12);
-        ylabel('AngVel [rad/s]','FontSize',12);
-        axis tight;
-        grid on;
+        if(plotRawData)
+            fig = figure();
+            axes1 = axes('Parent',fig,'FontSize',16);
+            box(axes1,'on');
+            hold(axes1,'on');
+            grid on;
+            
+            subplot(411);
+            plot(t_f,f, 'lineWidth',2.0);
+            xlabel('Time [s]','FontSize',12);
+            ylabel('Force [N]','FontSize',12);
+            axis tight;
+            grid on;
+            title(sprintf('Subject : %d, Trial : %d',subjectID,trialID));
+            
+            subplot(412);
+            plot(t_f,mom, 'lineWidth',2.0);
+            xlabel('Time [s]','FontSize',12);
+            ylabel('Moment [Nmm]','FontSize',12);
+            axis tight;
+            grid on;
+            subplot(413);
+            plot(t_imu,accl, 'lineWidth',2.0);
+            xlabel('Time [s]','FontSize',12);
+            ylabel('LinAcc [m/s^2]','FontSize',12);
+            axis tight;
+            grid on;
+            subplot(414);
+            plot(t_imu,omega, 'lineWidth',2.0);
+            xlabel('Time [s]','FontSize',12);
+            ylabel('AngVel [rad/s]','FontSize',12);
+            axis tight;
+            grid on;
+        end
         
         
         % markers raw data 
@@ -151,36 +160,41 @@ for subjectID = subjectIDList
          
         omegaCut = omega(timeIndexToPeak1_accl:end,:);
         
-%         fig = figure();
-%         axes1 = axes('Parent',fig,'FontSize',16);
-%         box(axes1,'on');
-%         hold(axes1,'on');
-%         grid on;
-%         subplot(411);
-%         plot(t_cut_vicon,fCut, 'lineWidth',2.0);
-%         xlabel('Time [s]','FontSize',12);
-%         ylabel('Force [N] ','FontSize',12);
-%         axis tight;
-%         grid on; 
-%         title(sprintf('Subject : %d, Trial : %d',subjectID,trialID));
-%         subplot(412);
-%         plot(t_cut_vicon,momCut, 'lineWidth',2.0);
-%         xlabel('Time [s]','FontSize',12);
-%         ylabel('Moment [Nmm] ','FontSize',12);
-%         axis tight;
-%         grid on;
-%         subplot(413);
-%         plot(t_cut_imu,accCut, 'lineWidth',2.0);
-%         xlabel('Time [s]','FontSize',12);
-%         ylabel('LinAcc [m/sec^2]','FontSize',12);
-%         axis tight;
-%         grid on;
-%         subplot(414);
-%         plot(t_cut_imu,omegaCut, 'lineWidth',2.0);
-%         xlabel('Time [s]','FontSize',12);
-%         ylabel('AngVel [rad/s]','FontSize',12);
-%         axis tight;
-%         grid on;
+        if(plotFirstCutData)
+            fig = figure();
+            axes1 = axes('Parent',fig,'FontSize',16);
+            box(axes1,'on');
+            hold(axes1,'on');
+            
+            grid on;
+            subplot(411);
+            plot(t_cut_vicon,fCut, 'lineWidth',2.0);
+            xlabel('Time [s]','FontSize',12);
+            ylabel('Force [N] ','FontSize',12);
+            axis tight;
+            grid on; 
+            title(sprintf('Subject : %d, Trial : %d',subjectID,trialID));
+            
+            subplot(412);
+            plot(t_cut_vicon,momCut, 'lineWidth',2.0);
+            xlabel('Time [s]','FontSize',12);
+            ylabel('Moment [Nmm] ','FontSize',12);
+            axis tight;
+            grid on;
+            
+            subplot(413);
+            plot(t_cut_imu,accCut, 'lineWidth',2.0);
+            xlabel('Time [s]','FontSize',12);
+            ylabel('LinAcc [m/sec^2]','FontSize',12);
+            axis tight;
+            grid on;
+            subplot(414);
+            plot(t_cut_imu,omegaCut, 'lineWidth',2.0);
+            xlabel('Time [s]','FontSize',12);
+            ylabel('AngVel [rad/s]','FontSize',12);
+            axis tight;
+            grid on;
+        end
 
         P_G_ltoe_cut    = P_G_ltoe   (timeIndexToPeak1_f:end,:);
         P_G_lhee_cut    = P_G_lhee   (timeIndexToPeak1_f:end,:);
@@ -237,37 +251,41 @@ for subjectID = subjectIDList
         
         omegaCut = omegaCut(1:timeIndexToPeak2_accl,:);
         
-%         fig = figure();
-%         axes1 = axes('Parent',fig,'FontSize',16);
-%         box(axes1,'on');
-%         hold(axes1,'on');
-%         grid on;
-%         subplot(411);
-%         plot(t_cut_vicon,fCut, 'lineWidth',2.0);
-%         xlabel('Time [s]','FontSize',12);
-%         ylabel('Force [N] ','FontSize',12);
-%         axis tight;
-%         grid on;
-%         subplot(412);
-%         plot(t_cut_vicon,momCut, 'lineWidth',2.0);
-%         xlabel('Time [s]','FontSize',12);
-%         ylabel('Moment [Nmm] ','FontSize',12);
-%         axis tight;
-%         grid on;
-%         title(sprintf('Subject : %d, Trial : %d',subjectID,trialID));
-%         subplot(413);
-%         plot(t_cut_imu,accCut, 'lineWidth',2.0);
-%         xlabel('Time [s]','FontSize',12);
-%         ylabel('LinAcc [m/sec^2]','FontSize',12);
-%         axis tight;
-%         grid on;
-%         subplot(414);
-%         plot(t_cut_imu,omegaCut, 'lineWidth',2.0);
-%         xlabel('Time [s]','FontSize',12);
-%         ylabel('AngVel [rad/s]','FontSize',12);
-%         axis tight;
-%         grid on;
-        
+        if(plotSecondCutData)
+            fig = figure();
+            axes1 = axes('Parent',fig,'FontSize',16);
+            box(axes1,'on');
+            hold(axes1,'on');
+            grid on;
+            
+            subplot(411);
+            plot(t_cut_vicon,fCut, 'lineWidth',2.0);
+            xlabel('Time [s]','FontSize',12);
+            ylabel('Force [N] ','FontSize',12);
+            axis tight;
+            grid on;
+            
+            subplot(412);
+            plot(t_cut_vicon,momCut, 'lineWidth',2.0);
+            xlabel('Time [s]','FontSize',12);
+            ylabel('Moment [Nmm] ','FontSize',12);
+            axis tight;
+            grid on;
+            title(sprintf('Subject : %d, Trial : %d',subjectID,trialID));
+            subplot(413);
+            plot(t_cut_imu,accCut, 'lineWidth',2.0);
+            xlabel('Time [s]','FontSize',12);
+            ylabel('LinAcc [m/sec^2]','FontSize',12);
+            axis tight;
+            grid on;
+            
+            subplot(414);
+            plot(t_cut_imu,omegaCut, 'lineWidth',2.0);
+            xlabel('Time [s]','FontSize',12);
+            ylabel('AngVel [rad/s]','FontSize',12);
+            axis tight;
+            grid on;
+        end
         
         % 3.3 cutting settlingTimeCutIndex samples after first peak and before second peak
         
@@ -292,8 +310,6 @@ for subjectID = subjectIDList
         P_G_imuA_cut    = P_G_imuA_cut  (settlingCutTimeIndex:(end-settlingCutTimeIndex),:);
         P_G_imuB_cut    = P_G_imuB_cut  (settlingCutTimeIndex:(end-settlingCutTimeIndex),:);
         P_G_imuC_cut    = P_G_imuC_cut  (settlingCutTimeIndex:(end-settlingCutTimeIndex),:);
-        
-        
         
         
         accCut = accCut(settlingCutTimeIndex:(end-settlingCutTimeIndex),:);
@@ -332,39 +348,43 @@ for subjectID = subjectIDList
             
 
         end
-%          
-%         fig = figure();
-%         axes1 = axes('Parent',fig,'FontSize',16);
-%         box(axes1,'on');
-%         hold(axes1,'on');
-%         grid on;
-%         subplot(411);
-%         plot(t_cut_vicon,fCut, 'lineWidth',2.0);
-%         xlabel('Time [s]','FontSize',12);
-%         ylabel('Force [N] ','FontSize',12);
-%         axis tight;
-%         grid on;
-%         title(sprintf('Subject : %d, Trial : %d',subjectID,trialID));     
-%         subplot(412);
-%         plot(t_cut_vicon,momCut, 'lineWidth',2.0);
-%         xlabel('Time [s]','FontSize',12);
-%         ylabel('Moment [Nmm] ','FontSize',12);
-%         axis tight;
-%         grid on; 
-%         subplot(413);
-%         plot(t_cut_imu,accCut, 'lineWidth',2.0);
-%         xlabel('Time [s]','FontSize',12);
-%         ylabel('LinAcc [m/sec^2]','FontSize',12);
-%         axis tight;
-%         grid on;
-%         subplot(414);
-%         plot(t_cut_imu,omegaCut, 'lineWidth',2.0);
-%         xlabel('Time [s]','FontSize',12);
-%         ylabel('AngVel [rad/s]','FontSize',12);
-%         axis tight;
-%         grid on;
-%         
-
+         
+       if(plotSettlingTimeCutData)
+            fig = figure();
+            axes1 = axes('Parent',fig,'FontSize',16);
+            box(axes1,'on');
+            hold(axes1,'on');
+            grid on;
+            
+            subplot(411);
+            plot(t_cut_vicon,fCut, 'lineWidth',2.0);
+            xlabel('Time [s]','FontSize',12);
+            ylabel('Force [N] ','FontSize',12);
+            axis tight;
+            grid on;
+            title(sprintf('Subject : %d, Trial : %d',subjectID,trialID));     
+            subplot(412);
+            plot(t_cut_vicon,momCut, 'lineWidth',2.0);
+            xlabel('Time [s]','FontSize',12);
+            ylabel('Moment [Nmm] ','FontSize',12);
+            axis tight;
+            grid on; 
+            
+            subplot(413);
+            plot(t_cut_imu,accCut, 'lineWidth',2.0);
+            xlabel('Time [s]','FontSize',12);
+            ylabel('LinAcc [m/sec^2]','FontSize',12);
+            axis tight;
+            grid on;
+            
+            subplot(414);
+            plot(t_cut_imu,omegaCut, 'lineWidth',2.0);
+            xlabel('Time [s]','FontSize',12);
+            ylabel('AngVel [rad/s]','FontSize',12);
+            axis tight;
+            grid on;
+       end
+        
         %% 4. data conversion
         
         % VICON 
@@ -397,37 +417,42 @@ for subjectID = subjectIDList
         % acquired omega data in rad/s^2 --> no conversion;
         
         
-        
-        fig = figure();
-        axes1 = axes('Parent',fig,'FontSize',16);
-        box(axes1,'on');
-        hold(axes1,'on');
-        grid on;
-        subplot(411);
-        plot(t_cut_vicon,fCut, 'lineWidth',2.0);
-        xlabel('Time [s]','FontSize',12);
-        ylabel('Force [N] ','FontSize',12);
-        axis tight;
-        grid on;
-        title(sprintf('Subject : %d, Trial : %d',subjectID,trialID));     
-        subplot(412);
-        plot(t_cut_vicon,momCut, 'lineWidth',2.0);
-        xlabel('Time [s]','FontSize',12);
-        ylabel('Moment [Nm] ','FontSize',12);
-        axis tight;
-        grid on; 
-        subplot(413);
-        plot(t_cut_imu,accCut, 'lineWidth',2.0);
-        xlabel('Time [s]','FontSize',12);
-        ylabel('LinAcc [m/sec^2]','FontSize',12);
-        axis tight;
-        grid on;
-        subplot(414);
-        plot(t_cut_imu,omegaCut, 'lineWidth',2.0);
-        xlabel('Time [s]','FontSize',12);
-        ylabel('AngVel [rad/s]','FontSize',12);
-        axis tight;
-        grid on;
+        if(plotFinalConvertedData)
+            fig = figure();
+            axes1 = axes('Parent',fig,'FontSize',16);
+            box(axes1,'on');
+            hold(axes1,'on');
+            grid on;
+            
+            subplot(411);
+            plot(t_cut_vicon,fCut, 'lineWidth',2.0);
+            xlabel('Time [s]','FontSize',12);
+            ylabel('Force [N] ','FontSize',12);
+            axis tight;
+            grid on;
+            title(sprintf('Subject : %d, Trial : %d',subjectID,trialID));
+            
+            subplot(412);
+            plot(t_cut_vicon,momCut, 'lineWidth',2.0);
+            xlabel('Time [s]','FontSize',12);
+            ylabel('Moment [Nm] ','FontSize',12);
+            axis tight;
+            grid on; 
+            
+            subplot(413);
+            plot(t_cut_imu,accCut, 'lineWidth',2.0);
+            xlabel('Time [s]','FontSize',12);
+            ylabel('LinAcc [m/sec^2]','FontSize',12);
+            axis tight;
+            grid on;
+            
+            subplot(414);
+            plot(t_cut_imu,omegaCut, 'lineWidth',2.0);
+            xlabel('Time [s]','FontSize',12);
+            ylabel('AngVel [rad/s]','FontSize',12);
+            axis tight;
+            grid on;
+        end
         
         %% 5. data storing
         
@@ -453,8 +478,7 @@ for subjectID = subjectIDList
         synchronisedData(subjectID,trialID).P_G_imuA = P_G_imuA;
         synchronisedData(subjectID,trialID).P_G_imuB =P_G_imuB;
         synchronisedData(subjectID,trialID).P_G_imuC =P_G_imuC;
-
-      
+        
     end
 end
 

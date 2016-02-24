@@ -71,10 +71,22 @@ for subjectID = subjectList
             y_0_fp(:,i)= XStar_fp_0'* y_fp_fp(i,:)';
         end
         
-        data.ys_linkFrame_fts = y_0_fp';
+        data.ys_link0Frame_fts = y_0_fp';
 
         
-        %% Organising into a structure       
+        %Force plate in link1
+        XStar_0_1 = currentTrialSens.XStar_0_1;
+        y_1_fp = zeros (6,length(data.dataTime));
+  
+        for i = 1:length(data.dataTime)                    %wrench in frame associate to link1
+            y_1_fp(:,i)= XStar_0_1{i}'* y_0_fp(:,i);
+        end
+        
+        data.ys_link1Frame_fts = y_1_fp';
+        
+        
+        %% Organising into a structure    
+        
         BERDYFormattedSensorData(subjectID,trialID).data = data;       
     end
      fprintf('\n');

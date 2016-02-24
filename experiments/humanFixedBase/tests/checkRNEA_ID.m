@@ -1,5 +1,6 @@
 
-% CHECKRNEA_ID.m computes vector d = [d_1,d_2,...,d_NB] comparing two
+% checkRNEA_ID
+% Script to compute vector d = [d_1,d_2,...,d_NB] comparing two
 % equivalent methods: 
 % - METHOD 1: using Featherstone ID --> d
 % - METHOD 2: using RNEA class --> d_RNEA

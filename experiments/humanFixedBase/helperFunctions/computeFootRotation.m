@@ -23,13 +23,5 @@ function [R_0_G,P_G_0] = computeFootRotation(P_G_lheeT, P_G_rheeT, P_G_ltoeT, P_
               sin(theta)  cos(theta) 0 ;
                  0             0     1 ];
 
-
-    %% assuming new URDF2 (rotation on z axes, y facing downwards on 0)
-%   x_G_0 = v_G_0 ./ norm(v_G_0);
-%   y_G_0 = repmat([0,0,-1],size(v_G_0,1),1);
-%   z_G_0 = cross(x_G_0,y_G_0);
-%    
-%   R_G_0 = [x_G_0' y_G_0' z_G_0'];
-
 end
 

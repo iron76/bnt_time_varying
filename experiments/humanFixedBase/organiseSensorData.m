@@ -12,6 +12,11 @@
 
 clc; clear; close all;
 
+%% testOptions
+plotJointQuantities = false;
+plotIMUData = false;
+plotForcePlateData = false;
+
 %% load the synchronised dataset
 load('./experiments/humanFixedBase/intermediateDataFiles/synchronisedData.mat');
 
@@ -83,111 +88,117 @@ for subjectID = subjectList
         
         %% plot q, dq, ddq
         
-%         fig = figure();
-%         axes1 = axes('Parent',fig,'FontSize',16);
-%         box(axes1,'on');
-%         hold(axes1,'on');
-%         grid on;
-%         
-%         subplot(311);
-%         plot1 = plot(dataTime,q1.*(180/pi),'lineWidth',1.0); hold on;
-%         set(plot1,'color',[1 0 0]);
-%         plot2= plot(dataTime,q2.*(180/pi),'lineWidth',1.0); hold on;
-%         set(plot2,'color',[0 0.498039215803146 0]);
-%         leg = legend('$q_1$','$q_2$','Location','northeast');
-%         %title('Joint Quantities','FontSize',15);
-%         set(leg,'Interpreter','latex');
-%         set(leg,'FontSize',15);
-%         xlabel('Time [s]','FontSize',15);
-%         ylabel('Angle [deg]','FontSize',15);
-%         axis tight;
-%         grid on;  
-%         title(sprintf('Subject %d, Trial %d, Joint Quantities',subjectID,trialID));
-%         
-%         subplot(312);
-%         plot1 = plot(dataTime,(180/pi)*dq1,'lineWidth',1.0); hold on;
-%         set(plot1,'color',[1 0 0]);
-%         plot2= plot(dataTime,(180/pi)*dq2,'lineWidth',1.0); hold on;
-%         set(plot2,'color',[0 0.498039215803146 0]);
-%         leg = legend('$\dot q_{1}$','$\dot q_{2}$','Location','northeast');
-%         set(leg,'Interpreter','latex');
-%         set(leg,'FontSize',15);
-%         xlabel('Time [s]','FontSize',15);
-%         ylabel('Velocity [deg/s]','FontSize',15);
-%         axis tight;
-%         grid on;
-%         
-%         subplot(313);
-%         plot1 = plot(dataTime,(180/pi)*ddq1,'lineWidth',1.0); hold on;
-%         set(plot1,'color',[1 0 0]);
-%         plot2= plot(dataTime,(180/pi)*ddq2,'lineWidth',1.0); hold on;
-%         set(plot2,'color',[0 0.498039215803146 0]);
-%         leg = legend('$\ddot q_{1}$','$\ddot q_{2}$','Location','northeast');
-%         set(leg,'Interpreter','latex');
-%         set(leg,'FontSize',15);
-%         xlabel('Time [s]','FontSize',15);
-%         ylabel('Acceleration [deg/s^2]','FontSize',15);
-%         axis tight;
-%         grid on;
+        if(plotJointQuantities)
         
-       
+            fig = figure();
+            axes1 = axes('Parent',fig,'FontSize',16);
+            box(axes1,'on');
+            hold(axes1,'on');
+            grid on;
+        
+            subplot(311);
+            plot1 = plot(dataTime,q1.*(180/pi),'lineWidth',1.0); hold on;
+            set(plot1,'color',[1 0 0]);
+            plot2= plot(dataTime,q2.*(180/pi),'lineWidth',1.0); hold on;
+            set(plot2,'color',[0 0.498039215803146 0]);
+            leg = legend('$q_1$','$q_2$','Location','northeast');
+            %title('Joint Quantities','FontSize',15);
+            set(leg,'Interpreter','latex');
+            set(leg,'FontSize',15);
+            xlabel('Time [s]','FontSize',15);
+            ylabel('Angle [deg]','FontSize',15);
+            axis tight;
+            grid on;  
+            title(sprintf('Subject %d, Trial %d, Joint Quantities',subjectID,trialID));
+        
+            subplot(312);
+            plot1 = plot(dataTime,(180/pi)*dq1,'lineWidth',1.0); hold on;
+            set(plot1,'color',[1 0 0]);
+            plot2= plot(dataTime,(180/pi)*dq2,'lineWidth',1.0); hold on;
+            set(plot2,'color',[0 0.498039215803146 0]);
+            leg = legend('$\dot q_{1}$','$\dot q_{2}$','Location','northeast');
+            set(leg,'Interpreter','latex');
+            set(leg,'FontSize',15);
+            xlabel('Time [s]','FontSize',15);
+            ylabel('Velocity [deg/s]','FontSize',15);
+            axis tight;
+            grid on;
+        
+            subplot(313);
+            plot1 = plot(dataTime,(180/pi)*ddq1,'lineWidth',1.0); hold on;
+            set(plot1,'color',[1 0 0]);
+            plot2= plot(dataTime,(180/pi)*ddq2,'lineWidth',1.0); hold on;
+            set(plot2,'color',[0 0.498039215803146 0]);
+            leg = legend('$\ddot q_{1}$','$\ddot q_{2}$','Location','northeast');
+            set(leg,'Interpreter','latex');
+            set(leg,'FontSize',15);
+            xlabel('Time [s]','FontSize',15);
+            ylabel('Acceleration [deg/s^2]','FontSize',15);
+            axis tight;
+            grid on;
+        end
+        
         %% IMU data (a_imuLin, omega_imu)
       
-%         % Plotting raw data coming from IMU sensor in IMU frame     
-%         fig = figure();
-%         axes1 = axes('Parent',fig,'FontSize',16);
-%         box(axes1,'on');
-%         hold(axes1,'on');
-%         grid on; 
-%         
-%         subplot(211);
-%         plot(dataTime, aLin_imu_imu); axis tight;
-%         leg = legend('$a_x$','$a_y$','$a_z$','Location','northeast');
-%         set(leg,'Interpreter','latex');
-%         set(leg,'FontSize',15);
-%         xlabel('Time [s]','FontSize',15);
-%         ylabel('Linear Acceleration [m/sec^2]','FontSize',15);
-%         %title('Raw IMU data of link 2 (IMU frame)','FontSize',15);
-%         grid on;
-%         title(sprintf('Subject %d, Trial %d, Raw IMU data of link 2 (IMU frame)',subjectID,trialID));
-%         
-%         subplot(212);
-%         plot(dataTime,omega_imu_imu);  axis tight;
-%         leg = legend('$w_x$','$w_y$','$w_z$','Location','northeast');
-%         set(leg,'Interpreter','latex');
-%         set(leg,'FontSize',15);
-%         xlabel('Time [s]','FontSize',15);
-%         ylabel('Angular Velocity [rad/s]','FontSize',15);
-%         grid on;
-%   
+        if(plotIMUData)
+            % Plotting raw data coming from IMU sensor in IMU frame     
+            fig = figure();
+            axes1 = axes('Parent',fig,'FontSize',16);
+            box(axes1,'on');
+            hold(axes1,'on');
+            grid on; 
+        
+            subplot(211);
+            plot(dataTime, aLin_imu_imu); axis tight;
+            leg = legend('$a_x$','$a_y$','$a_z$','Location','northeast');
+            set(leg,'Interpreter','latex');
+            set(leg,'FontSize',15);
+            xlabel('Time [s]','FontSize',15);
+            ylabel('Linear Acceleration [m/sec^2]','FontSize',15);
+            %title('Raw IMU data of link 2 (IMU frame)','FontSize',15);
+            grid on;
+            title(sprintf('Subject %d, Trial %d, Raw IMU data of link 2 (IMU frame)',subjectID,trialID));
+            
+            subplot(212);
+            plot(dataTime,omega_imu_imu);  axis tight;
+            leg = legend('$w_x$','$w_y$','$w_z$','Location','northeast');
+            set(leg,'Interpreter','latex');
+            set(leg,'FontSize',15);
+            xlabel('Time [s]','FontSize',15);
+            ylabel('Angular Velocity [rad/s]','FontSize',15);
+            grid on;
+        end
+  
         %% forceplate wrench data (f_fp_fp)
         
-%         % Plotting raw data coming from force plate sensor in sensor frame      
-%         fig = figure();
-%         axes1 = axes('Parent',fig,'FontSize',16);
-%         box(axes1,'on');
-%         hold(axes1,'on');
-%         grid on;
-%         
-%         subplot(211);
-%         plot(dataTime,wrench_fp_fp(:,4:6)); axis tight;
-%         leg =legend('$F_x$','$F_y$','$F_z$','Location','northeast');
-%         set(leg,'Interpreter','latex');
-%         set(leg,'FontSize',15);
-%         xlabel('Time [s]','FontSize',15);
-%         ylabel('Force [N]','Fontsize',15);
-%         %title('Wrench measured in force plate (Fp frame)','FontSize',15);
-%         grid on;
-%         title(sprintf('Subject %d, Trial %d, Wrench measured in force plate (Fp frame)',subjectID,trialID));
-%          
-%         subplot(212);
-%         plot(dataTime,wrench_fp_fp(:,1:3)); axis tight;
-%         leg = legend('$M_x$','$M_y$','$M_z$','Location','northeast');
-%         set(leg,'Interpreter','latex');
-%         set(leg,'FontSize',15);
-%         xlabel('Time [s]','FontSize',15);
-%         ylabel('Moment [Nm]','FontSize',15);
-%         grid on;
+        if(plotForcePlateData)
+            % Plotting raw data coming from force plate sensor in sensor frame      
+            fig = figure();
+            axes1 = axes('Parent',fig,'FontSize',16);
+            box(axes1,'on');
+            hold(axes1,'on');
+            grid on;
+        
+            subplot(211);
+            plot(dataTime,wrench_fp_fp(:,4:6)); axis tight;
+            leg =legend('$F_x$','$F_y$','$F_z$','Location','northeast');
+            set(leg,'Interpreter','latex');
+            set(leg,'FontSize',15);
+            xlabel('Time [s]','FontSize',15);
+            ylabel('Force [N]','Fontsize',15);
+            %title('Wrench measured in force plate (Fp frame)','FontSize',15);
+            grid on;
+            title(sprintf('Subject %d, Trial %d, Wrench measured in force plate (Fp frame)',subjectID,trialID));
+         
+            subplot(212);
+            plot(dataTime,wrench_fp_fp(:,1:3)); axis tight;
+            leg = legend('$M_x$','$M_y$','$M_z$','Location','northeast');
+            set(leg,'Interpreter','latex');
+            set(leg,'FontSize',15);
+            xlabel('Time [s]','FontSize',15);
+            ylabel('Moment [Nm]','FontSize',15);
+            grid on;
+        end
  
         %% data storing
         
