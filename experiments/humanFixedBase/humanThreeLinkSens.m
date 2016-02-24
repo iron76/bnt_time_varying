@@ -55,11 +55,13 @@ ymodel.ny = length(sens.parts);
 ymodel.m  = sum(cell2mat(sens.ndof));
 ymodel.Y  = cell(ymodel.ny, ymodel.NB);
 ymodel.Ys = cell(ymodel.ny, ymodel.NB);
+ymodel.bias  = cell(ymodel.ny, 1);
 
 for i = 1 : ymodel.ny
    ny = ny + 1;
    dy = sens.ndof{i};
    ymodel.labels{ny,1} = sens.labels{i};
+   ymodel.bias{ny,1}   = zeros(dy,1);
    for j = 1 : dmodel.NB
       ymodel.Y{ny,j}   = zeros(dy,26);
       ymodel.Ys{ny,j}  = sparse(zeros(dy,26));
@@ -86,11 +88,15 @@ if ymodel.ny ~= ny || ymodel.m ~= m
    error('Something wrong with the number of sensors')
 end
 
+
+
 for i = 1 : dmodel.NB
    
    ymodel.ny = ymodel.ny + 1;
    ymodel.sizes{ymodel.ny,1} = 6;
    ymodel.labels{ymodel.ny,1} = [dmodel.linkname{i} '_ftx'];
+   ymodel.bias{ymodel.ny,1}= zeros(6,1);
+
    for j = 1 : dmodel.NB
       ymodel.Y{ymodel.ny,j}   = zeros(6,26);
       ymodel.Ys{ymodel.ny,j}  = sparse(zeros(6,26));
@@ -103,6 +109,8 @@ for i = 1 : dmodel.NB
    ymodel.ny = ymodel.ny + 1;
    ymodel.sizes{ymodel.ny,1} = 1; 
    ymodel.labels{ymodel.ny,1} = [dmodel.linkname{i} '_d2q'];
+   ymodel.bias{ymodel.ny,1}= zeros(1,1);
+
    for j = 1 : dmodel.NB
       ymodel.Y{ymodel.ny,j}   = zeros(1,26);
       ymodel.Ys{ymodel.ny,j}  = sparse(zeros(1,26));

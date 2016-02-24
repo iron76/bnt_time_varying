@@ -60,11 +60,17 @@ y      = obj.IDmeas.y;
 S_Dinv = Sv_inv;                                %constraint equation covariance
 S_dinv = blkdiag(zeros(size(Sv_inv)), Sw_inv);  %prior covariance
 S_Yinv = Sy_inv;                                %measurements equation covariance
-%b_Y     = zeros(size(y));
-%b_D     = b;
+b_D     = b;
 mu_D    = zeros(length(S_dinv), 1);
 mu_d    = zeros(length(S_dinv), 1);
 
+if isfield(obj.IDsens.sensorsParams, 'bias')
+    bY     = cell2mat(obj.IDsens.sensorsParams.bias);
+else
+    bY     = zeros(size(y));
+end
+    
+    
 % permutations corresponding to the RNEA 
 % I      = [obj.ia; obj.ifB; obj.iF(end:-1:1, 1); obj.itau];
 % J      = [obj.jfx; obj.jd2q; obj.ja; obj.jfB; obj.jF(end:-1:1, 1); obj.jtau];
