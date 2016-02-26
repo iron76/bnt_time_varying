@@ -2,7 +2,7 @@ clear;clc;close all;
 
 %% testOptions
 
-plotMAPtorques = true;
+plotMAPtorques = false;
 
 %% selected subjects and trials
 subjectList = 1;
@@ -10,9 +10,9 @@ trialList = 1:2;
 
 
 for subjectID = subjectList
-    fprintf('\n---------\nSubject : %d\nTrial : ',subjectID);
+    fprintf('\n---------\nSubject : %d ',subjectID);
     for trialID = trialList
-        fprintf('%d, ',trialID);
+        fprintf('\nTrial : %d\n',trialID);
         
     %% load BERDY compatible data and sensor link transforms
     load('./experiments/humanFixedBase/intermediateDataFiles/BERDYFormattedSensorData.mat');
@@ -197,11 +197,12 @@ for subjectID = subjectList
         myMAP = myMAP.setBias(b_Y(:,i));
         myMAP = myMAP.solveID();
   
-        res.d(:,i)    = myMAP.d;
-        res.Sd(:,:,i) = myMAP.Sd; %full() passing from sparse to double matrix
+        res.d(:,i)       = myMAP.d;
+        res.Sd(:,:,i)    = myMAP.Sd; %full() passing from sparse to double matrix
         res.Ymatrix{i,1} = myMAP.IDsens.sensorsParams.Y; 
-        res.y(:,i)    = (Ymatrix{i} * res.d(:,i)) + b_Y(:,i); 
-        res.Sy(:,:,i) = Ymatrix{i} * res.Sd(:,:,i) * Ymatrix{i}';
+        res.b_Y(:,i)     = myMAP.IDsens.sensorsParams.bias;
+        res.y(:,i)       = (Ymatrix{i} * res.d(:,i)) + b_Y(:,i); 
+        res.Sy(:,:,i)    = Ymatrix{i} * res.Sd(:,:,i) * Ymatrix{i}';
     
          if mod(i-1,100) == 0
                 fprintf('Processing %d %% of the dataset\n', round(i/len*100));
@@ -360,8 +361,6 @@ for subjectID = subjectList
     end
     %% Organising into a structure    
     MAPresults(subjectID,trialID).MAPres = res;
-    %MAPresults(subjectID,trialID).Ymatrix = Ymatrix;
-    MAPresults(subjectID,trialID).b_Y = b_Y;
     clear res;
     
     end
@@ -371,80 +370,9 @@ end
 save('./experiments/humanFixedBase/intermediateDataFiles/MAPresults.mat','MAPresults');
 
 
-
-% %% Simulate output in MAP
-% 
-%  for  ind = 1:26
-%      
-%         figure;
-%                 
-%        
-%         %====== Comparison between MAP prediction and actual data
-%         
-%         %== simulate output in MAP
-%         y_pred_MAP= myMAP.simY(res.d(:,1));     % without b_Y
-%         y_pred_MAP = y_pred_MAP + b_Y(:,1);     % adding b_Y
-%         
-%         subplot(2,1,1);
-%         plot1 = plot(dataTime,y_pred_MAP(ind,1), 'lineWidth',1.0, 'LineStyle','--'); hold on;
-%         set(plot1,'color',[1 0 0]);
-%         plot2 = plot(dataTime,data.y(ind,1), 'lineWidth',1.0); hold on;
-%         set(plot2,'color',[0 0 1]);
-% 
-%         leg = legend('MAP Pred','Input data','Location','northeast');
-%         %set(leg,'Interpreter','latex');
-%         set(leg,'FontSize',15);
-%         xlabel('Time [s]','FontSize',15);
-%         %ylabel('Torque[Nm]','FontSize',20);
-%         
-%         if (ind >=1 && ind<4) 
-%         title(sprintf('Figure %d : f1-moments ',ind));
-%         elseif (ind >=4 && ind<7) 
-%         title(sprintf('Figure %d : f1-forces ',ind));
-%         elseif (ind >=7 && ind<10)
-%         title(sprintf('Figure %d : a2-ang',ind));
-%         elseif (ind >=10 && ind<13)
-%         title(sprintf('Figure %d : a2-lin ',ind));
-%         elseif (ind >=13 && ind<19)
-%         title(sprintf('Figure %d : fx1 ',ind));
-%         elseif (ind >=19 && ind<25)
-%         title(sprintf('Figure %d : fx2 ',ind));
-%         elseif (ind ==25)
-%         title(sprintf('Figure %d : ddq1 ',ind));
-%         elseif (ind ==26)
-%         title(sprintf('Figure %d : ddq2 ',ind));
-%         end
-%         
-%         axis tight;
-%         grid on;
-%        
-
-%        
-%         %====== Comparison between RNEA prediction and actual data
-%         
-%         %== simulate output in RNEA
-%         y_pred_RNEA = myMAP.simY(d);
-%          
-%         subplot(2,1,2);
-%         plot1 = plot(data.time,y_pred_RNEA(ind,:), 'lineWidth',1.0, 'LineStyle','--'); hold on;
-%         set(plot1,'color',[1 0 0]);
-%         plot2 = plot(data.time,data.y(ind,:), 'lineWidth',1.0); hold on;
-%         set(plot2,'color',[0 0 1]);
-%         
-%         leg = legend('RNEA Pred', 'Input data','Location','northeast');
-%         %set(leg,'Interpreter','latex');
-%         set(leg,'FontSize',15);
-%         xlabel('Time [s]','FontSize',15);
-%         %ylabel('Torque[Nm]','FontSize',20);
-%         %title(sprintf('Figure %d',ind));
-%         axis tight;
-%         grid on;
-% 
-%  end
-% 
  %% ============================= tests ==================================
 %  load ('sensorLinkTransforms.mat');
-%  %% test 1 : comparison between a_2 measured by sensor and a_2 in vector d_RNEA
+ %% test 1 : comparison between a_2 measured by sensor and a_2 in vector d_RNEA
 %  
 %  %  
 %  % -in Featherstone notation:              | a_2,ang |     |      domega_2      |
@@ -470,7 +398,7 @@ save('./experiments/humanFixedBase/intermediateDataFiles/MAPresults.mat','MAPres
 %  % now we can compare a_2_2real measured of sensor (transformed in link
 %  % frame) with a_2_2 of d vector.
 %  
-%   %% test 2 : comparison between f measured by sensor and f in vector d_RNEA  
+ %% test 2 : comparison between f measured by sensor and f in vector d_RNEA  
 %  
 %  % -f_1 measured is in fp frame;
 %  % -f_1 in vector d_RNEA is in frame associated to link1;

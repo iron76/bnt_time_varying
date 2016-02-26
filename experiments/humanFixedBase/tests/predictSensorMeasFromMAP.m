@@ -13,9 +13,9 @@ subjectList = 1;
 trialList = 1;  
 
 for subjectID = subjectList
-    fprintf('\n---------\nSubject : %d\nTrial : ',subjectID);
+    fprintf('\n---------\nSubject : %d ',subjectID);
     for trialID = trialList
-         fprintf('%d, ',trialID);
+         fprintf('\nTrial : %d ',trialID);
          
     %% load data
     load('./experiments/humanFixedBase/intermediateDataFiles/BERDYFormattedSensorData.mat');
@@ -91,17 +91,14 @@ for subjectID = subjectList
     
     d = currentMAP.MAPres.d;
     b_Y = currentMAP.b_Y;
-    %Ymatrix = currentMAP.MAPres.Ymatrix;
-        
-    % forcing myMAP.IDsens.sensorsParams.Y to be equal Ymatrix
+    Ymatrix = currentMAP.MAPres.Ymatrix;
     
-    
-  
+    fprintf('Predicting sensor measurement using MAP computation\n');
+
     y_pred_MAP = zeros (myMAP.IDmeas.m,len);
     for i =1:len
-         %myMAP.IDsens.sensorsParams.Y = Ymatrix{i};
          y_pred_MAP(:,i) = myMAP.simY(d(:,i));              % without b_Y
-         %y_pred_MAP(:,i) = y_pred_MAP(:,i) + b_Y(:,i);     % adding b_Y
+         y_pred_MAP(:,i) = y_pred_MAP(:,i) + b_Y(:,i);     % adding b_Y
     end   
     
     %% Plot predictions 
@@ -116,7 +113,7 @@ for subjectID = subjectList
         grid on;
        
         subplot(221)
-        plot(dataTime,y_pred_MAP(),dataTime,y_pred_MAP(),dataTime,y_pred_MAP(), 'lineWidth',2.0);
+        plot(dataTime,y_pred_MAP(7,:),dataTime,y_pred_MAP(8,:),dataTime,y_pred_MAP(9,:),'lineWidth',2.0);
         leg = legend('$a_x$','$a_y$','$a_z$','Location','southeast');
         set(leg,'Interpreter','latex');
         set(leg,'FontSize',18);
@@ -127,7 +124,7 @@ for subjectID = subjectList
         grid on; 
 
         subplot(223)
-        plot(dataTime,imu(:,1),dataTime,imu(:,2),dataTime,imu(:,3),'lineWidth',2.0);
+        plot(dataTime,ys_linkFrame_imu(4,:),dataTime,ys_linkFrame_imu(5,:),dataTime,ys_linkFrame_imu(6,:),'lineWidth',2.0);
         leg = legend('$a_x$','$a_y$','$a_z$','Location','southeast');
         set(leg,'Interpreter','latex');
         set(leg,'FontSize',18);
@@ -139,7 +136,7 @@ for subjectID = subjectList
         %% Gyroscope prediction comparison
 
         subplot(222)
-        plot(dataTime,omega_imu_imuPred(1,:),dataTime,omega_imu_imuPred(2,:),dataTime,omega_imu_imuPred(3,:), 'lineWidth',2.0);
+        plot(dataTime,y_pred_MAP(10,:),dataTime,y_pred_MAP(11,:),dataTime,y_pred_MAP(12,:), 'lineWidth',2.0);
         leg = legend('$\omega_x$','$\omega_y$','$\omega_z$','Location','southeast');
         set(leg,'Interpreter','latex');
         set(leg,'FontSize',18);
@@ -150,7 +147,7 @@ for subjectID = subjectList
         grid on; 
 
         subplot(224)
-        plot(dataTime,imu(:,4),dataTime,imu(:,5),dataTime,imu(:,6),'lineWidth',2.0);
+        plot(dataTime,ys_linkFrame_imu(1,:),dataTime,ys_linkFrame_imu(2,:),dataTime,ys_linkFrame_imu(3,:),'lineWidth',2.0);
         leg = legend('$\omega_x$','$\omega_y$','$\omega_z$','Location','southeast');
         set(leg,'Interpreter','latex');
         set(leg,'FontSize',18);
@@ -160,8 +157,9 @@ for subjectID = subjectList
         grid on; 
 
         
-        
-        
+        axes('Position',[0 0 1 1],'Xlim',[0 1],'Ylim',[0 1],'Box','off','Visible','off','Units','normalized','clipping' ,'off');
+        text(0.5, 0.99,(sprintf('MAP prediction (Subject: %d, Trial: %d)',subjectID, trialID)),'HorizontalAlignment','center','VerticalAlignment', 'top','FontSize',14);
+
         %% Force prediction 
     
         fig = figure();
@@ -218,73 +216,10 @@ for subjectID = subjectList
         grid on;
         
         
-        
+        axes('Position',[0 0 1 1],'Xlim',[0 1],'Ylim',[0 1],'Box','off','Visible','off','Units','normalized','clipping' ,'off');
+        text(0.5, 0.99,(sprintf('MAP prediction (Subject: %d, Trial: %d)',subjectID, trialID)),'HorizontalAlignment','center','VerticalAlignment', 'top','FontSize',14); 
         
     end    
-
-
-%         axes('Position',[0 0 1 1],'Xlim',[0 1],'Ylim',[0 1],'Box','off','Visible','off','Units','normalized','clipping' ,'off');
-%         text(0.5, 0.99,'\bf Prediction comparison (IMU frame)','HorizontalAlignment','center','VerticalAlignment', 'top','FontSize',14);
-% 
-%         %% Force prediction comparison 
-%     
-%         fig = figure();
-%         % fig = figure('name','xxx');
-%         axes1 = axes('Parent',fig,'FontSize',16);
-%         box(axes1,'on');
-%         hold(axes1,'on');
-%         grid on;
-% 
-%         subplot(221);
-%         plot(dataTime,f_fp_fpPred(4,:),dataTime,f_fp_fpPred(5,:),dataTime,f_fp_fpPred(6,:), 'lineWidth',2.0);
-%         leg = legend('$F_x$','$F_y$','$F_z$','Location','northeast');
-%         set(leg,'Interpreter','latex');
-%         set(leg,'FontSize',18);
-%         xlabel('Time [s]','FontSize',15);
-%         ylabel('Prediction','FontSize',15);
-%         title('Force [N]','FontSize',15);
-%         hold on; 
-%         axis tight;
-%         grid on;
-% 
-%         subplot(223)
-%         plot(dataTime,wrench_fp_fp(:,4),dataTime,wrench_fp_fp(:,5),dataTime,wrench_fp_fp(:,6),'lineWidth',2.0);
-%         leg = legend('$F_x$','$F_y$','$F_z$','Location','northeast');
-%         set(leg,'Interpreter','latex');
-%         set(leg,'FontSize',18);
-%         xlabel('Time [s]','FontSize',15);
-%         ylabel('Actual','FontSize',15);
-%         axis tight;
-%         grid on;
-% 
-%         %% Moment prediction comparison 
-% 
-%         subplot(222);
-%         plot(dataTime,f_fp_fpPred(1,:),dataTime,f_fp_fpPred(2,:),dataTime,f_fp_fpPred(3,:), 'lineWidth',2.0);
-%         leg = legend('$M_x$','$M_y$','$M_z$','Location','northeast');
-%         set(leg,'Interpreter','latex');
-%         set(leg,'FontSize',18);
-%         xlabel('Time [s]','FontSize',15);
-%         ylabel('Prediction','FontSize',15);
-%         title('Moment [Nm]','FontSize',15);
-%         hold on;
-%         axis tight;
-%         grid on;
-% 
-%         subplot(224)
-%         plot(dataTime,wrench_fp_fp(:,1),dataTime,wrench_fp_fp(:,2),dataTime,wrench_fp_fp(:,3),'lineWidth',2.0);
-%         leg = legend('$M_x$','$M_y$','$M_z$','Location','northeast');
-%         set(leg,'Interpreter','latex');
-%         set(leg,'FontSize',18);
-%         xlabel('Time [s]','FontSize',15);
-%         ylabel('Actual','FontSize',15);
-%         axis tight;
-%         grid on;
-%     
-%         axes('Position',[0 0 1 1],'Xlim',[0 1],'Ylim',[0 1],'Box','off','Visible','off','Units','normalized','clipping' ,'off');
-%         text(0.5, 0.99,'\bf Prediction comparison (Fp frame)','HorizontalAlignment','center','VerticalAlignment', 'top','FontSize',14);
-%         
-%         
    
     end
       fprintf('\n');

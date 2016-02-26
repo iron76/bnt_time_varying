@@ -20,12 +20,12 @@ plotSensorFramePrediction = true;
 
 %% selected subjects and trials
 subjectList = 1;
-trialList = 1:4;  
+trialList = 3;  
 
 for subjectID = subjectList
-    fprintf('\n---------\nSubject : %d\nTrial : ',subjectID);
+    fprintf('\n---------\nSubject : %d\n',subjectID);
     for trialID = trialList
-         fprintf('%d, ',trialID);
+         fprintf('\nTrial : %d\n',trialID);
          
     %% Load Drake model and data
     
@@ -57,7 +57,7 @@ for subjectID = subjectList
     dmodel = currentModel;
     
     tau = zeros(size (q));          % joint torques
-    f_1_1 = zeros(size(q,1),6);     % force transmitted from link0 to link1 expressed in link0 frame
+    f_1_1 = zeros(size(q,1),6);     % force transmitted from link0 to link1 expressed in frame associated to link0
     a_2_2 = zeros(size(q,1),6);     % spatial acceleration link2
     v_2_2 = zeros(size(q,1),6);     % spatial velocity link2
     fx = zeros (6,1);
@@ -159,6 +159,8 @@ for subjectID = subjectList
     S_ang = [eye(3) zeros(3)];
 
     
+    fprintf('Predicting sensor measurement using RNEA computation\n');
+    
     % ====IMU PREDICTION
     a_imu_imuPred = S_lin*(X_imu_2*a_2_2') + skew(S_ang*X_imu_2*v_2_2')*(S_lin*X_imu_2*v_2_2'); %skew or cross product are equivalent
     omega_imu_imuPred = S_ang*(X_imu_2*v_2_2');
@@ -230,8 +232,6 @@ for subjectID = subjectList
         axis tight; 
         grid on;    
     end
-
-    fprintf('Predicting sensor measurement using current sensor transforms\n');
     
 %     if(analyseRNEA == true)
 %         checkRNEA_iDynTree;
@@ -239,7 +239,7 @@ for subjectID = subjectList
     %% Plot predictions 
     if(plotSensorFramePrediction)
        
-        % Accelerometer prediction comparison
+        %% Accelerometer prediction comparison
 
         fig = figure();
         % fig = figure('name','xxx');
@@ -247,6 +247,7 @@ for subjectID = subjectList
         box(axes1,'on');
         hold(axes1,'on');
         grid on;
+        
 
         subplot(221)
         plot(dataTime,a_imu_imuPred(1,:),dataTime,a_imu_imuPred(2,:),dataTime,a_imu_imuPred(3,:), 'lineWidth',2.0);
@@ -293,7 +294,7 @@ for subjectID = subjectList
         grid on; 
 
         axes('Position',[0 0 1 1],'Xlim',[0 1],'Ylim',[0 1],'Box','off','Visible','off','Units','normalized','clipping' ,'off');
-        text(0.5, 0.99,'\bf Prediction comparison (IMU frame)','HorizontalAlignment','center','VerticalAlignment', 'top','FontSize',14);
+        text(0.5, 0.99,(sprintf('RNEA prediction (Subject: %d, Trial: %d)',subjectID, trialID)),'HorizontalAlignment','center','VerticalAlignment', 'top','FontSize',16);
 
         %% Force prediction comparison 
     
@@ -351,7 +352,7 @@ for subjectID = subjectList
         grid on;
     
         axes('Position',[0 0 1 1],'Xlim',[0 1],'Ylim',[0 1],'Box','off','Visible','off','Units','normalized','clipping' ,'off');
-        text(0.5, 0.99,'\bf Prediction comparison (Fp frame)','HorizontalAlignment','center','VerticalAlignment', 'top','FontSize',14);
+        text(0.5, 0.99,(sprintf('RNEA prediction (Subject: %d, Trial: %d)',subjectID, trialID)),'HorizontalAlignment','center','VerticalAlignment', 'top','FontSize',14);
         
     end
 end
