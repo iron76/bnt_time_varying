@@ -21,8 +21,7 @@
 %    setBias - set the current b_Y vector
 % setYmatrix - set the current Y matrix
 %       setY - set the current value for the measurement y
-% setYmatrix - set matrix Y
-%    setBias - set b_Y vector
+%    setBias - set the current b_Y vector
 % 
 % Author: Francesco Nori
 % Genova, Dec 2014

@@ -52,22 +52,23 @@ else
    Sy_inv = obj.IDsens.sensorsParams.Sy_inv;
 end
 
-Y = obj.IDsens.sensorsParams.Y;
-b_Y = obj.IDsens.sensorsParams.b_Y;
+Y = cell2mat(obj.IDsens.sensorsParams.Y);
+%b_Y = obj.IDsens.sensorsParams.b_Y;
 
 y      = obj.IDmeas.y;
 
 S_Dinv = Sv_inv;                                %constraint equation covariance
 S_dinv = blkdiag(zeros(size(Sv_inv)), Sw_inv);  %prior covariance
 S_Yinv = Sy_inv;                                %measurements equation covariance
-b_D     = b;
+%b_D     = b;
 mu_D    = zeros(length(S_dinv), 1);
 mu_d    = zeros(length(S_dinv), 1);
 
 if isfield(obj.IDsens.sensorsParams, 'bias')
-    bY     = cell2mat(obj.IDsens.sensorsParams.bias);
+    %b_Y     = cell2mat(obj.IDsens.sensorsParams.bias);
+    b_Y     = obj.IDsens.sensorsParams.bias;
 else
-    bY     = zeros(size(y));
+    b_Y     = zeros(size(y));
 end
     
     
