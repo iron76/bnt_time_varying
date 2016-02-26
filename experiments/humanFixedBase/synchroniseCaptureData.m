@@ -33,8 +33,8 @@ load('./experiments/humanFixedBase/data/VICONsaveDataGen16.mat');
 load('./experiments/humanFixedBase/data/imuExtractedDataGen16.mat');
 addpath('./experiments/humanFixedBase/helperFunctions/');
 
-subjectIDList =1:12;
-trialIDList = 1:4;
+subjectList =1:12;
+trialList = 1:4;
 
 % Setting parameters
 samplingTime = 1e-2;  %uniform sampling rate 
@@ -47,8 +47,11 @@ markersSamplingTime = 1e-2;
 
 
 %% iterate through each trial 
-for subjectID = subjectIDList
-    for trialID = trialIDList
+        
+ for subjectID = subjectList
+    fprintf('\n---------\nSubject : %d ',subjectID);
+    for trialID = trialList
+         fprintf('\nTrial : %d ',trialID);
         
         %% 1.filtering --> TO DO
         
@@ -480,6 +483,7 @@ for subjectID = subjectIDList
         synchronisedData(subjectID,trialID).P_G_imuC =P_G_imuC;
         
     end
+    fprintf('\n');
 end
 
 %% save result 

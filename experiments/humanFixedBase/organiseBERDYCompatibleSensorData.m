@@ -17,9 +17,9 @@ trialList = 1:4;
 %% iterate through each computing transforms each time
 
 for subjectID = subjectList
-    fprintf('\n---------\nSubject : %d\nTrial : ',subjectID);
+    fprintf('\n---------\nSubject : %d ',subjectID);
     for trialID = trialList
-        fprintf('%d, ',trialID);
+        fprintf('\nTrial : %d ',trialID);
 
         currentTrial = processedSensorData(subjectID,trialID);
         
