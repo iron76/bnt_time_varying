@@ -20,8 +20,8 @@ function obj = solveID(obj)
 %
 %   obj.IDmeas.y = [y_1, y_2, ... , y_obj.IDsens.m]
 %
-%   The relationship between d and y is given by Y(q, dq) d = y where the
-%   matrix Y(q, dq), is represented as a sparse matrix. Moreover, the
+%   The relationship between d and y is given by Y(q, dq) d + b_y = y where
+%   the matrix Y(q, dq), is represented as a sparse matrix. Moreover, the
 %   variables d should satisfy the Newton-Euler equations represented as
 %   D(q,dq) d + b(q, dq) = 0, again represented as a sparse matrix. 
 %
@@ -29,12 +29,11 @@ function obj = solveID(obj)
 % Genova, Dec 2014
 
 %%
-%
 
 NB = obj.IDmodel.modelParams.NB;
-D = sparse(obj.iDs, obj.jDs, obj.Ds, 19*NB, 26*NB);
+D = sparse(obj.iDs, obj.jDs, obj.Ds, 19*NB, 26*NB);  
 %D = full(D);
-b_D = sparse(obj.ibs, ones(size(obj.ibs)), obj.bs, 19*NB, 1);
+b_D = sparse(obj.ibs, ones(size(obj.ibs)), obj.bs, 19*NB, 1);  
 
 % Dx = D(1:19*NB, 1:19*NB);
 % Dy = D(1:19*NB, 19*NB+1:26*NB);
@@ -53,24 +52,33 @@ else
 end
 
 Y = cell2mat(obj.IDsens.sensorsParams.Y);
-%b_Y = obj.IDsens.sensorsParams.b_Y;
+invIndex(obj.id)= 1: length(obj.id);     %permutation vector
+Y = Y(:,invIndex);
 
 y      = obj.IDmeas.y;
 
 S_Dinv = Sv_inv;                                %constraint equation covariance
 S_dinv = blkdiag(zeros(size(Sv_inv)), Sw_inv);  %prior covariance
 S_Yinv = Sy_inv;                                %measurements equation covariance
-%b_D     = b;
-mu_D    = zeros(length(S_dinv), 1);
+%mu_D    = zeros(length(S_dinv), 1);
 mu_d    = zeros(length(S_dinv), 1);
 
 if isfield(obj.IDsens.sensorsParams, 'bias')
-    %b_Y     = cell2mat(obj.IDsens.sensorsParams.bias);
     b_Y     = obj.IDsens.sensorsParams.bias;
 else
     b_Y     = zeros(size(y));
 end
     
+
+%% test with only ftx and ddq 
+%  y = y(end-13:end,:);
+%  Y = Y(end-13:end,:);
+%  b_Y = b_Y(end-13:end,:);
+%  S_Yinv = S_Yinv(end-13:end,end-13:end);
+%  invIndex(obj.id)= 1: length(obj.id);
+%  Y = Y(:,invIndex);
+%  
+%%
     
 % permutations corresponding to the RNEA 
 % I      = [obj.ia; obj.ifB; obj.iF(end:-1:1, 1); obj.itau];
@@ -91,11 +99,14 @@ muBar_D = SBar_D*((S_dinv*mu_d) - D'*S_Dinv*b_D);
 Sd = inv(inv(SBar_D) + Y'*S_Yinv*Y);
 d  = Sd * (Y'*S_Yinv*(y-b_Y) + (inv(SBar_D) * muBar_D));
 
+YD = [Y;D];
+YD = full(YD);
+YDsize = size(YD);
+% d= inv([D;Y])*[-b_D;y-b_Y];
 
 %%
 obj.d  = d(obj.id,1);
 obj.Sd = Sd(obj.id,obj.id);
-
 
 %% ======= Nori version
 

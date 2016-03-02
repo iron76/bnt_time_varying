@@ -212,13 +212,14 @@ classdef deterministicMAPsolver
       end
 
 
-      %%
+      %% SIMULATE OUTPUT
       function y = simY(obj, d)
          % fprintf('Calling the deterministicMAPsolver simY method \n');
          y = cell2mat(obj.IDsens.sensorsParams.Y)*d;
 
          if isfield(obj.IDsens.sensorsParams, 'bias')
-            y = y + cell2mat(obj.IDsens.sensorsParams.bias);
+            %y = y + cell2mat(obj.IDsens.sensorsParams.bias);
+            y = y + (obj.IDsens.sensorsParams.bias);
          end
       end
       % obj = solveMAP(obj)
