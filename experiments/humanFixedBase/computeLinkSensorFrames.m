@@ -80,9 +80,7 @@ for subjectID = subjectList
         r_G_from0toG = P_G_G - P_G_0 ;
         r_0_from0toG = R_0_G * r_G_from0toG';
         
-        X_G_0 =   [           R_0_G'                  zeros(3) ; 
-                   -R_0_G'*skew(r_0_from0toG)          R_0_G'  ];
-        
+        X_G_0 = computeAdjointTransform(R_0_G',r_0_from0toG);     
                
         % Computing imu_X_G (variant during motion). Since imu_X_G is used
         % to compute 2_X_imu that is const --> we are going to consider
@@ -92,10 +90,8 @@ for subjectID = subjectList
         [R_G_imu, P_G_imu] = computeInitialIMURotation(P_G_imuA,P_G_imuB,P_G_imuC);
         r_G_fromGtoimu = P_G_imu - P_G_G;
         
-        X_imu_G =   [           R_G_imu'                     zeros(3) ; 
-                      -R_G_imu'*skew(r_G_fromGtoimu)         R_G_imu' ];
+        X_imu_G = computeAdjointTransform(R_G_imu',r_G_fromGtoimu); 
         
-                  
         % Computing 0_X_2     
         X_0_2 = AdjTransfFromLinkToRoot (dmodel, mean(q(1:samples,:)), 2);
         
@@ -125,7 +121,7 @@ for subjectID = subjectList
                    0 1  0;
                    0 0 -1];    
    
-        %origin of fp frame in G frame (consider the frce plate heigt -0.04330 m)       
+        %origin of fp frame in G frame (consider the force plate heigt -0.04330 m)       
         P_G_fp =  [0.23175,0.25400,-0.04330]; 
         
         %we want to compute r_fp_from0tofp
@@ -147,6 +143,7 @@ for subjectID = subjectList
         end
                   
         %% Organising into a structure    
+        sensorLinkTransforms(subjectID,trialID).X_G_0 = X_G_0;
         sensorLinkTransforms(subjectID,trialID).X_imu_2 = X_imu_2;
         sensorLinkTransforms(subjectID,trialID).XStar_fp_0 = XStar_fp_0;
         sensorLinkTransforms(subjectID,trialID).XStar_0_1 = XStar_0_1; 
