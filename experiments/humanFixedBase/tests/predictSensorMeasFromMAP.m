@@ -1,41 +1,53 @@
 % predictSensorMeasFromMAP
+% Script makes a prediction of the sensor measurements simulating output of
+% MAP class. Sensors are the VICON markers, IMU placed on the chest 
+% and force place on the bottom of the foot.
 %
-% 
+% Toolbox requirements:
+% - iDynTree - mex
+% - Featherstone toolbox (v2)
 
 clear;clc;close all;
 
 %% testOptions
 
-plotSensorFramePrediction = true; 
+plotSensorPrediction = false; 
+plotResultsVariances = true;
 
 %% selected subjects and trials
 subjectList = 1;
 trialList = 1;  
 
 for subjectID = subjectList
-    fprintf('\n---------\nSubject : %d ',subjectID);
+    fprintf('\n---------\nSubject : %d',subjectID);
     for trialID = trialList
-         fprintf('\nTrial : %d ',trialID);
+         fprintf('\nTrial : %d\n ',trialID);
          
-    %% load data
-    load('./experiments/humanFixedBase/intermediateDataFiles/BERDYFormattedSensorData.mat');
-   
-    currentTrial = BERDYFormattedSensorData(subjectID,trialID); 
-    data = currentTrial.data;
-    dataTime = currentTrial.data.dataTime;
-    len = length(dataTime);
-    
-    q = currentTrial.data.q;
-    dq = currentTrial.data.dq;
-    ddq = currentTrial.data.ddq;
-    
-    % in ang-lin notation
-    ys_linkFrame_imu = currentTrial.data.ys_linkFrame_imu';
-    ys_link0Frame_fts = currentTrial.data.ys_link0Frame_fts';
-    ys_link1Frame_fts = currentTrial.data.ys_link1Frame_fts';
+    %% Load data 
 
-%%
-    sens.parts    = {'leg'         ,'torso'};       %force of the forceplate is trasmitted into the leg
+    load('./experiments/humanFixedBase/intermediateDataFiles/processedSensorData.mat');
+
+    currentTrial = processedSensorData(subjectID,trialID);
+        
+    q1 = currentTrial.q1;
+    q2 = currentTrial.q2; 
+    dq1 = currentTrial.dq1;
+    dq2 = currentTrial.dq2;
+    ddq1 = currentTrial.ddq1;
+    ddq2 = currentTrial.ddq2;    
+    dataTime = currentTrial.dataTime;
+    
+    len = length(dataTime);
+    q = [q1 q2];
+    dq = [dq1 dq2];
+    ddq = [ddq1 ddq2];
+        
+    wrench_fp_fp = currentTrial.wrench_fp_fp;
+    imu = currentTrial.imu;
+
+    %% Load models and build structure
+    
+    sens.parts    = {'leg'         ,'torso'};           %force of the forceplate is trasmitted into the leg
     sens.labels   = {'fts'         ,'imu'  };
     sens.ndof     = {6             ,6      };
 
@@ -47,10 +59,10 @@ for subjectID = subjectList
     humanThreeLink_dmodel.linkname = {'leg' 'torso'}; 
     humanThreeLink_dmodel.jointname = {'ankle' 'hip'}; 
    
-    dmodel = currentModel.dmodel;                       %deterministic model 
+    dmodel = currentModel.dmodel;                       % deterministic model 
     ymodel  = humanThreeLinkSens(dmodel, sens);  
    
-    dmodel  = autoTreeStochastic(dmodel, 1e-5, 1e-4);   % probabilistic model for D equation (added Sv and Sw)
+    dmodel  = autoTreeStochastic(dmodel, 1e-6);   % probabilistic model for D equation (added Sv and Sw)
     ymodel  = humanThreeLinkSensStochastic(ymodel);     % probabilistic model for Y(q,dq) d = y (added Sy)
    
     myModel = model(dmodel);
@@ -58,62 +70,86 @@ for subjectID = subjectList
    
     myMAP  = MAP(myModel, mySens);
     
-    %% Computing tau using Newton-Euler with Featherstone toolbox
+    %%  ========================= Sensor prediction (NO MAP) ===========================
 
-    v_2_2 = zeros(size(q,1),6);     % spatial velocity link2
-    fx = zeros (6,1);
+%     load('./experiments/humanFixedBase/intermediateDataFiles/sensorLinkTransforms.mat');
+% 
+%     currentTrialSens = sensorLinkTransforms(subjectID,trialID);
+%     
+%     X_imu_2 = currentTrialSens.X_imu_2;
+%     XStar_fp_0 = currentTrialSens.XStar_fp_0;
+%     XStar_0_1 = currentTrialSens.XStar_0_1;
+%     
+%     
+%     load('./experiments/humanFixedBase/intermediateDataFiles/MAPresults.mat');
+%  
+%     currentMAP = MAPresults(subjectID,trialID);
+%     
+%     d = currentMAP.MAPres.d;
+%     b_Y = currentMAP.MAPres.b_Y;
+%     Ymatrix = currentMAP.MAPres.Ymatrix;
+%     
+%     fprintf('Predicting sensor measurement using MAP computation\n');
+% 
+%     y_pred_MAP = zeros (myMAP.IDmeas.m,len);
+%     for i =1:len
+%          y_pred_MAP(:,i) = myMAP.simY(d(:,i));             % without b_Y
+%          %y_pred_MAP(:,i) = y_pred_MAP(:,i) + b_Y(:,i);     % adding b_Y
+%     end   
     
-    fext    = cell(1,2);
-    for i = 1 : dmodel.NB
-         fext{i}    = fx;
-    end
-
-    for i = 1:len
-        
-         [tau_i, a_i, v_i, fB_i, f_i] = IDv(dmodel, q(i,:), dq(i,:), ddq(i,:), fext);
-         v_2_2(i,:) = v_i{2}';
-    end
-
     %%  ========================= Sensor prediction ===========================
-
-    load('./experiments/humanFixedBase/intermediateDataFiles/sensorLinkTransforms.mat');
-
-    currentTrialSens = sensorLinkTransforms(subjectID,trialID);
-    
-    X_imu_2 = currentTrialSens.X_imu_2;
-    XStar_fp_0 = currentTrialSens.XStar_fp_0;
-    XStar_0_1 = currentTrialSens.XStar_0_1;
-    
     
     load('./experiments/humanFixedBase/intermediateDataFiles/MAPresults.mat');
-
+ 
     currentMAP = MAPresults(subjectID,trialID);
     
-    d = currentMAP.MAPres.d;
-    b_Y = currentMAP.b_Y;
+    b_Y = currentMAP.MAPres.b_Y;
     Ymatrix = currentMAP.MAPres.Ymatrix;
+    data.y = currentMAP.data.y;
+    data.Sy = currentMAP.data.Sy;
     
+    y_pred = zeros (myMAP.IDmeas.m,len);
+    
+    % Computing MAP method
     fprintf('Predicting sensor measurement using MAP computation\n');
 
-    y_pred_MAP = zeros (myMAP.IDmeas.m,len);
-    for i =1:len
-         y_pred_MAP(:,i) = myMAP.simY(d(:,i));              % without b_Y
-         y_pred_MAP(:,i) = y_pred_MAP(:,i) + b_Y(:,i);     % adding b_Y
-    end   
+    for i = 1 : len
+
+        myMAP = myMAP.setState(q(i,:)',q(i,:)');
+        myMAP = myMAP.setY(data.y(:,i));
+        myMAP = myMAP.setYmatrix(Ymatrix{i});
+        myMAP = myMAP.setBias(b_Y(:,i));
+        myMAP = myMAP.solveID();
+  
+        res.d(:,i)       = myMAP.d;
+        res.Sd(:,:,i)    = myMAP.Sd; %full() passing from sparse to double matrix
+        res.Ymatrix{i,1} = myMAP.IDsens.sensorsParams.Y; 
+        res.b_Y(:,i)     = myMAP.IDsens.sensorsParams.bias;
+        
+        %simulate output usinf simY
+        res.y_pred(:,i)  = myMAP.simY(res.d(:,i));
     
+         if mod(i-1,100) == 0
+                fprintf('Processing %d %% of the dataset\n', round(i/len*100));
+         end
+    end
+    
+% ========end MAP 
+
     %% Plot predictions 
-    if(plotSensorFramePrediction)
-       %% Acceleration prediction
+    if(plotSensorPrediction)
+
+       %% Accelerometer prediction comparison
        
-        fig = figure();
-        % fig = figure('name','xxx');
+        %fig = figure();
+        fig = figure('name','MAP');
         axes1 = axes('Parent',fig,'FontSize',16);
         box(axes1,'on');
         hold(axes1,'on');
         grid on;
        
         subplot(221)
-        plot(dataTime,y_pred_MAP(7,:),dataTime,y_pred_MAP(8,:),dataTime,y_pred_MAP(9,:),'lineWidth',2.0);
+        plot(dataTime,res.y_pred(10,:),dataTime,res.y_pred(11,:),dataTime,res.y_pred(12,:),'lineWidth',2.0);
         leg = legend('$a_x$','$a_y$','$a_z$','Location','southeast');
         set(leg,'Interpreter','latex');
         set(leg,'FontSize',18);
@@ -124,7 +160,7 @@ for subjectID = subjectList
         grid on; 
 
         subplot(223)
-        plot(dataTime,ys_linkFrame_imu(4,:),dataTime,ys_linkFrame_imu(5,:),dataTime,ys_linkFrame_imu(6,:),'lineWidth',2.0);
+        plot2 = plot(dataTime,imu(:,1),dataTime,imu(:,2),dataTime,imu(:,3),'lineWidth',2.0);
         leg = legend('$a_x$','$a_y$','$a_z$','Location','southeast');
         set(leg,'Interpreter','latex');
         set(leg,'FontSize',18);
@@ -136,7 +172,7 @@ for subjectID = subjectList
         %% Gyroscope prediction comparison
 
         subplot(222)
-        plot(dataTime,y_pred_MAP(10,:),dataTime,y_pred_MAP(11,:),dataTime,y_pred_MAP(12,:), 'lineWidth',2.0);
+        plot(dataTime,res.y_pred(7,:),dataTime,res.y_pred(8,:),dataTime,res.y_pred(9,:), 'lineWidth',2.0);
         leg = legend('$\omega_x$','$\omega_y$','$\omega_z$','Location','southeast');
         set(leg,'Interpreter','latex');
         set(leg,'FontSize',18);
@@ -147,7 +183,7 @@ for subjectID = subjectList
         grid on; 
 
         subplot(224)
-        plot(dataTime,ys_linkFrame_imu(1,:),dataTime,ys_linkFrame_imu(2,:),dataTime,ys_linkFrame_imu(3,:),'lineWidth',2.0);
+        plot(dataTime,imu(:,4),dataTime,imu(:,5),dataTime,imu(:,6),'lineWidth',2.0);
         leg = legend('$\omega_x$','$\omega_y$','$\omega_z$','Location','southeast');
         set(leg,'Interpreter','latex');
         set(leg,'FontSize',18);
@@ -156,33 +192,32 @@ for subjectID = subjectList
         axis tight;
         grid on; 
 
-        
         axes('Position',[0 0 1 1],'Xlim',[0 1],'Ylim',[0 1],'Box','off','Visible','off','Units','normalized','clipping' ,'off');
-        text(0.5, 0.99,(sprintf('MAP prediction (Subject: %d, Trial: %d)',subjectID, trialID)),'HorizontalAlignment','center','VerticalAlignment', 'top','FontSize',14);
+        text(0.5, 0.99,(sprintf('MAP measurements prediction, sensor frame (Subject: %d, Trial: %d)',subjectID, trialID)),'HorizontalAlignment','center','VerticalAlignment', 'top','FontSize',14);
 
-        %% Force prediction 
+        %% Force prediction comparison  
     
-        fig = figure();
-        % fig = figure('name','xxx');
+        %fig = figure();
+        fig = figure('name','MAP');
         axes1 = axes('Parent',fig,'FontSize',16);
         box(axes1,'on');
         hold(axes1,'on');
         grid on;
         
         subplot(221);
-        plot(dataTime,y_pred_MAP(1,:),dataTime,y_pred_MAP(2,:),dataTime,y_pred_MAP(3,:), 'lineWidth',2.0);
+        plot(dataTime,res.y_pred(4,:),dataTime,res.y_pred(5,:),dataTime,res.y_pred(6,:), 'lineWidth',2.0);
         leg = legend('$F_x$','$F_y$','$F_z$','Location','northeast');
         set(leg,'Interpreter','latex');
         set(leg,'FontSize',18);
         xlabel('Time [s]','FontSize',15);
         ylabel('Prediction','FontSize',15);
-        title('Force f_1[N] in frame associated to link1 ','FontSize',15);
+        title('Force [N]','FontSize',15);
         hold on; 
         axis tight;
         grid on;
 
         subplot(223)
-        plot(dataTime, ys_link1Frame_fts(4,:),dataTime, ys_link1Frame_fts(5,:),dataTime, ys_link1Frame_fts(6,:),'lineWidth',2.0);
+        plot(dataTime,wrench_fp_fp(:,4),dataTime,wrench_fp_fp(:,5),dataTime,wrench_fp_fp(:,6),'lineWidth',2.0);
         leg = legend('$F_x$','$F_y$','$F_z$','Location','northeast');
         set(leg,'Interpreter','latex');
         set(leg,'FontSize',18);
@@ -191,22 +226,22 @@ for subjectID = subjectList
         axis tight;
         grid on;
         
-        %% Moment prediction 
+        %% Moment prediction comparison
 
         subplot(222);
-        plot(dataTime,y_pred_MAP(4,:),dataTime,y_pred_MAP(5,:),dataTime,y_pred_MAP(6,:), 'lineWidth',2.0);
+        plot(dataTime,res.y_pred(1,:),dataTime,res.y_pred(2,:),dataTime,res.y_pred(3,:), 'lineWidth',2.0);
         leg = legend('$M_x$','$M_y$','$M_z$','Location','northeast');
         set(leg,'Interpreter','latex');
         set(leg,'FontSize',18);
         xlabel('Time [s]','FontSize',15);
         ylabel('Prediction','FontSize',15);
-        title('Moment_1 [Nm] in frame associated to link1','FontSize',15);
+        title('Moment [Nm]','FontSize',15);
         hold on;
         axis tight;
         grid on;
 
         subplot(224)
-        plot(dataTime, ys_link1Frame_fts(1,:),dataTime, ys_link1Frame_fts(2,:),dataTime, ys_link1Frame_fts(3,:),'lineWidth',2.0);
+        plot(dataTime,wrench_fp_fp(:,1),dataTime,wrench_fp_fp(:,2),dataTime,wrench_fp_fp(:,3),'lineWidth',2.0);
         leg = legend('$M_x$','$M_y$','$M_z$','Location','northeast');
         set(leg,'Interpreter','latex');
         set(leg,'FontSize',18);
@@ -215,13 +250,55 @@ for subjectID = subjectList
         axis tight;
         grid on;
         
-        
         axes('Position',[0 0 1 1],'Xlim',[0 1],'Ylim',[0 1],'Box','off','Visible','off','Units','normalized','clipping' ,'off');
-        text(0.5, 0.99,(sprintf('MAP prediction (Subject: %d, Trial: %d)',subjectID, trialID)),'HorizontalAlignment','center','VerticalAlignment', 'top','FontSize',14); 
+        text(0.5, 0.99,(sprintf('MAP measurements prediction, sensor frame (Subject: %d, Trial: %d)',subjectID, trialID)),'HorizontalAlignment','center','VerticalAlignment', 'top','FontSize',14); 
         
     end    
-   
-    end
+    
+    %% Plot variances
+    if(plotResultsVariances)
+         
+        for i = 1:myMAP.IDsens.sensorsParams.m
+        
+            fig = figure();
+            axes1 = axes('Parent',fig,'FontSize',16);
+            box(axes1,'on');
+            hold(axes1,'on');
+            grid on;
+      
+            lineProps = {'LineWidth', 3.0};
+            shadedErrorBar(dataTime,data.y(i,:),sqrt(data.Sy(i,:)),lineProps);
+            plot(dataTime,res.y_pred(i,:),'lineWidth',1.0);hold on;
+            
+%           leg = legend('$a_x$','$a_y$','$a_z$','Location','southeast');
+%           set(leg,'Interpreter','latex');
+%           set(leg,'FontSize',18);
+%           xlabel('Time [s]','FontSize',15);
+%           ylabel('Prediction ','FontSize',15);
+%           title('Linear acceleration [m/sec^2]','FontSize',14);
+            %title(strrep(myMAP.IDsens.sensorsParams.labels{6}, '_', '~'));
+            if (i >=1 && i<4) 
+            title(sprintf('Figure %d : m1-moments ',i));
+            elseif (i >=4 && i<7) 
+            title(sprintf('Figure %d : f1-forces ',i));
+            elseif (i >=7 && i<10)
+            title(sprintf('Figure %d : a2-ang',i));
+            elseif (i >=10 && i<13)
+            title(sprintf('Figure %d : a2-lin ',i));
+            elseif (i >=13 && i<19)
+            title(sprintf('Figure %d : fx1 ',i));
+            elseif (i >=19 && i<25)
+            title(sprintf('Figure %d : fx2 ',i));
+            elseif (i ==25)
+            title(sprintf('Figure %d : ddq1 ',i));
+            elseif (i ==26)
+            title(sprintf('Figure %d : ddq2 ',i));
+            end
+            
+            axis tight;
+            grid on; 
+        end    
+    end 
+   end
       fprintf('\n');
 end
-

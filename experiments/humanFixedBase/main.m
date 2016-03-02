@@ -6,7 +6,7 @@ plotMAPtorques = false;
 
 %% selected subjects and trials
 subjectList = 1;
-trialList = 1:2;  
+trialList = 1;  
 
 
 for subjectID = subjectList
@@ -54,16 +54,16 @@ for subjectID = subjectList
     humanThreeLink_dmodel.linkname = {'leg' 'torso'}; 
     humanThreeLink_dmodel.jointname = {'ankle' 'hip'}; 
    
-    dmodel = currentModel.dmodel;                       %deterministic model 
+    dmodel  = currentModel.dmodel;                      %deterministic model 
     ymodel  = humanThreeLinkSens(dmodel, sens);  
    
-    dmodel  = autoTreeStochastic(dmodel, 1e-5, 1e-4);   % probabilistic model for D equation (added Sv and Sw)
+    dmodel  = autoTreeStochastic(dmodel, 1e-6);   % probabilistic model for D equation (added Sv and Sw)
     ymodel  = humanThreeLinkSensStochastic(ymodel);     % probabilistic model for Y(q,dq) d = y (added Sy)
    
     myModel = model(dmodel);
     mySens  = sensors(ymodel);  
    
-    myMAP  = MAP(myModel, mySens);
+    myMAP   = MAP(myModel, mySens);
    
     %% ================================ RNEA ==================================
     % Computing d using Newton-Euler with inverse dynamics.
@@ -111,6 +111,7 @@ for subjectID = subjectList
     clear f_i;
     clear v_i;
     % ========end RNEA
+    
     %% Build data.y anda data.Sy 
     % data.y are ordered in:  
     % - angular-linear notation 
@@ -133,7 +134,7 @@ for subjectID = subjectList
     for i = 1 : length(myMAP.IDsens.sensorsParams.labels)
          data.Sy = [data.Sy; diag(myMAP.IDsens.sensorsParams.Sy{i})];
     end
-    data.Sy = repmat(data.Sy, 1, len);
+    data.Sy = repmat(data.Sy, 1, len-1);
     data.Sy = [data.Sy data.Sy(:,end)];
 
     %% ================================ MAP ===================================
@@ -172,12 +173,14 @@ for subjectID = subjectList
     
     b_Y = zeros (size(data.y)); 
     R_imu_2 = X_imu_2(1:3,1:3);
-
-    a_grav = [0;0;0;0;0;-9.8100]; %Featherstone-like notation
+    
+    a_G_grav = [0;0;0;0;0;-9.8100]; %Featherstone-like notation, in global reference
+    X_0_G = currentTrialSens.X_G_0';
+    a_0_grav = X_0_G * a_G_grav;
           
     I_0 = createSpatialInertia(footIxx,footIyy,footIzz,footMass,posP_0);
 
-    b_Y(1:6,1:len)   = repmat((-XStar_fp_0 * I_0 * a_grav),1,len);
+    b_Y(1:6,1:len)   = repmat((-XStar_fp_0 * I_0 * a_0_grav),1,len);
     
     for i = 1 : len   
         A =R_imu_2*v{i,2}(1:3,1);
@@ -201,14 +204,13 @@ for subjectID = subjectList
         res.Sd(:,:,i)    = myMAP.Sd; %full() passing from sparse to double matrix
         res.Ymatrix{i,1} = myMAP.IDsens.sensorsParams.Y; 
         res.b_Y(:,i)     = myMAP.IDsens.sensorsParams.bias;
-        res.y(:,i)       = (Ymatrix{i} * res.d(:,i)) + b_Y(:,i); 
-        res.Sy(:,:,i)    = Ymatrix{i} * res.Sd(:,:,i) * Ymatrix{i}';
-    
+        %res.y(:,i)      = (Ymatrix{i} * res.d(:,i)) + b_Y(:,i); 
+        %res.Sy(:,:,i)   = Ymatrix{i} * res.Sd(:,:,i) * Ymatrix{i}';
+
          if mod(i-1,100) == 0
                 fprintf('Processing %d %% of the dataset\n', round(i/len*100));
          end
-     end
-% 
+    end
 % 
 % %====plot of Ymatrix
 % imagesc(Ymatrix)
@@ -259,6 +261,29 @@ for subjectID = subjectList
          end
     end
 
+    
+%     %% Plot overlapped plots
+% py = [0; cumsum(cell2mat(myMAP.IDsens.sensorsParams.sizes))];
+% for l = 1 : length(label_to_plot)
+%    for k = 1 : myMAP.IDsens.sensorsParams.ny
+%       if strcmp(myMAP.IDsens.sensorsParams.labels{k}, label_to_plot{l})
+%          figure
+%          J = myMAP.IDsens.sensorsParams.sizes{k};
+%          I = py(k)+1 : py(k)+J;
+%          colors = ['r', 'g', 'b'];
+%          for j = 1:J
+%             subplot(2, ceil(J/2), j)
+%             hold on;
+%             shadedErrorBar(dataTime, data.y(I(j),:), sqrt(data.Sy(I(j), :)), {[colors(mod(j,3)+1) '--'] , 'LineWidth', 1}, 0);
+%             plot(dataTime, y(I(j),:), colors(mod(j,3)+1) , 'LineWidth', 1);
+% 
+%             title(strrep(myMAP.IDsens.sensorsParams.labels{k}, '_', '~'));
+%          end
+%       end
+%    end
+% end
+%     
+    
     %% ======================= LEAST SQUARE SOLUTION ==========================
     %  
     % %Using RNEA class for fetting D and b_D 
@@ -361,6 +386,8 @@ for subjectID = subjectList
     end
     %% Organising into a structure    
     MAPresults(subjectID,trialID).MAPres = res;
+    MAPresults(subjectID,trialID).data.y = data.y;
+    MAPresults(subjectID,trialID).data.Sy = data.Sy;
     clear res;
     
     end
