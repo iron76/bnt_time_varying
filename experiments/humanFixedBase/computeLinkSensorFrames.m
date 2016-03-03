@@ -25,10 +25,8 @@ clc; clear; close all;
 
 %% load processed data and models
 load('./experiments/humanFixedBase/intermediateDataFiles/processedSensorData.mat');
-%isTest = 'false'; 
-
 load('./experiments/humanFixedBase/intermediateDataFiles/humanThreeLinkModelFromURDF.mat');
-
+%isTest = 'false'; 
 %% selected subjects and trials
 subjectList = 1:12;
 trialList = 1:4 ;  
@@ -129,11 +127,9 @@ for subjectID = subjectList
         r_0_from0tofp = R_0_G * r_G_from0tofp';
         
         R_fp_0 = R_fp_G * R_0_G';
- 
-        XStar_fp_0 = [  R_fp_0    -R_fp_0*skew(r_0_from0tofp);
-                       zeros(3)                R_fp_0         ];
-        
-           
+                   
+        XStar_fp_0_claudia =  computeAdjointStarTransform(R_fp_0,r_0_from0tofp);          
+                
         %% Computing adjoint transform 0_XStar_1  --> for Ymatrix
    
         XStar_0_1 = cell(size(q,1),1);
