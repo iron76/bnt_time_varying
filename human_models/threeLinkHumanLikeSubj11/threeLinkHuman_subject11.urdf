@@ -1,72 +1,72 @@
-<robot name="threeLinkHuman_subject11">
+<robot name="threeLinkHuman">
     <link name="foot">
         <inertial>
-            <mass value="5.8636"/>
-            <origin xyz="0 0 0.035094" rpy="0 0 0" />
-            <inertia ixx="0.031273" iyy="0.034062" izz="0.06052" ixy="0" ixz="0" iyz="0"/>
+            <mass value="5.8868"/>
+            <origin xyz="0 0 0.035042" rpy="0 0 0" />
+            <inertia ixx="0.031519" iyy="0.034184" izz="0.060884" ixy="0" ixz="0" iyz="0"/>
         </inertial>
 
         <visual>
-			<origin xyz="0 0 0.035094" rpy="0 0 0" />
+			<origin xyz="0 0 0.035042" rpy="0 0 0" />
             <geometry>
-                <box size="0.25452 0.24305 0.070188"/>
+                <box size="0.2545 0.2436 0.070084"/>
             </geometry>
         </visual>
 
         <collision>
-			<origin xyz="0 0 0.035094" rpy="0 0 0" />
+			<origin xyz="0 0 0.035042" rpy="0 0 0" />
             <geometry>
-                <box size="0.25452 0.24305 0.070188"/>
+                <box size="0.2545 0.2436 0.070084"/>
             </geometry>
         </collision>
     </link>
     
     <link name="leg">
         <inertial>
-            <mass value="35.7206"/>
-            <origin xyz="0 0 0.40283" rpy="0 0 0" />
-            <inertia ixx="2.1303" iyy="1.9804" izz="0.24633" ixy="0" ixz="0" iyz="0"/>
+            <mass value="35.7058"/>
+            <origin xyz="0 0 0.4027" rpy="0 0 0" />
+            <inertia ixx="2.1269" iyy="1.9783" izz="0.24492" ixy="0" ixz="0" iyz="0"/>
         </inertial>
 
         <visual>
-            <origin xyz="0 0 0.40283" rpy="0 0 0" />
+            <origin xyz="0 0 0.4027" rpy="0 0 0" />
             <geometry>
-                <box size="0.12726 0.25798 0.80566"/>
+                <box size="0.12725 0.25714 0.80541"/>
             </geometry>
         </visual>
 
         <collision>
-            <origin xyz="0 0 0.40283" rpy="0 0 0" />
+            <origin xyz="0 0 0.4027" rpy="0 0 0" />
             <geometry>
-                <box size="0.12726 0.25798 0.80566"/>
+                <box size="0.12725 0.25714 0.80541"/>
             </geometry>
         </collision>
     </link>
     
     <link name="torso">
         <inertial>
-            <mass value="32.9495"/>
+            <mass value="33.0867"/>
             <origin xyz="0 0 0.27063" rpy="0 0 0" />
-            <inertia ixx="1.1489" iyy="0.8489" izz="0.38898" ixy="0" ixz="0" iyz="0"/>
+            <inertia ixx="1.1544" iyy="0.85241" izz="0.39127" ixy="0" ixz="0" iyz="0"/>
         </inertial>
 
         <visual>
             <origin xyz="0 0 0.27063" rpy="0 0 0" />
             <geometry>
-                <box size="0.12726 0.35421 0.54127"/>
+                <box size="0.12725 0.35456 0.54126"/>
             </geometry>
         </visual>
 
         <collision>
             <origin xyz="0 0 0.27063" rpy="0 0 0" />
             <geometry>
-                <box size="0.12726 0.35421 0.54127"/>
+                <box size="0.12725 0.35456 0.54126"/>
             </geometry>
         </collision>
     </link>
         
     <joint name="ankle" type="revolute">
-        <origin xyz="-0.063631 0 0.070188" rpy="0 0 0"/>
+        <origin xyz="-0.063625 0 0.070084" rpy="0 0 0"/>
         <parent link="foot"/>
         <child link="leg"/>
         <dynamics damping="0.1" friction="0.0"/>
@@ -75,7 +75,7 @@
     </joint>
     
     <joint name="hip" type="revolute">
-        <origin xyz="0 0 0.80566" rpy="0 0 0"/>
+        <origin xyz="0 0 0.80541" rpy="0 0 0"/>
         <parent link="leg"/>
         <child link="torso"/>
         <dynamics damping="0.1" friction="0.0"/>

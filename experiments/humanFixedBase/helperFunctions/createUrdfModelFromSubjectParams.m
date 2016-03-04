@@ -1,59 +1,58 @@
-function [ output_args ] = createUrdfModelFromSubjectParams( templateName)
-%UNTITLED2 Summary of this function goes here
-%   Detailed explanation goes here
+% CREATEURDFMODELFROMSUBJECTPARAMS
+% Script tp create for each subject a file urdf.
 
 
 load('./experiments/humanFixedBase/data/subjectSizeParams.mat');
 
-urdfModelTemplate = fileread('threeLinkHumanTemplate.urdf');
+subjectList = 1:12;
 
-for i= 1
+for subjectID = subjectList
     
-urdfModelTemplate = strrep(urdfModelTemplate,'FOOTMASS',num2str(subjectParams(i).footMass));
-urdfModelTemplate = strrep(urdfModelTemplate,'LEGMASS',num2str(subjectParams(i).legMass));
-urdfModelTemplate = strrep(urdfModelTemplate,'TORSOMASS',num2str(subjectParams(i).torsoMass));
+    urdfModelTemplate = fileread('./human_models/threeLinkHumanLikeTemplate/threeLinkHumanTemplate.urdf');
+    
+    urdfModelTemplate = strrep(urdfModelTemplate,'FOOTMASS',num2str(subjectParams(subjectID).footMass));
+    urdfModelTemplate = strrep(urdfModelTemplate,'LEGMASS',num2str(subjectParams(subjectID).legMass));
+    urdfModelTemplate = strrep(urdfModelTemplate,'TORSOMASS',num2str(subjectParams(subjectID).torsoMass));
 
-urdfModelTemplate = strrep(urdfModelTemplate,'FOOTALFA',num2str(subjectParams(i).footWidth));
-urdfModelTemplate = strrep(urdfModelTemplate,'FOOTBETA',num2str(subjectParams(i).footHeight));
-urdfModelTemplate = strrep(urdfModelTemplate,'FOOTGAMMA',num2str(subjectParams(i).footDepth));
+    urdfModelTemplate = strrep(urdfModelTemplate,'FOOTALFA',num2str(subjectParams(subjectID).footWidth));
+    urdfModelTemplate = strrep(urdfModelTemplate,'FOOTBETA',num2str(subjectParams(subjectID).footHeight));
+    urdfModelTemplate = strrep(urdfModelTemplate,'FOOTGAMMA',num2str(subjectParams(subjectID).footDepth));
 
-urdfModelTemplate = strrep(urdfModelTemplate,'LEGALFA',num2str(subjectParams(i).legWidth));
-urdfModelTemplate = strrep(urdfModelTemplate,'LEGBETA',num2str(subjectParams(i).legHeight));
-urdfModelTemplate = strrep(urdfModelTemplate,'LEGGAMMA',num2str(subjectParams(i).legDepth));
+    urdfModelTemplate = strrep(urdfModelTemplate,'LEGALFA',num2str(subjectParams(subjectID).legWidth));
+    urdfModelTemplate = strrep(urdfModelTemplate,'LEGBETA',num2str(subjectParams(subjectID).legHeight));
+    urdfModelTemplate = strrep(urdfModelTemplate,'LEGGAMMA',num2str(subjectParams(subjectID).legDepth));
 
-urdfModelTemplate = strrep(urdfModelTemplate,'TORSOALFA',num2str(subjectParams(i).torsoWidth));
-urdfModelTemplate = strrep(urdfModelTemplate,'TORSOBETA',num2str(subjectParams(i).torsoHeight));
-urdfModelTemplate = strrep(urdfModelTemplate,'TORSOGAMMA',num2str(subjectParams(i).torsoDepth));
+    urdfModelTemplate = strrep(urdfModelTemplate,'TORSOALFA',num2str(subjectParams(subjectID).torsoWidth));
+    urdfModelTemplate = strrep(urdfModelTemplate,'TORSOBETA',num2str(subjectParams(subjectID).torsoHeight));
+    urdfModelTemplate = strrep(urdfModelTemplate,'TORSOGAMMA',num2str(subjectParams(subjectID).torsoDepth));
 
-urdfModelTemplate = strrep(urdfModelTemplate,'HALFfootBETA',num2str(0.5*subjectParams(i).footHeight));
-urdfModelTemplate = strrep(urdfModelTemplate,'HALFlegBETA',num2str(0.5*subjectParams(i).legHeight));
-urdfModelTemplate = strrep(urdfModelTemplate,'HALFtorsoBETA',num2str(0.5*subjectParams(i).torsoHeight));
+    urdfModelTemplate = strrep(urdfModelTemplate,'HALFfootBETA',num2str(0.5*subjectParams(subjectID).footHeight));
+    urdfModelTemplate = strrep(urdfModelTemplate,'HALFlegBETA',num2str(0.5*subjectParams(subjectID).legHeight));
+    urdfModelTemplate = strrep(urdfModelTemplate,'HALFtorsoBETA',num2str(0.5*subjectParams(subjectID).torsoHeight));
 
-urdfModelTemplate = strrep(urdfModelTemplate,'FOOTINERTIAIXX',num2str(subjectParams(i).footIxx));
-urdfModelTemplate = strrep(urdfModelTemplate,'FOOTINERTIAIYY',num2str(subjectParams(i).footIyy));
-urdfModelTemplate = strrep(urdfModelTemplate,'FOOTINERTIAIZZ',num2str(subjectParams(i).footIzz));
+    urdfModelTemplate = strrep(urdfModelTemplate,'FOOTINERTIAIXX',num2str(subjectParams(subjectID).footIxx));
+    urdfModelTemplate = strrep(urdfModelTemplate,'FOOTINERTIAIYY',num2str(subjectParams(subjectID).footIyy));
+    urdfModelTemplate = strrep(urdfModelTemplate,'FOOTINERTIAIZZ',num2str(subjectParams(subjectID).footIzz));
 
-urdfModelTemplate = strrep(urdfModelTemplate,'LEGINERTIAIXX',num2str(subjectParams(i).legIxx));
-urdfModelTemplate = strrep(urdfModelTemplate,'LEGINERTIAIYY',num2str(subjectParams(i).legIyy));
-urdfModelTemplate = strrep(urdfModelTemplate,'LEGINERTIAIZZ',num2str(subjectParams(i).legIzz));
+    urdfModelTemplate = strrep(urdfModelTemplate,'LEGINERTIAIXX',num2str(subjectParams(subjectID).legIxx));
+    urdfModelTemplate = strrep(urdfModelTemplate,'LEGINERTIAIYY',num2str(subjectParams(subjectID).legIyy));
+    urdfModelTemplate = strrep(urdfModelTemplate,'LEGINERTIAIZZ',num2str(subjectParams(subjectID).legIzz));
 
-urdfModelTemplate = strrep(urdfModelTemplate,'TORSOINERTIAIXX',num2str(subjectParams(i).torsoIxx));
-urdfModelTemplate = strrep(urdfModelTemplate,'TORSOINERTIAIYY',num2str(subjectParams(i).torsoIyy));
-urdfModelTemplate = strrep(urdfModelTemplate,'TORSOINERTIAIZZ',num2str(subjectParams(i).torsoIzz));
+    urdfModelTemplate = strrep(urdfModelTemplate,'TORSOINERTIAIXX',num2str(subjectParams(subjectID).torsoIxx));
+    urdfModelTemplate = strrep(urdfModelTemplate,'TORSOINERTIAIYY',num2str(subjectParams(subjectID).torsoIyy));
+    urdfModelTemplate = strrep(urdfModelTemplate,'TORSOINERTIAIZZ',num2str(subjectParams(subjectID).torsoIzz));
 
-urdfModelTemplate = strrep(urdfModelTemplate,'ANKLEVAL',num2str((-subjectParams(i).footDepth)/4));
+    urdfModelTemplate = strrep(urdfModelTemplate,'ANKLEVAL',num2str((-subjectParams(subjectID).footDepth)/4));
 
-%create subject directories
-%mkdir('human_models',sprintf('threeLinkHumanLikeSubj%02d',i))
+    %create subject directories
+    %mkdir('human_models',sprintf('threeLinkHumanLikeSubj%d',subjectID))
 
+    %% storing file into a proper folder
 
-% 'human_models/threeLinkHumanLikeSubj%02d/threeLinkHuman_subject%02d','w',i,i
+    fileID = fopen(sprintf('threeLinkHuman_subject%d.urdf',subjectID),'w');
+    fprintf(fileID,'%s', urdfModelTemplate);
+    fclose(fileID);
 
-% %storing file into a proper folder
-fileID = fopen(sprintf('threeLinkHuman_subject%d.urdf',i),'w');
-fprintf(fileID,'%s', urdfModelTemplate);
-fclose(fileID);
+    movefile(sprintf('threeLinkHuman_subject%d.urdf',subjectID),sprintf('./human_models/threeLinkHumanLikeSubj%02d',subjectID));
 
 end
-end
-
