@@ -25,8 +25,8 @@ my = 1;
 multConst = 1;
 so       = multConst * 5;           %IMU gyroscope
 sa       = multConst * 5;           %IMU accelerometer
-sf       = multConst * 3;           % FT moment
-su       = multConst * 3;           % FT force
+sf       = multConst * 4;           % FT moment
+su       = multConst * 4;           % FT force
 sd       = multConst * 1e-4;          % joint acceleration
 
 imuS = [so*eye(3) zeros(3,3); zeros(3,3) sa*eye(3)];

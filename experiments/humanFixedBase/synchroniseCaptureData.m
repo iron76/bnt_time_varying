@@ -4,11 +4,11 @@
 % (corresponding to the little tiptoe gesture performed by subjects in the 
 % start and conclusion of the bowing motion experiment). It:
 % 1. filters data;
-% 2. interpolates data to obatain the same samplingTime for all of them;
+% 2. interpolates data to obtain the same samplingTime for all of them;
 % 3. syncrhonises data:
 %    3.1 re-aligns data on the first peak cutting data before it;
 %    3.2 cuts data after the second peak;
-%    3.3 cuts for both peaks 1sec of acquisition 
+%    3.3 cuts for both peaks  x sec of acquisition 
 % 4. converts eventually data in ISU;
 % 5. stores data into a file.mat
 
@@ -38,7 +38,7 @@ trialList = 1:4;
 
 % Setting parameters
 samplingTime = 1e-2;  %uniform sampling rate 
-settlingCutTime = 0.5;  %1sec
+settlingCutTime = 0.8;  %1sec
 settlingCutTimeIndex = ceil(settlingCutTime/samplingTime); %ensuring integer variable
 
 forcePlateSamplingTime = 1e-3;
@@ -53,7 +53,7 @@ markersSamplingTime = 1e-2;
     for trialID = trialList
          fprintf('\nTrial : %d ',trialID);
         
-        %% 1.filtering --> TO DO
+        %% 1. filtering --> TO DO
         
         %% 2. data interpolation
         
