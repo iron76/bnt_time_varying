@@ -39,10 +39,20 @@ for subjectID = subjectList
         %% data expressed in sensor frame --> data.y_sensFrame --> for Ymatrix created manually
 
         %IMU
-        aLin_imu  = currentTrial.imu(:,1:3);               %linear part of a, in imu frame
-        a_imu_imu   = [zeros(size(aLin_imu)), aLin_imu];   %twist in imu frame, ang-lin notation, assumption: aAng =0
-        data.ys_sensFrame_imu = a_imu_imu;
+        aLin_imu  = currentTrial.imu(:,1:3);                %linear part of a, in imu frame
+        %a_imu_imu   = [zeros(size(aLin_imu)), aLin_imu];   %twist in imu frame, ang-lin notation, assumption: aAng =0
+        %data.ys_sensFrame_imu = a_imu_imu;
 
+        %GYRO
+        velAng_imu  = currentTrial.imu(:,4:6);
+        [aAng_imuX,~] = SgolayDerivation(3,57,velAng_imu(:,1),1e-2);
+        [aAng_imuY,~] = SgolayDerivation(3,57,velAng_imu(:,2),1e-2);
+        [aAng_imuZ,~] = SgolayDerivation(3,57,velAng_imu(:,3),1e-2);
+        aAng_imu = [aAng_imuX aAng_imuY aAng_imuZ];
+        
+        
+        a_imu_imu   = [aAng_imu, aLin_imu];
+        data.ys_sensFrame_imu = a_imu_imu;
         
         %Force plate
         y_fp_fp = currentTrial.wrench_fp_fp;                %wrench in forceplate frame, ang-lin notation
@@ -54,10 +64,11 @@ for subjectID = subjectList
         
         %IMU in link2
         X_imu_2 = currentTrialSens.X_imu_2;
+        X_2_imu = InverseAdjTransform(X_imu_2);
         a_2_imu = zeros(size(a_imu_imu))';
         
         for i = 1:length(data.dataTime)                    %twist in frame associate to link2
-            a_2_imu(:,i)= X_imu_2'* a_imu_imu(i,:)';
+            a_2_imu(:,i)= X_2_imu * a_imu_imu(i,:)';
         end
                  
         data.ys_linkFrame_imu = a_2_imu';
@@ -65,10 +76,11 @@ for subjectID = subjectList
 
         %Force plate in link0
         XStar_fp_0 = currentTrialSens.XStar_fp_0;
+        XStar_0_fp = InverseAdjTransform(XStar_fp_0);
         y_0_fp = zeros(size(y_fp_fp))';
         
         for i = 1:length(data.dataTime)                    %wrench in frame associate to link0
-            y_0_fp(:,i)= XStar_fp_0'* y_fp_fp(i,:)';
+            y_0_fp(:,i)= XStar_0_fp * y_fp_fp(i,:)';
         end
         
         data.ys_link0Frame_fts = y_0_fp';
@@ -79,15 +91,15 @@ for subjectID = subjectList
         y_1_fp = zeros (6,length(data.dataTime));
   
         for i = 1:length(data.dataTime)                    %wrench in frame associate to link1
-            y_1_fp(:,i)= XStar_0_1{i}'* y_0_fp(:,i);
+            XStar_1_0{i} = InverseAdjTransform(XStar_0_1{i});
+            y_1_fp(:,i)= XStar_1_0{i} * y_0_fp(:,i);
         end
         
         data.ys_link1Frame_fts = y_1_fp';
         
         
         %% Organising into a structure    
-        
-        BERDYFormattedSensorData(subjectID,trialID).data = data;       
+git         BERDYFormattedSensorData(subjectID,trialID).data = data;       
     end
      fprintf('\n');
 end

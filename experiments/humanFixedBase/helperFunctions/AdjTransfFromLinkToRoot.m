@@ -29,7 +29,7 @@ while (i ~= 0)
     i_X_lambda_i = Xj * dmodel.Xtree{i}; 
    
     % inverting i_X_lambda_i to lambda_i_X_i:
-    lambda_i_X_i = InverseAdjMatrix(i_X_lambda_i);
+    lambda_i_X_i = InverseAdjTransform(i_X_lambda_i);
  
     root_X_linkNum = lambda_i_X_i * root_X_linkNum;
     i = dmodel.parent(i);

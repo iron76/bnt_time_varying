@@ -128,7 +128,7 @@ for subjectID = subjectList
         
         R_fp_0 = R_fp_G * R_0_G';
                    
-        XStar_fp_0_claudia =  computeAdjointStarTransform(R_fp_0,r_0_from0tofp);          
+        XStar_fp_0 =  computeAdjointStarTransform(R_fp_0,r_0_from0tofp);          
                 
         %% Computing adjoint transform 0_XStar_1  --> for Ymatrix
    
