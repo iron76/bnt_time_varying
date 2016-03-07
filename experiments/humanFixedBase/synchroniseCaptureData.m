@@ -3,8 +3,8 @@
 % It looks for the spikes in beginning and end of both the sources 
 % (corresponding to the little tiptoe gesture performed by subjects in the 
 % start and conclusion of the bowing motion experiment). It:
-% 1. filters data;
-% 2. interpolates data to obtain the same samplingTime for all of them;
+%
+% 1. interpolates data to obtain the same samplingTime for all of them;
 % 3. syncrhonises data:
 %    3.1 re-aligns data on the first peak cutting data before it;
 %    3.2 cuts data after the second peak;
@@ -22,23 +22,24 @@
 clc; clear; close all;
 
 %% testOptions
-plotRawData = false;
-plotFirstCutData = false;
-plotSecondCutData = false;
-plotSettlingTimeCutData = false;
-plotFinalConvertedData = false;
+plotInterpolatedFilteredData = true;
+plotFilteredData = true;
+plotFirstCutData = true;
+plotSecondCutData = true;
+plotSettlingTimeCutData = true;
+plotFinalConvertedData = true;
 
 %% load data sources
 load('./experiments/humanFixedBase/data/VICONsaveDataGen16.mat');
 load('./experiments/humanFixedBase/data/imuExtractedDataGen16.mat');
 addpath('./experiments/humanFixedBase/helperFunctions/');
 
-subjectList =1:12;
-trialList = 1:4;
+subjectList = 1;
+trialList = 1;
 
 % Setting parameters
 samplingTime = 1e-2;  %uniform sampling rate 
-settlingCutTime = 0.8;  %1sec
+settlingCutTime = 0.8;  % secs
 settlingCutTimeIndex = ceil(settlingCutTime/samplingTime); %ensuring integer variable
 
 forcePlateSamplingTime = 1e-3;
@@ -53,11 +54,9 @@ markersSamplingTime = 1e-2;
     for trialID = trialList
          fprintf('\nTrial : %d ',trialID);
         
-        %% 1. filtering --> TO DO
-        
         %% 2. data interpolation
         
-        % wrench raw data
+        % ====force plate data
         f_raw = subjectData(subjectID,trialID).analogsFOR;
         mom_raw = subjectData(subjectID,trialID).analogsMOM;
         
@@ -66,10 +65,11 @@ markersSamplingTime = 1e-2;
         f = interp1(t_f_raw,f_raw,t_f);
         mom = interp1(t_f_raw,mom_raw,t_f);
         
-        % imu raw data
+        
+        % ====imu data
         accl_raw = imuData(subjectID,trialID).accln;
         omega_raw = imuData(subjectID,trialID).gyro;
-          
+        
         if(~isempty(find(diff(imuData(subjectID,trialID).t)<=0)))
             ttemp = imuData(subjectID,trialID).t;
             t_imu_raw = linspace(0,ttemp(end),length(ttemp))./1000;
@@ -80,65 +80,92 @@ markersSamplingTime = 1e-2;
         t_imu = 0:samplingTime:t_imu_raw(end);
         accl = interp1(t_imu_raw,accl_raw,t_imu);
         omega = interp1(t_imu_raw,omega_raw,t_imu);
-
-        if(plotRawData)
+        
+        
+        % ====markers data 
+        P_G_ltoe_raw = subjectData(subjectID,trialID).markers.ltoe;
+        P_G_lhee_raw = subjectData(subjectID,trialID).markers.lhee;
+        P_G_lankle_raw = subjectData(subjectID,trialID).markers.lankle;
+        P_G_lhip_raw = subjectData(subjectID,trialID).markers.lhip;
+        P_G_lsho_raw =subjectData(subjectID,trialID).markers.lsho; 
+        
+        P_G_rtoe_raw = subjectData(subjectID,trialID).markers.rtoe;
+        P_G_rhee_raw = subjectData(subjectID,trialID).markers.rhee;
+        P_G_rankle_raw =subjectData(subjectID,trialID).markers.rankle;
+        P_G_rhip_raw = subjectData(subjectID,trialID).markers.rhip;
+        P_G_rsho_raw = subjectData(subjectID,trialID).markers.rsho; 
+        
+        P_G_tors_raw = subjectData(subjectID,trialID).markers.tors; 
+        P_G_imuA_raw = subjectData(subjectID,trialID).markers.imuA;
+        P_G_imuB_raw = subjectData(subjectID,trialID).markers.imuB;
+        P_G_imuC_raw = subjectData(subjectID,trialID).markers.imuC;
+        
+        t_markers_raw = 0:markersSamplingTime:(markersSamplingTime*size(subjectData(subjectID,trialID).markers.ltoe,1));
+        t_markers_raw = t_markers_raw(1:end-1);
+        
+        P_G_ltoe = interp1( t_markers_raw,P_G_ltoe_raw,t_f);
+        P_G_lhee = interp1( t_markers_raw,P_G_lhee_raw,t_f);
+        P_G_lankle = interp1( t_markers_raw,P_G_lankle_raw,t_f);
+        P_G_lhip = interp1( t_markers_raw,P_G_lhip_raw,t_f);
+        P_G_lsho =interp1( t_markers_raw,P_G_lsho_raw,t_f); 
+        
+        P_G_rtoe = interp1(t_markers_raw,P_G_rtoe_raw,t_f);
+        P_G_rhee = interp1( t_markers_raw,P_G_rhee_raw,t_f);
+        P_G_rankle =interp1(t_markers_raw,P_G_rankle_raw,t_f);
+        P_G_rhip = interp1( t_markers_raw,P_G_rhip_raw,t_f);
+        P_G_rsho = interp1(t_markers_raw,P_G_rsho_raw,t_f); 
+        
+        P_G_tors =interp1( t_markers_raw,P_G_tors_raw,t_f); 
+        P_G_imuA = interp1( t_markers_raw,P_G_imuA_raw,t_f);
+        P_G_imuB = interp1( t_markers_raw,P_G_imuB_raw,t_f);
+        P_G_imuC =interp1( t_markers_raw,P_G_imuC_raw,t_f);
+        
+        
+        if(plotInterpolatedFilteredData)
             fig = figure();
             axes1 = axes('Parent',fig,'FontSize',16);
             box(axes1,'on');
             hold(axes1,'on');
             grid on;
             
-            subplot(411);
+            subplot(511);
             plot(t_f,f, 'lineWidth',2.0);
             xlabel('Time [s]','FontSize',12);
             ylabel('Force [N]','FontSize',12);
             axis tight;
             grid on;
-            title(sprintf('Subject : %d, Trial : %d',subjectID,trialID));
+            title(sprintf('Subject : %d, Trial : %d, interpolated data',subjectID,trialID));
             
-            subplot(412);
+            subplot(512);
             plot(t_f,mom, 'lineWidth',2.0);
             xlabel('Time [s]','FontSize',12);
             ylabel('Moment [Nmm]','FontSize',12);
             axis tight;
             grid on;
-            subplot(413);
+            
+            subplot(513);
             plot(t_imu,accl, 'lineWidth',2.0);
             xlabel('Time [s]','FontSize',12);
             ylabel('LinAcc [m/s^2]','FontSize',12);
             axis tight;
             grid on;
-            subplot(414);
+            
+            subplot(514);
             plot(t_imu,omega, 'lineWidth',2.0);
             xlabel('Time [s]','FontSize',12);
             ylabel('AngVel [rad/s]','FontSize',12);
             axis tight;
             grid on;
+            
+            subplot(515);
+            plot(t_f,P_G_tors, 'lineWidth',2.0);
+            xlabel('Time [s]','FontSize',12);
+            ylabel('Torso marker ','FontSize',12);
+            axis tight;
+            grid on;
         end
         
-        
-        % markers raw data 
-        t_markers_raw = 0:markersSamplingTime:(markersSamplingTime*size(subjectData(subjectID,trialID).markers.ltoe,1));
-        t_markers_raw = t_markers_raw(1:end-1);
-        
-        P_G_ltoe = interp1( t_markers_raw,subjectData(subjectID,trialID).markers.ltoe,t_f);
-        P_G_lhee = interp1( t_markers_raw,subjectData(subjectID,trialID).markers.lhee,t_f);
-        P_G_lankle = interp1( t_markers_raw,subjectData(subjectID,trialID).markers.lankle,t_f);
-        P_G_lhip = interp1( t_markers_raw,subjectData(subjectID,trialID).markers.lhip,t_f);
-        P_G_lsho =interp1( t_markers_raw,subjectData(subjectID,trialID).markers.lsho,t_f); 
-        
-        P_G_rtoe = interp1(t_markers_raw,subjectData(subjectID,trialID).markers.rtoe,t_f);
-        P_G_rhee = interp1( t_markers_raw,subjectData(subjectID,trialID).markers.rhee,t_f);
-        P_G_rankle =interp1(t_markers_raw,subjectData(subjectID,trialID).markers.rankle,t_f);
-        P_G_rhip = interp1( t_markers_raw,subjectData(subjectID,trialID).markers.rhip,t_f);
-        P_G_rsho = interp1(t_markers_raw,subjectData(subjectID,trialID).markers.rsho,t_f); 
-        
-        P_G_tors =interp1( t_markers_raw,subjectData(subjectID,trialID).markers.tors,t_f); 
-        P_G_imuA = interp1( t_markers_raw,subjectData(subjectID,trialID).markers.imuA,t_f);
-        P_G_imuB = interp1( t_markers_raw,subjectData(subjectID,trialID).markers.imuB,t_f);
-        P_G_imuC =interp1( t_markers_raw,subjectData(subjectID,trialID).markers.imuC,t_f);
-       
-        %% 3. synchronising data
+        %% 3. synchronising and filtering data
         
         % 3.1 synchronising peaks of force with imu 
         
@@ -150,6 +177,77 @@ markersSamplingTime = 1e-2;
         [val,timeIndexToPeak1_accl] = max(abs(accl(1:round(end*0.5),chosenA_ID)));
         timeToPeak1_accl = t_imu(timeIndexToPeak1_accl);
 
+        % ==========================filtering==============================
+               
+        polynOrder = 3;
+        filterWindow = 57;
+        
+        % ====force plate data
+        f_filt = filterSignal (polynOrder,filterWindow,f);
+        mom_filt = filterSignal (polynOrder,filterWindow,mom);
+        
+        
+        % ====imu data
+        accl_filt = filterSignal (polynOrder,filterWindow,accl);
+        omega_filt = filterSignal (polynOrder,filterWindow,omega);
+
+        
+        % ====marker data
+        P_G_ltoe_filt = filterSignal (polynOrder,filterWindow,P_G_ltoe);
+        P_G_lhee_filt = filterSignal (polynOrder,filterWindow,P_G_lhee);
+        P_G_lankle_filt = filterSignal (polynOrder,filterWindow,P_G_lankle);
+        P_G_lhip_filt = filterSignal (polynOrder,filterWindow,P_G_lhip);
+        P_G_lsho_filt = filterSignal (polynOrder,filterWindow,P_G_lsho);
+        
+        P_G_rtoe_filt = filterSignal (polynOrder,filterWindow,P_G_rtoe);
+        P_G_rhee_filt = filterSignal (polynOrder,filterWindow,P_G_rhee);
+        P_G_rankle_filt = filterSignal (polynOrder,filterWindow,P_G_rankle);
+        P_G_rhip_filt = filterSignal (polynOrder,filterWindow,P_G_rhip);
+        P_G_rsho_filt = filterSignal (polynOrder,filterWindow,P_G_rsho);
+        
+        P_G_tors_filt = filterSignal (polynOrder,filterWindow,P_G_tors); 
+        P_G_imuA_filt = filterSignal (polynOrder,filterWindow,P_G_imuA);
+        P_G_imuB_filt = filterSignal (polynOrder,filterWindow,P_G_imuB);
+        P_G_imuC_filt = filterSignal (polynOrder,filterWindow,P_G_imuC);
+        
+        
+        if(plotFilteredData)
+            fig = figure();
+            axes1 = axes('Parent',fig,'FontSize',16);
+            box(axes1,'on');
+            hold(axes1,'on');
+            
+            grid on;
+            subplot(411);
+            plot(t_f,f_filt, 'lineWidth',2.0);
+            xlabel('Time [s]','FontSize',12);
+            ylabel('Force [N] ','FontSize',12);
+            axis tight;
+            grid on; 
+            title(sprintf('Subject : %d, Trial : %d, filtered data',subjectID,trialID));
+            
+            subplot(412);
+            plot(t_f,mom_filt, 'lineWidth',2.0);
+            xlabel('Time [s]','FontSize',12);
+            ylabel('Moment [Nmm] ','FontSize',12);
+            axis tight;
+            grid on;
+            
+            subplot(413);
+            plot(t_imu,accl_filt, 'lineWidth',2.0);
+            xlabel('Time [s]','FontSize',12);
+            ylabel('LinAcc [m/sec^2]','FontSize',12);
+            axis tight;
+            grid on;
+            subplot(414);
+            plot(t_imu,omega_filt, 'lineWidth',2.0);
+            xlabel('Time [s]','FontSize',12);
+            ylabel('AngVel [rad/s]','FontSize',12);
+            axis tight;
+            grid on;
+        end
+        % =================================================================
+        
         
         % t=0 in f dal campione timeToPeak1_f
         fCut = f(timeIndexToPeak1_f:end,:);
@@ -176,7 +274,7 @@ markersSamplingTime = 1e-2;
             ylabel('Force [N] ','FontSize',12);
             axis tight;
             grid on; 
-            title(sprintf('Subject : %d, Trial : %d',subjectID,trialID));
+            title(sprintf('Subject : %d, Trial : %d, first cut',subjectID,trialID));
             
             subplot(412);
             plot(t_cut_vicon,momCut, 'lineWidth',2.0);
@@ -236,7 +334,7 @@ markersSamplingTime = 1e-2;
                    
         P_G_rtoe_cut    = P_G_rtoe_cut   (1:timeIndexToPeak2_f,:);
         P_G_rhee_cut    = P_G_rhee_cut   (1:timeIndexToPeak2_f,:);
-        P_G_rankle_cut   = P_G_rankle_cut  (1:timeIndexToPeak2_f,:);
+        P_G_rankle_cut  = P_G_rankle_cut (1:timeIndexToPeak2_f,:);
         P_G_rhip_cut    = P_G_rhip_cut   (1:timeIndexToPeak2_f,:);
         P_G_rsho_cut    = P_G_rsho_cut   (1:timeIndexToPeak2_f,:);
                     
@@ -267,6 +365,7 @@ markersSamplingTime = 1e-2;
             ylabel('Force [N] ','FontSize',12);
             axis tight;
             grid on;
+            title(sprintf('Subject : %d, Trial : %d, second cut',subjectID,trialID));
             
             subplot(412);
             plot(t_cut_vicon,momCut, 'lineWidth',2.0);
@@ -274,7 +373,7 @@ markersSamplingTime = 1e-2;
             ylabel('Moment [Nmm] ','FontSize',12);
             axis tight;
             grid on;
-            title(sprintf('Subject : %d, Trial : %d',subjectID,trialID));
+      
             subplot(413);
             plot(t_cut_imu,accCut, 'lineWidth',2.0);
             xlabel('Time [s]','FontSize',12);
@@ -305,7 +404,7 @@ markersSamplingTime = 1e-2;
                    
         P_G_rtoe_cut    = P_G_rtoe_cut   (settlingCutTimeIndex:(end-settlingCutTimeIndex),:);
         P_G_rhee_cut    = P_G_rhee_cut   (settlingCutTimeIndex:(end-settlingCutTimeIndex),:);
-        P_G_rankle_cut  = P_G_rankle_cut  (settlingCutTimeIndex:(end-settlingCutTimeIndex),:);
+        P_G_rankle_cut  = P_G_rankle_cut (settlingCutTimeIndex:(end-settlingCutTimeIndex),:);
         P_G_rhip_cut    = P_G_rhip_cut   (settlingCutTimeIndex:(end-settlingCutTimeIndex),:);
         P_G_rsho_cut    = P_G_rsho_cut   (settlingCutTimeIndex:(end-settlingCutTimeIndex),:);
                     
@@ -348,7 +447,6 @@ markersSamplingTime = 1e-2;
             P_G_imuA_cut    = P_G_imuA_cut  (1:t_cutIndex,:);
             P_G_imuB_cut    = P_G_imuB_cut  (1:t_cutIndex,:);
             P_G_imuC_cut    = P_G_imuC_cut  (1:t_cutIndex,:);
-            
 
         end
          
@@ -365,7 +463,8 @@ markersSamplingTime = 1e-2;
             ylabel('Force [N] ','FontSize',12);
             axis tight;
             grid on;
-            title(sprintf('Subject : %d, Trial : %d',subjectID,trialID));     
+            title(sprintf('Subject : %d, Trial : %d, cutted initial and final secs',subjectID,trialID));
+             
             subplot(412);
             plot(t_cut_vicon,momCut, 'lineWidth',2.0);
             xlabel('Time [s]','FontSize',12);
@@ -390,7 +489,7 @@ markersSamplingTime = 1e-2;
         
         %% 4. data conversion
         
-        % VICON 
+        % ====VICON 
         % acquired data in mm --> converted in m
         convConst = 1e-3;
         P_G_ltoe =  convConst * P_G_ltoe_cut;
@@ -410,12 +509,12 @@ markersSamplingTime = 1e-2;
         P_G_imuB =convConst * P_G_imuB_cut;
         P_G_imuC =convConst * P_G_imuC_cut;
         
-        % FORCE PLATE
+        % ====FORCE PLATE
         % acquired force datain N --> no conversion;
         % acquired moment data in Nmm --> converted in Nm;
         momCut =  1e-3* momCut;
         
-        % IMU
+        % ====IMU
         % acquired acc data in m/s^2 --> no conversion;
         % acquired omega data in rad/s^2 --> no conversion;
         
@@ -433,7 +532,7 @@ markersSamplingTime = 1e-2;
             ylabel('Force [N] ','FontSize',12);
             axis tight;
             grid on;
-            title(sprintf('Subject : %d, Trial : %d',subjectID,trialID));
+            title(sprintf('Subject : %d, Trial : %d, converted data',subjectID,trialID));
             
             subplot(412);
             plot(t_cut_vicon,momCut, 'lineWidth',2.0);

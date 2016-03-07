@@ -11,8 +11,8 @@ load('./experiments/humanFixedBase/intermediateDataFiles/processedSensorData.mat
 load('./experiments/humanFixedBase/intermediateDataFiles/sensorLinkTransforms.mat');
 
 %% selected subjects and trials
-subjectList = 1:12;
-trialList = 1:4;  
+subjectList = 1;
+trialList = 1;  
 
 %% iterate through each computing transforms each time
 
@@ -43,13 +43,12 @@ for subjectID = subjectList
         %a_imu_imu   = [zeros(size(aLin_imu)), aLin_imu];   %twist in imu frame, ang-lin notation, assumption: aAng =0
         %data.ys_sensFrame_imu = a_imu_imu;
 
-        %GYRO
+        %GYRO --> Assumption: considering that gyro can give us omegaDot
         velAng_imu  = currentTrial.imu(:,4:6);
         [aAng_imuX,~] = SgolayDerivation(3,57,velAng_imu(:,1),1e-2);
         [aAng_imuY,~] = SgolayDerivation(3,57,velAng_imu(:,2),1e-2);
         [aAng_imuZ,~] = SgolayDerivation(3,57,velAng_imu(:,3),1e-2);
         aAng_imu = [aAng_imuX aAng_imuY aAng_imuZ];
-        
         
         a_imu_imu   = [aAng_imu, aLin_imu];
         data.ys_sensFrame_imu = a_imu_imu;
@@ -99,7 +98,7 @@ for subjectID = subjectList
         
         
         %% Organising into a structure    
-git         BERDYFormattedSensorData(subjectID,trialID).data = data;       
+        BERDYFormattedSensorData(subjectID,trialID).data = data;       
     end
      fprintf('\n');
 end
