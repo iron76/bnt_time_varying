@@ -89,15 +89,15 @@ end
 
 %% mean and covariance matrix of p(d) ~ N(muBar_D, SBar_D)
 
-SBar_D  = inv(D'*S_Dinv*D + S_dinv);
-muBar_D = SBar_D*((S_dinv*mu_d) - D'*S_Dinv*b_D);
+SBar_D_inv  = D'*S_Dinv*D + S_dinv;
+muBar_D = SBar_D_inv\((S_dinv*mu_d) - D'*S_Dinv*b_D);
 
 %% mean and covariance matrix of p(d|y) ~ N(mu_d|y, S_d|y)
 % Note : mu_d|y --> d (as we are considering MAP estimator);
 %        S_d|y  --> Sd
 
-Sd = inv(inv(SBar_D) + Y'*S_Yinv*Y);
-d  = Sd * (Y'*S_Yinv*(y-b_Y) + (inv(SBar_D) * muBar_D));
+Sd = inv(SBar_D_inv + Y'*S_Yinv*Y);
+d  = Sd * (Y'*S_Yinv*(y-b_Y) + (SBar_D_inv * muBar_D));
 
 YD = [Y;D];
 YD = full(YD);
