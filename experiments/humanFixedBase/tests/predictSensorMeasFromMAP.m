@@ -11,7 +11,7 @@ clear;clc;close all;
 
 %% testOptions
 
-plotSensorPrediction = false; 
+plotSensorPrediction = true; 
 plotResultsVariances = true;
 
 %% selected subjects and trials
@@ -267,32 +267,29 @@ for subjectID = subjectList
             grid on;
       
             lineProps = {'LineWidth', 3.0};
-            shadedErrorBar(dataTime,data.y(i,:),sqrt(data.Sy(i,:)),lineProps);
-            plot(dataTime,res.y_pred(i,:),'lineWidth',1.0);hold on;
-            
-%           leg = legend('$a_x$','$a_y$','$a_z$','Location','southeast');
-%           set(leg,'Interpreter','latex');
-%           set(leg,'FontSize',18);
-%           xlabel('Time [s]','FontSize',15);
-%           ylabel('Prediction ','FontSize',15);
-%           title('Linear acceleration [m/sec^2]','FontSize',14);
-            %title(strrep(myMAP.IDsens.sensorsParams.labels{6}, '_', '~'));
+            shad1 = shadedErrorBar(dataTime,data.y(i,:),sqrt(data.Sy(i,:)),lineProps);
+            plot1= plot(dataTime,res.y_pred(i,:),'lineWidth',1.0);hold on;
+            set(plot1,'color',[1 0 0]);
+            xlabel('Time [s]','FontSize',15);
+            leg = legend([shad1.mainLine,shad1.patch, plot1], {'sensorData','dataVariance','predictionData'},'Location','southeast');
+            title('Comparison between real data and MAP prediction data','FontSize',13);
+
             if (i >=1 && i<4) 
-            title(sprintf('Figure %d : m1-moments ',i));
+                ylabel('f1: Moment [Nm]','FontSize',15);
             elseif (i >=4 && i<7) 
-            title(sprintf('Figure %d : f1-forces ',i));
+                ylabel('f1: Force[N]','FontSize',15);
             elseif (i >=7 && i<10)
-            title(sprintf('Figure %d : a2-ang',i));
+                ylabel('a2: Angular acceleration [rad/s]','FontSize',15);
             elseif (i >=10 && i<13)
-            title(sprintf('Figure %d : a2-lin ',i));
+                ylabel('a2: Linear acceleration [m/s^2]','FontSize',15);
             elseif (i >=13 && i<19)
-            title(sprintf('Figure %d : fx1 ',i));
+                ylabel('External force ftx1 [N]','FontSize',15);
             elseif (i >=19 && i<25)
-            title(sprintf('Figure %d : fx2 ',i));
+                ylabel('External force ftx2 [N]','FontSize',15);
             elseif (i ==25)
-            title(sprintf('Figure %d : ddq1 ',i));
+                ylabel('Joint acceleration ddq1 [m/s^2]','FontSize',15);
             elseif (i ==26)
-            title(sprintf('Figure %d : ddq2 ',i));
+                ylabel('Joint acceleration ddq2 [m/s^2]','FontSize',15);
             end
             
             axis tight;

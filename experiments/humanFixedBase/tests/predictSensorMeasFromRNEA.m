@@ -163,10 +163,12 @@ for subjectID = subjectList
     % ====IMU PREDICTION
     a_imu_imuPred = S_lin*(X_imu_2*a_2_2') + skew(S_ang*X_imu_2*v_2_2')*(S_lin*X_imu_2*v_2_2'); %skew or cross product are equivalent
     omega_imu_imuPred = S_ang*(X_imu_2*v_2_2');
+    omegaDot_imu_imuPred = S_ang*(X_imu_2*a_2_2');
 
     % ====FORCE PLATE PREDICTION
     a_G_grav = [0;0;0;0;0;-9.8100];    %Featherstone-like notation, in global reference
-    X_0_G = currentTrialSens.X_G_0';
+    X_G_0 = currentTrialSens.X_G_0;
+    X_0_G = InverseAdjTransform(X_G_0);
     a_0_grav = X_0_G * a_G_grav;
     
     I_0 = createSpatialInertia(footIxx,footIyy,footIzz,footMass,posP_0);
@@ -181,103 +183,6 @@ for subjectID = subjectList
          f_fp_fpPred(:,i) = XStar_fp_0 * ((f_0_1(:,i))-(I_0 * a_0_grav));
     end
   
-%% test COM
-%            
-%         % ====in G frame
-%         
-%         P_G_0 = [0.2316, 0.2975, 0.0316]; %sub1, trial1
-%         P_G_1 = currentTrial.P_G_1;
-%         P_G_2 = currentTrial.P_G_2;
-%         P_G_3 = currentTrial.P_G_3;
-%         P_fp_fp = [0 0 0];
-%         
-%         m0 = 3.0929;
-%         m1 = 25.5388;
-%         m2 = 33.0115;
-%         
-%         PosCOM = zeros (len,3);
-% 
-%         for i =1:len
-%             
-%             x0_COM = (P_G_1(:,1) + P_G_0(:,1))/2;
-%             y0_COM = (P_G_1(:,2) + P_G_0(:,2))/2;
-%             z0_COM = (P_G_1(:,3) + P_G_0(:,3))/2;
-%             
-%             x1_COM = (P_G_2(:,1) + P_G_1(:,1))/2;
-%             y1_COM = (P_G_2(:,2) + P_G_1(:,2))/2;
-%             z1_COM = (P_G_2(:,3) + P_G_1(:,3))/2;
-%             
-%             x2_COM = (P_G_3(:,1) + P_G_2(:,1))/2;
-%             y2_COM = (P_G_3(:,2) + P_G_2(:,2))/2;
-%             z2_COM = (P_G_3(:,3) + P_G_2(:,3))/2;
-%             
-%             xTOT_COM = ((m0*x0_COM)+(m1*x1_COM)+(m2*x2_COM))/(m0+m1+m2);
-%             yTOT_COM = ((m0*y0_COM)+(m1*y1_COM)+(m2*y2_COM))/(m0+m1+m2);
-%             zTOT_COM = ((m0*z0_COM)+(m1*z1_COM)+(m2*z2_COM))/(m0+m1+m2);
-%             
-%             Pos_G_COM(i,1)= xTOT_COM(i);
-%             Pos_G_COM(i,2)= yTOT_COM(i);
-%             Pos_G_COM(i,3)= zTOT_COM(i);
-%      
-%         end
-%             R_fp_G = [-1 0  0;
-%                        0 1  0;
-%                        0 0 -1];
-%             
-%             P_fp_G =  [0.23175,0.25400,0.04330]; 
-%             r_fp_fromfptoG = P_fp_G - P_fp_fp;
-%                    
-%             A_fp_G = [R_fp_G  r_fp_fromfptoG'; [0 0 0]  1];
-%             
-%             VectPos_fp_COM = A_fp_G * [Pos_G_COM(1,:)';1] ;     
-%                    
-%             
-%             
-%             f = (m0+m1+m2)*a_0_grav;
-%             braccio = Pos_G_COM - repmat(P_G_0,len,1);
-%             braccio(:,1)=0;
-%             
-%         for i =1:len
-%             momentCOM(:,i) = skew(braccio(i,:)')*f(4:6,1);
-%         end
-%         
-%         fig = figure();
-%         axes1 = axes('Parent',fig,'FontSize',16);
-%         box(axes1,'on');
-%         hold(axes1,'on');
-%         grid on;
-%         
-%         subplot(311)
-%         plot(dataTime,(180/pi)*q1,dataTime,(180/pi)*q2,'lineWidth',2.0);
-%         leg = legend('$q_1$','$q_2$','Location','northeast');
-%         set(leg,'Interpreter','latex');
-%         set(leg,'FontSize',18);
-%         xlabel('Time [s]','FontSize',15);
-%         ylabel('Actual','FontSize',15);
-%         axis tight;
-%         grid on;
-%         
-%         subplot(312);
-%         plot(dataTime,f_fp_fpPred(1,:),dataTime,f_fp_fpPred(2,:),dataTime,f_fp_fpPred(3,:), 'lineWidth',2.0);
-%         leg = legend('$M_x$','$M_y$','$M_z$','Location','northeast');
-%         set(leg,'Interpreter','latex');
-%         set(leg,'FontSize',18);
-%         xlabel('Time [s]','FontSize',15);
-%         ylabel('Prediction','FontSize',15);
-%         hold on; 
-%         axis tight;
-%         grid on;
-% 
-%         subplot(313);
-%         plot(dataTime,momentCOM(1,:),dataTime,momentCOM(2,:),dataTime,momentCOM(3,:), 'lineWidth',2.0);
-%        leg = legend('$MCOM_x$','$MCOM_y$','$MCOM_z$','Location','northeast');
-%         set(leg,'Interpreter','latex');
-%         set(leg,'FontSize',18);
-%         xlabel('Time [s]','FontSize',15);
-%         ylabel('COM','FontSize',15);
-%         hold on; 
-%         axis tight;
-%         grid on;
     %% Plot link quantities from ID Featherstone
     if(plotLinkQuantities)
  
@@ -458,7 +363,7 @@ for subjectID = subjectList
     if(plotResultsVariances)
         
         imu = imu';
-        dataRNEA = [f_fp_fpPred; omega_imu_imuPred; a_imu_imuPred];
+        dataRNEA = [f_fp_fpPred; omegaDot_imu_imuPred; a_imu_imuPred];
 
         
         load('./experiments/humanFixedBase/intermediateDataFiles/MAPresults.mat');
@@ -476,34 +381,33 @@ for subjectID = subjectList
 
             
             lineProps = {'LineWidth', 3.0};
-            shadedErrorBar(dataTime,data.y(i,:),sqrt(data.Sy(i,:)),lineProps);
+            shad1 = shadedErrorBar(dataTime,data.y(i,:),sqrt(data.Sy(i,:)),lineProps);
             plot1 = plot(dataTime,dataRNEA(i,:),'lineWidth',1.0);hold on;
             set(plot1,'color',[1 0 0]);
-
-%             leg = legend('var','data','predectionData','Location','southeast');
-%             set(leg,'Interpreter','latex');
-%             set(leg,'FontSize',18);
-%             xlabel('Time [s]','FontSize',15);
-%             ylabel('Prediction ','FontSize',15);
-%             title('Linear acceleration [m/sec^2]','FontSize',14);
-%             title(strrep(myMAP.IDsens.sensorsParams.labels{6}, '_', '~'));
+            xlabel('Time [s]','FontSize',15);
+            leg = legend([shad1.mainLine,shad1.patch, plot1], {'sensorData','dataVariance','predictionData'},'Location','southeast');
+            title('Comparison between real data and RNEA prediction data','FontSize',13);
             
             if (i >=1 && i<4) 
-            title(sprintf('Figure %d : m1-moments ',i));
+                %title(sprintf('Figure %d : m1-moments ',i));
+                ylabel('f1: Moment [Nm]','FontSize',15);
             elseif (i >=4 && i<7) 
-            title(sprintf('Figure %d : f1-forces ',i));
+                %title(sprintf('Figure %d : f1-forces ',i));
+                ylabel('f1: Force[N]','FontSize',15);
             elseif (i >=7 && i<10)
-            title(sprintf('Figure %d : a2-ang',i));
+                %title(sprintf('Figure %d : a2-ang',i));
+                ylabel('a2: Angular acceleration [rad/s]','FontSize',15);
             elseif (i >=10 && i<13)
-            title(sprintf('Figure %d : a2-lin ',i));
+                %title(sprintf('Figure %d : a2-lin ',i));
+                ylabel('a2: Linear acceleration [m/s^2]','FontSize',15);
 %             elseif (i >=13 && i<19)
-%             title(sprintf('Figure %d : fx1 ',i));
+%               title(sprintf('Figure %d : fx1 ',i));
 %             elseif (i >=19 && i<25)
-%             title(sprintf('Figure %d : fx2 ',i));
+%               title(sprintf('Figure %d : fx2 ',i));
 %             elseif (i ==25)
-%             title(sprintf('Figure %d : ddq1 ',i));
+%               title(sprintf('Figure %d : ddq1 ',i));
 %             elseif (i ==26)
-%             title(sprintf('Figure %d : ddq2 ',i));
+%               title(sprintf('Figure %d : ddq2 ',i));
             end
             
             axis tight;

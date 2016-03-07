@@ -2,7 +2,7 @@ clear;clc;close all;
 
 %% testOptions
 
-plotMAPtorques = false;
+plotMAPtorques = true;
 
 %% selected subjects and trials
 subjectList = 1;
@@ -57,7 +57,7 @@ for subjectID = subjectList
     dmodel  = currentModel.dmodel;                      %deterministic model 
     ymodel  = humanThreeLinkSens(dmodel, sens);  
    
-    dmodel  = autoTreeStochastic(dmodel, 1e-6);   % probabilistic model for D equation (added Sv and Sw)
+    dmodel  = autoTreeStochastic(dmodel, 1e-6);         % probabilistic model for D equation (added Sv and Sw)
     ymodel  = humanThreeLinkSensStochastic(ymodel);     % probabilistic model for Y(q,dq) d = y (added Sy)
    
     myModel = model(dmodel);
@@ -142,7 +142,7 @@ for subjectID = subjectList
     % Ymatrix has to be consistent with measurements form [f1 a2 ftx1 ftx2 ddq1 ddq2]
     
     Y = zeros (ymodel.m,26*dmodel.NB);
-    Y(10:12,27:32) = X_imu_2(4:6,:);
+    Y(7:12,27:32) = X_imu_2;
     Y(13:18,20:25) = eye(6);
     Y(19:24,46:51) = eye(6);
     Y(25,26) = eye(1);
@@ -175,13 +175,14 @@ for subjectID = subjectList
     R_imu_2 = X_imu_2(1:3,1:3);
     
     a_G_grav = [0;0;0;0;0;-9.8100]; %Featherstone-like notation, in global reference
-    X_0_G = currentTrialSens.X_G_0';
+    X_G_0 = currentTrialSens.X_G_0;
+    X_0_G = InverseAdjTransform(X_G_0);
     a_0_grav = X_0_G * a_G_grav;
           
     I_0 = createSpatialInertia(footIxx,footIyy,footIzz,footMass,posP_0);
 
     b_Y(1:6,1:len)   = repmat((-XStar_fp_0 * I_0 * a_0_grav),1,len);
-    
+   
     for i = 1 : len   
         A =R_imu_2*v{i,2}(1:3,1);
         B =((X_imu_2(4:6,1:3)*v{i,2}(1:3,1))+(R_imu_2*v{i,2}(4:6,1)));
@@ -395,6 +396,46 @@ for subjectID = subjectList
 end
 %% storing results
 save('./experiments/humanFixedBase/intermediateDataFiles/MAPresults.mat','MAPresults');
+
+%% test
+
+% 
+% fig = figure();
+% axes1 = axes('Parent',fig,'FontSize',16);
+% box(axes1,'on');
+% hold(axes1,'on');
+% grid on;
+% 
+% subplot(411);
+% plot(dataTime,q', 'lineWidth',2.0);
+% xlabel('Time [s]','FontSize',12);
+% ylabel('joint angle','FontSize',12);
+% axis tight;
+% grid on;
+% 
+% subplot(412);
+% plot(dataTime,dq', 'lineWidth',2.0);
+% xlabel('Time [s]','FontSize',12);
+% ylabel('joint vel','FontSize',12);
+% axis tight;
+% grid on;
+% 
+% subplot(413);
+% plot(dataTime,ddq', 'lineWidth',2.0);
+% xlabel('Time [s]','FontSize',12);
+% ylabel('joint acc','FontSize',12);
+% axis tight;
+% grid on;
+% 
+% subplot(414);
+% plot(dataTime,tau, 'lineWidth',2.0);
+% xlabel('Time [s]','FontSize',12);
+% ylabel('torque','FontSize',12);
+% axis tight;
+% grid on;
+% 
+% 
+% 
 
 
  %% ============================= tests ==================================
