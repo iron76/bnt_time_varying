@@ -1,13 +1,18 @@
 clear;clc;close all;
 
 %% testOptions
-
 plotMAPtorques = true;
+plotPaper = false;
+
+%% folder for plots
+figFolder = './experiments/humanFixedBase/plots';
+if(exist(figFolder,'dir')==0)
+    mkdir(figFolder);
+end
 
 %% selected subjects and trials
 subjectList = 1;
 trialList = 1;  
-
 
 for subjectID = subjectList
     fprintf('\n---------\nSubject : %d ',subjectID);
@@ -141,7 +146,8 @@ for subjectID = subjectList
     %% Build Ymatrix manually
     % Ymatrix has to be consistent with measurements form [f1 a2 ftx1 ftx2 ddq1 ddq2]
     
-    Y = zeros (ymodel.m,26*dmodel.NB);
+    Y = cell2mat(ymodel.Y);
+    %Y = zeros (ymodel.m,26*dmodel.NB);
     Y(7:12,27:32) = X_imu_2;
     Y(13:18,20:25) = eye(6);
     Y(19:24,46:51) = eye(6);
@@ -220,9 +226,6 @@ for subjectID = subjectList
 
 % ========end MAP
     %% Rerrange solution
- 
-    % d  = zeros(26*dmodel.NB, len);
-    % Sd = zeros(26*dmodel.NB, 26*dmodel.NB, len);
 
     for i = 1 : dmodel.NB
          for j = 1 : len
@@ -260,94 +263,9 @@ for subjectID = subjectList
              eval(['res.Sd2q_' joint '(:,:,j) = res.Sd(' ind ',' ind ',j);'])
    
          end
-    end
-
+    end 
     
-%     %% Plot overlapped plots
-% py = [0; cumsum(cell2mat(myMAP.IDsens.sensorsParams.sizes))];
-% for l = 1 : length(label_to_plot)
-%    for k = 1 : myMAP.IDsens.sensorsParams.ny
-%       if strcmp(myMAP.IDsens.sensorsParams.labels{k}, label_to_plot{l})
-%          figure
-%          J = myMAP.IDsens.sensorsParams.sizes{k};
-%          I = py(k)+1 : py(k)+J;
-%          colors = ['r', 'g', 'b'];
-%          for j = 1:J
-%             subplot(2, ceil(J/2), j)
-%             hold on;
-%             shadedErrorBar(dataTime, data.y(I(j),:), sqrt(data.Sy(I(j), :)), {[colors(mod(j,3)+1) '--'] , 'LineWidth', 1}, 0);
-%             plot(dataTime, y(I(j),:), colors(mod(j,3)+1) , 'LineWidth', 1);
-% 
-%             title(strrep(myMAP.IDsens.sensorsParams.labels{k}, '_', '~'));
-%          end
-%       end
-%    end
-% end
-%     
-    
-    %% ======================= LEAST SQUARE SOLUTION ==========================
-    %  
-    % %Using RNEA class for fetting D and b_D 
-    % ymodel_RNEA  = autoSensRNEA(dmodel);
-    % mySens_RNEA  = sensors(ymodel_RNEA);
-    % myRNEA       = RNEA(myModel, mySens_RNEA);
-    %       
-    % %Ordering y_RNEA in the form [fx1 fx2 ddq1 ddq2]
-    % y_RNEA_f = zeros(6*dmodel.NB, len);
-    % y_RNEA_ddq = zeros(dmodel.NB, len);
-    % fx = cell(dmodel.NB);
-    %   
-    % for i = 1 : dmodel.NB
-    %    for t = 1 : len
-    %           fx{i,1} = zeros(6,1); 
-    %           y_RNEA_f(((1:6)+(i-1)*6), t) = [fx{i,1}];
-    %           y_RNEA_ddq(i, t) = [data.ddq(i,t)];
-    %    end
-    %    y_RNEA = [y_RNEA_f ; y_RNEA_ddq];
-    % end
-    % 
-    % %computing d_RNEA
-    % d_RNEA = zeros (26*myRNEA.IDmodel.modelParams.NB,len);
-    %    for i = 1 : len
-    %         myRNEA = myRNEA.setState(data.q(:,i), data.dq(:,i));
-    %         myRNEA = myRNEA.setY(y_RNEA(:,i));
-    %         myRNEA = myRNEA.solveID();
-    %        
-    %         d_RNEA(:,i) = myRNEA.d; 
-    %         b_RNEA(:,i) = myRNEA.b.matrix;
-    %    end
-    %    
-    % % since:       | D |     | b_D |   | 0 |
-    % %              |   | d + |     | = |   |
-    % %              | Y |     | b_Y |   | y |
-    % %                       
-    % %                   D_invDyn   b_invDyn  y_invDyn
-    % 
-    % 
-    %    D_invDyn = [myRNEA.D.matrix;
-    %                    Ymatrix    ];
-    %   
-    %    y_d  = zeros(38,len);
-    %    d_ls =  zeros(size(d_RNEA));
-    %           
-    %    for k = 1:len
-    %    
-    %        b_invDyn(:,k) = [b_RNEA(:,k);
-    %                           b_Y(:,k) ];
-    %        
-    %        y_invDyn(:,k) = [  y_d(:,k)  ;
-    %                         data.y(:,k)];
-    %      
-    %             
-    %        %least square solution of D_invDyn*d - RS = 0
-    %        RS =  y_invDyn - b_invDyn;  
-    %        d_ls(:,k) = pinv(D_invDyn)* RS(:,k); %equivalent to  d_ls_temp(:,k)= D_invDyn\RS(:,k);  
-    %                     
-    %    end
-    % 
-    % % ========end LS
-    
-    %% ======================= COMPARISON RNEA/MAP/LS =========================
+    %% ======================= COMPARISON RNEA/MAP =========================
     if(plotMAPtorques)    
         %% Comparing RNEA/MAP torques
 
@@ -370,13 +288,6 @@ for subjectID = subjectList
         plot4 = plot(dataTime,res.tau_hip, 'lineWidth',1.5,'LineStyle','--'); hold on;
         set(plot4,'color',[0 0.498039215803146 0]);
 
-        % %LS
-        % plot5 = plot(data.time,d_ls(19,:), 'lineWidth',1.5,'LineStyle',':'); hold on;
-        % set(plot5,'color',[1 0 0]);
-        % plot6 = plot(data.time,d_ls(45,:), 'lineWidth',1.5,'LineStyle',':'); hold on;
-        % set(plot6,'color',[0 0.498039215803146 0]);
-
-        %leg = legend('$\tau_{1,RNEA}$','$\tau_{2,RNEA}$','$\tau_{2,MAP}$','$\tau_{2,MAP}$','$\tau_{1,LS}$','$\tau_{2,LS}$','Location','southeast');
         leg = legend('$\tau_{1,RNEA}$','$\tau_{2,RNEA}$','$\tau_{2,MAP}$','$\tau_{2,MAP}$','Location','southeast');
         set(leg,'Interpreter','latex');
         set(leg,'FontSize',18);
@@ -384,11 +295,52 @@ for subjectID = subjectList
         ylabel('Torque [Nm]','FontSize',20);
         axis tight;
         grid on;
+        
+        if(plotPaper)
+            save2pdf(fullfile(figFolder, 'MAPcomparison.pdf'),fig,600);
+        end
     end
+    
+    %% Plot covariances
+    
+    fig = figure();
+    axes1 = axes('Parent',fig,'FontSize',16);
+    box(axes1,'on');
+    hold(axes1,'on');
+    grid on;
+
+    subplot(221);
+    imagesc(full(myMAP.Sd));
+    colorbar;
+    axis tight;
+    title('Sigma (d|y)');
+
+    subplot(222);
+    imagesc(full(mySens.sensorsParams.Sy_inv));
+    colorbar;                                                
+    axis tight;
+    title('Sigma (y)');
+
+    subplot(223);
+    imagesc(full(dmodel.Sv_inv.matrix));
+    colorbar;
+    axis tight;
+    title('Sigma (D)');
+
+    subplot(224);
+    imagesc(full(dmodel.Sw_inv.matrix));
+    colorbar;
+    axis tight;
+    title('Sigma (d)');
+   
+    axes('Position',[0 0 1 1],'Xlim',[0 1],'Ylim',[0 1],'Box','off','Visible','off','Units','normalized','clipping' ,'off');
+    text(0.5, 0.99,(sprintf('Covariances (Subject: %d, Trial: %d)',subjectID, trialID)),'HorizontalAlignment','center','VerticalAlignment', 'top','FontSize',14);
+        
     %% Organising into a structure    
     MAPresults(subjectID,trialID).MAPres = res;
     MAPresults(subjectID,trialID).data.y = data.y;
     MAPresults(subjectID,trialID).data.Sy = data.Sy;
+    MAPresults(subjectID,trialID).dmodel = dmodel;
     clear res;
     
     end
@@ -397,97 +349,3 @@ end
 %% storing results
 save('./experiments/humanFixedBase/intermediateDataFiles/MAPresults.mat','MAPresults');
 
-%% test
-
-% 
-% fig = figure();
-% axes1 = axes('Parent',fig,'FontSize',16);
-% box(axes1,'on');
-% hold(axes1,'on');
-% grid on;
-% 
-% subplot(411);
-% plot(dataTime,q', 'lineWidth',2.0);
-% xlabel('Time [s]','FontSize',12);
-% ylabel('joint angle','FontSize',12);
-% axis tight;
-% grid on;
-% 
-% subplot(412);
-% plot(dataTime,dq', 'lineWidth',2.0);
-% xlabel('Time [s]','FontSize',12);
-% ylabel('joint vel','FontSize',12);
-% axis tight;
-% grid on;
-% 
-% subplot(413);
-% plot(dataTime,ddq', 'lineWidth',2.0);
-% xlabel('Time [s]','FontSize',12);
-% ylabel('joint acc','FontSize',12);
-% axis tight;
-% grid on;
-% 
-% subplot(414);
-% plot(dataTime,tau, 'lineWidth',2.0);
-% xlabel('Time [s]','FontSize',12);
-% ylabel('torque','FontSize',12);
-% axis tight;
-% grid on;
-% 
-% 
-% 
-
-
- %% ============================= tests ==================================
-%  load ('sensorLinkTransforms.mat');
- %% test 1 : comparison between a_2 measured by sensor and a_2 in vector d_RNEA
-%  
-%  %  
-%  % -in Featherstone notation:              | a_2,ang |     |      domega_2      |
-%  %                                   a_2 = |         |   = |                    |   
-%  %                                         | a_2,lin |     | ddr_2 - omega x dr |
-%  %
-%  % -a_2 measured is in imu frame;
-%  % -a_2 in vector d_RNEA is in frame associated to link2;
-%  % -both a_2 are compared in frame associated to link2
-% 
-%  
-%  a_imu_2real = zeros (6,len);
-%  a_2_2real   = zeros (6,len);
-% 
-%  for i = 1:len
-%     % in sensor frame
-%     a_imu_2real(:,i) = data.y(7:12,i) - b_Y(7:12,i); 
-%  
-%     % in frame associated to link2 
-%     a_2_2real(:,i) = (X_imu_2)'* a_imu_2real(:,i);
-%  end
-%  
-%  % now we can compare a_2_2real measured of sensor (transformed in link
-%  % frame) with a_2_2 of d vector.
-%  
- %% test 2 : comparison between f measured by sensor and f in vector d_RNEA  
-%  
-%  % -f_1 measured is in fp frame;
-%  % -f_1 in vector d_RNEA is in frame associated to link1;
-%  % -both f_1 are compared in frame associated to link1 
-%  
-% f_fp_1real = length (a_imu_2real);
-% f_1_1real = length (a_imu_2real);
-% 
-%  % computing 1_XStar_fp :   1_XStar_fp = 1_XStar_0 * 0_XStar_fp
-%   XStar_1_fp = (XStar_0_1)' * (XStar_fp_0)';
-% 
-% 
-% for i = 1:len
-%     % in sensor frame
-%     f_fp_1real(:,i) = data.y(1:6,i) + b_Y(1:6,i);
-%     
-%     % in frame associated to link1 
-%     f_1_1real(:,i) = XStar_1_fp * f_fp_1real(:,i);
-% end
-%  
-%  % now we can compare f_1_1real measured of sensor (transformed in link
-%  % frame) with f_1_1 of d vector.
-%  
-% 
