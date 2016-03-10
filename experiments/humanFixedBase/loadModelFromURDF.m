@@ -12,7 +12,7 @@ clc; close all;clear;
 load('./experiments/humanFixedBase/data/subjectSizeParams.mat');
 addpath(genpath('./human_models/'));
 
-subjectIDList = 1:12;
+subjectIDList = 1;
    
 fprintf('Loading the model from URDF...\n');
 fprintf('-----------------------------\n\n');

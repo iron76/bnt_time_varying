@@ -347,3 +347,6 @@ end
 %% storing results
 save('./experiments/humanFixedBase/intermediateDataFiles/MAPresults.mat','MAPresults');
 
+fprintf('---------\n');
+fprintf('Done!\n');
+

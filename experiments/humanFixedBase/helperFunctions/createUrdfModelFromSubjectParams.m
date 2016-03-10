@@ -3,7 +3,7 @@
 
 load('./experiments/humanFixedBase/data/subjectSizeParams.mat');
 
-subjectList = 1:12;
+subjectList = 1:2;
 
 for subjectID = subjectList
     
@@ -52,3 +52,5 @@ for subjectID = subjectList
     movefile(sprintf('threeLinkHuman_subject%d.urdf',subjectID),sprintf('./human_models/threeLinkHumanLikeSubj%02d',subjectID));
 
 end
+fprintf('---------\n');
+fprintf('URDF models successfully created!\n');

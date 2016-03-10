@@ -7,7 +7,7 @@
 clc; clear; close all;
 
 %% load processed data and sensor link transforms
-load('./experiments/humanFixedBase/intermediateDataFiles/processedSensorData.mat');
+load('./experiments/humanFixedBase/intermediateDataFiles/synchronisedData.mat');
 load('./experiments/humanFixedBase/intermediateDataFiles/sensorLinkTransforms.mat');
 
 %% selected subjects and trials
@@ -21,7 +21,7 @@ for subjectID = subjectList
     for trialID = trialList
         fprintf('\nTrial : %d ',trialID);
 
-        currentTrial = processedSensorData(subjectID,trialID);
+        currentTrial = synchronisedData(subjectID,trialID);
         
         q1 = currentTrial.q1;
         q2 = currentTrial.q2; 
@@ -39,18 +39,18 @@ for subjectID = subjectList
         %% data expressed in sensor frame --> data.y_sensFrame --> for Ymatrix created manually
 
         %IMU
-        aLin_imu  = currentTrial.imu(:,1:3);                %linear part of a, in imu frame
+        aLin_imu  = currentTrial.aLin_imu_imu;                %linear part of a, in imu frame
         %a_imu_imu   = [zeros(size(aLin_imu)), aLin_imu];   %twist in imu frame, ang-lin notation, assumption: aAng =0
         %data.ys_sensFrame_imu = a_imu_imu;
 
         %GYRO --> Assumption: considering that gyro can give us omegaDot
-        velAng_imu  = currentTrial.imu(:,4:6);
-        [aAng_imuX,~] = SgolayDerivation(3,57,velAng_imu(:,1),1e-2);
-        [aAng_imuY,~] = SgolayDerivation(3,57,velAng_imu(:,2),1e-2);
-        [aAng_imuZ,~] = SgolayDerivation(3,57,velAng_imu(:,3),1e-2);
-        aAng_imu = [aAng_imuX aAng_imuY aAng_imuZ];
+        omega_imu_imu  = currentTrial.omega_imu_imu;
+        [omegaDot_imuX,~] = SgolayDerivation(3,57,omega_imu_imu(:,1),1e-2);
+        [omegaDot_imuY,~] = SgolayDerivation(3,57,omega_imu_imu(:,2),1e-2);
+        [omegaDot_imuZ,~] = SgolayDerivation(3,57,omega_imu_imu(:,3),1e-2);
+        omegaDot_imu = [omegaDot_imuX omegaDot_imuY omegaDot_imuZ];
         
-        a_imu_imu   = [aAng_imu, aLin_imu];
+        a_imu_imu   = [omegaDot_imu, aLin_imu];
         data.ys_sensFrame_imu = a_imu_imu;
         
         %Force plate
@@ -105,3 +105,6 @@ end
 
 %% storing results
  save('./experiments/humanFixedBase/intermediateDataFiles/BERDYFormattedSensorData.mat','BERDYFormattedSensorData')
+ 
+fprintf('---------\n');
+fprintf('Done!\n');

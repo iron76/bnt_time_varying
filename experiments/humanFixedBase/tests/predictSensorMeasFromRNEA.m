@@ -25,11 +25,10 @@ for subjectID = subjectList
     for trialID = trialList
          fprintf('\nTrial : %d\n',trialID);
          
-        %% Load data and model 
+        %% Load data 
+        load('./experiments/humanFixedBase/intermediateDataFiles/synchronisedData.mat');
 
-        load('./experiments/humanFixedBase/intermediateDataFiles/processedSensorData.mat');
-
-        currentTrial = processedSensorData(subjectID,trialID);
+        currentTrial = synchronisedData(subjectID,trialID);
 
         q1 = currentTrial.q1;
         q2 = currentTrial.q2; 
@@ -397,3 +396,7 @@ for subjectID = subjectList
         fprintf('\n');
     end
 end
+
+fprintf('---------\n');
+fprintf('Check done!\n');
+

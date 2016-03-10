@@ -24,12 +24,12 @@
 clc; clear; close all;
 
 %% load processed data and models
-load('./experiments/humanFixedBase/intermediateDataFiles/processedSensorData.mat');
+load('./experiments/humanFixedBase/intermediateDataFiles/synchronisedData.mat');
 load('./experiments/humanFixedBase/intermediateDataFiles/humanThreeLinkModelFromURDF.mat');
 %isTest = 'false'; 
 %% selected subjects and trials
-subjectList = 1:12;
-trialList = 1:4 ;  
+subjectList = 1;
+trialList = 1:2 ;  
 
 %% iterate through each computing transforms each time
 
@@ -38,19 +38,12 @@ for subjectID = subjectList
     for trialID = trialList
         fprintf('\nTrial : %d ',trialID);
         
-        currentTrial = processedSensorData(subjectID,trialID);
+        currentTrial = synchronisedData(subjectID,trialID);
         
         P_G_lhee = currentTrial.P_G_lhee;
         P_G_ltoe = currentTrial.P_G_ltoe;
         P_G_rhee = currentTrial.P_G_rhee;
         P_G_rtoe = currentTrial.P_G_rtoe;
-        P_G_lankle = currentTrial.P_G_lankle;
-        P_G_lhip = currentTrial.P_G_lhip;
-        P_G_lsho = currentTrial.P_G_lsho;
-        P_G_rankle = currentTrial.P_G_rankle;
-        P_G_rhip = currentTrial.P_G_rhip;
-        P_G_rsho = currentTrial.P_G_rsho;
-        P_G_tors = currentTrial.P_G_tors;
         P_G_imuA = currentTrial.P_G_imuA;
         P_G_imuB = currentTrial.P_G_imuB;
         P_G_imuC = currentTrial.P_G_imuC;
@@ -147,7 +140,10 @@ for subjectID = subjectList
     fprintf('\n');
 end
 
+
 %% storing results
 %5if(strcmp(isTest,'true')~=1)
     save('./experiments/humanFixedBase/intermediateDataFiles/sensorLinkTransforms.mat','sensorLinkTransforms');
 %end
+fprintf('---------\n');
+fprintf('Done!\n');
