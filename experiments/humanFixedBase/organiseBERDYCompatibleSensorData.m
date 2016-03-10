@@ -107,4 +107,4 @@ end
  save('./experiments/humanFixedBase/intermediateDataFiles/BERDYFormattedSensorData.mat','BERDYFormattedSensorData')
  
 fprintf('---------\n');
-fprintf('Done!\n');
+fprintf('addedDone!\n');
