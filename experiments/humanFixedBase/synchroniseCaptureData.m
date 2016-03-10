@@ -5,12 +5,13 @@
 % start and conclusion of the bowing motion experiment). It:
 %
 % 1. interpolates data to obtain the same samplingTime for all of them;
-% 3. syncrhonises data:
-%    3.1 re-aligns data on the first peak cutting data before it;
-%    3.2 cuts data after the second peak;
-%    3.3 cuts for both peaks  x sec of acquisition 
-% 4. converts eventually data in ISU;
-% 5. stores data into a file.mat
+% 2. syncrhonises and filtering data:
+%    2.1 re-aligns data on the first peak cutting data before it (also 
+%        filtered with time/frequency filters);
+%    2.2 cuts data after the second peak;
+%    2.3 cuts for both peaks  x seconds of acquisition 
+% 3. converts eventually data in ISU;
+% 4. stores data into a file.mat
 
 
 % Assumptions:
@@ -23,10 +24,10 @@ clc; clear; close all;
 
 %% testOptions
 plotInterpolatedFilteredData = true;
-plotFilteredData = true;
-plotFirstCutData = true;
-plotSecondCutData = true;
-plotSettlingTimeCutData = true;
+plotFilteredData = false;
+plotFirstCutData = false;
+plotSecondCutData = false;
+plotSettlingTimeCutData = false;
 plotFinalConvertedData = true;
 
 %% load data sources
@@ -42,6 +43,7 @@ samplingTime = 1e-2;  %uniform sampling rate
 settlingCutTime = 0.8;  % secs
 settlingCutTimeIndex = ceil(settlingCutTime/samplingTime); %ensuring integer variable
 
+% from sensor acquisition
 forcePlateSamplingTime = 1e-3;
 imuSamplingTime = 1e-2;
 markersSamplingTime = 1e-2;
@@ -54,7 +56,7 @@ markersSamplingTime = 1e-2;
     for trialID = trialList
          fprintf('\nTrial : %d ',trialID);
         
-        %% 2. data interpolation
+        %% 1. data interpolation
         
         % ====force plate data
         f_raw = subjectData(subjectID,trialID).analogsFOR;
@@ -165,9 +167,9 @@ markersSamplingTime = 1e-2;
             grid on;
         end
         
-        %% 3. synchronising and filtering data
+        %% 2. synchronising and filtering data
         
-        % 3.1 synchronising peaks of force with imu 
+        % 2.1 synchronising peaks of force with imu 
         
         chosenF_ID = 3; % because force is on z axis
         [~,timeIndexToPeak1_f] = max(abs(f(1:round(end*0.5),chosenF_ID))); % max absolute 
@@ -177,38 +179,40 @@ markersSamplingTime = 1e-2;
         [val,timeIndexToPeak1_accl] = max(abs(accl(1:round(end*0.5),chosenA_ID)));
         timeToPeak1_accl = t_imu(timeIndexToPeak1_accl);
 
-        % ==========================filtering==============================
+        % =====================time filtering==============================
                
+        % ====force plate data (filtered in freq)
+        cutOffFreqForcePlate = 20; %20Hz
+        f_filt = frequencyFilterSignal(f, cutOffFreqForcePlate, 1/samplingTime);
+        %f_filt_SG = timeFilterSignal (polynOrder,filterWindow,f);
+        mom_filt = frequencyFilterSignal(mom, cutOffFreqForcePlate, 1/samplingTime);
+        
+        % ====imu data (filtered in freq)
+        cutOffFreqIMU = 20;
+        accl_filt = frequencyFilterSignal (accl, cutOffFreqIMU, 1/samplingTime);
+        omega_filt = frequencyFilterSignal (omega, cutOffFreqIMU, 1/samplingTime);
+
+      
+        % ====marker data (filtered in time)
         polynOrder = 3;
         filterWindow = 57;
         
-        % ====force plate data
-        f_filt = filterSignal (polynOrder,filterWindow,f);
-        mom_filt = filterSignal (polynOrder,filterWindow,mom);
+        P_G_ltoe_filt = timeFilterSignal (polynOrder,filterWindow,P_G_ltoe);
+        P_G_lhee_filt = timeFilterSignal (polynOrder,filterWindow,P_G_lhee);
+        P_G_lankle_filt = timeFilterSignal (polynOrder,filterWindow,P_G_lankle);
+        P_G_lhip_filt = timeFilterSignal (polynOrder,filterWindow,P_G_lhip);
+        P_G_lsho_filt = timeFilterSignal (polynOrder,filterWindow,P_G_lsho);
         
+        P_G_rtoe_filt = timeFilterSignal (polynOrder,filterWindow,P_G_rtoe);
+        P_G_rhee_filt = timeFilterSignal (polynOrder,filterWindow,P_G_rhee);
+        P_G_rankle_filt = timeFilterSignal (polynOrder,filterWindow,P_G_rankle);
+        P_G_rhip_filt = timeFilterSignal (polynOrder,filterWindow,P_G_rhip);
+        P_G_rsho_filt = timeFilterSignal (polynOrder,filterWindow,P_G_rsho);
         
-        % ====imu data
-        accl_filt = filterSignal (polynOrder,filterWindow,accl);
-        omega_filt = filterSignal (polynOrder,filterWindow,omega);
-
-        
-        % ====marker data
-        P_G_ltoe_filt = filterSignal (polynOrder,filterWindow,P_G_ltoe);
-        P_G_lhee_filt = filterSignal (polynOrder,filterWindow,P_G_lhee);
-        P_G_lankle_filt = filterSignal (polynOrder,filterWindow,P_G_lankle);
-        P_G_lhip_filt = filterSignal (polynOrder,filterWindow,P_G_lhip);
-        P_G_lsho_filt = filterSignal (polynOrder,filterWindow,P_G_lsho);
-        
-        P_G_rtoe_filt = filterSignal (polynOrder,filterWindow,P_G_rtoe);
-        P_G_rhee_filt = filterSignal (polynOrder,filterWindow,P_G_rhee);
-        P_G_rankle_filt = filterSignal (polynOrder,filterWindow,P_G_rankle);
-        P_G_rhip_filt = filterSignal (polynOrder,filterWindow,P_G_rhip);
-        P_G_rsho_filt = filterSignal (polynOrder,filterWindow,P_G_rsho);
-        
-        P_G_tors_filt = filterSignal (polynOrder,filterWindow,P_G_tors); 
-        P_G_imuA_filt = filterSignal (polynOrder,filterWindow,P_G_imuA);
-        P_G_imuB_filt = filterSignal (polynOrder,filterWindow,P_G_imuB);
-        P_G_imuC_filt = filterSignal (polynOrder,filterWindow,P_G_imuC);
+        P_G_tors_filt = timeFilterSignal (polynOrder,filterWindow,P_G_tors); 
+        P_G_imuA_filt = timeFilterSignal (polynOrder,filterWindow,P_G_imuA);
+        P_G_imuB_filt = timeFilterSignal (polynOrder,filterWindow,P_G_imuB);
+        P_G_imuC_filt = timeFilterSignal (polynOrder,filterWindow,P_G_imuC);
         
         
         if(plotFilteredData)
@@ -250,16 +254,16 @@ markersSamplingTime = 1e-2;
         
         
         % t=0 in f dal campione timeToPeak1_f
-        fCut = f(timeIndexToPeak1_f:end,:);
+        fCut = f_filt(timeIndexToPeak1_f:end,:);
         t_cut_vicon = t_f(timeIndexToPeak1_f:end) - t_f(timeIndexToPeak1_f);
         
-        momCut = mom(timeIndexToPeak1_f:end,:);
+        momCut = mom_filt(timeIndexToPeak1_f:end,:);
         
         % t=o in acc dal campione timeToPeak1_accl
-        accCut = accl(timeIndexToPeak1_accl:end,:);
+        accCut = accl_filt(timeIndexToPeak1_accl:end,:);
         t_cut_imu = t_imu(timeIndexToPeak1_accl:end) - t_imu(timeIndexToPeak1_accl);
          
-        omegaCut = omega(timeIndexToPeak1_accl:end,:);
+        omegaCut = omega_filt(timeIndexToPeak1_accl:end,:);
         
         if(plotFirstCutData)
             fig = figure();
@@ -297,26 +301,26 @@ markersSamplingTime = 1e-2;
             grid on;
         end
 
-        P_G_ltoe_cut    = P_G_ltoe   (timeIndexToPeak1_f:end,:);
-        P_G_lhee_cut    = P_G_lhee   (timeIndexToPeak1_f:end,:);
-        P_G_lankle_cut  = P_G_lankle (timeIndexToPeak1_f:end,:);
-        P_G_lhip_cut    = P_G_lhip   (timeIndexToPeak1_f:end,:);
-        P_G_lsho_cut    = P_G_lsho   (timeIndexToPeak1_f:end,:);
+        P_G_ltoe_cut    = P_G_ltoe_filt   (timeIndexToPeak1_f:end,:);
+        P_G_lhee_cut    = P_G_lhee_filt   (timeIndexToPeak1_f:end,:);
+        P_G_lankle_cut  = P_G_lankle_filt (timeIndexToPeak1_f:end,:);
+        P_G_lhip_cut    = P_G_lhip_filt   (timeIndexToPeak1_f:end,:);
+        P_G_lsho_cut    = P_G_lsho_filt   (timeIndexToPeak1_f:end,:);
                    
-        P_G_rtoe_cut    = P_G_rtoe   (timeIndexToPeak1_f:end,:);
-        P_G_rhee_cut    = P_G_rhee   (timeIndexToPeak1_f:end,:);
-        P_G_rankle_cut  = P_G_rankle  (timeIndexToPeak1_f:end,:);
-        P_G_rhip_cut    = P_G_rhip   (timeIndexToPeak1_f:end,:);
-        P_G_rsho_cut    = P_G_rsho   (timeIndexToPeak1_f:end,:);
+        P_G_rtoe_cut    = P_G_rtoe_filt   (timeIndexToPeak1_f:end,:);
+        P_G_rhee_cut    = P_G_rhee_filt  (timeIndexToPeak1_f:end,:);
+        P_G_rankle_cut  = P_G_rankle_filt  (timeIndexToPeak1_f:end,:);
+        P_G_rhip_cut    = P_G_rhip_filt   (timeIndexToPeak1_f:end,:);
+        P_G_rsho_cut    = P_G_rsho_filt   (timeIndexToPeak1_f:end,:);
                     
-        P_G_tors_cut    = P_G_tors  (timeIndexToPeak1_f:end,:);
-        P_G_imuA_cut    = P_G_imuA  (timeIndexToPeak1_f:end,:);
-        P_G_imuB_cut    = P_G_imuB  (timeIndexToPeak1_f:end,:);
-        P_G_imuC_cut    = P_G_imuC  (timeIndexToPeak1_f:end,:);
+        P_G_tors_cut    = P_G_tors_filt  (timeIndexToPeak1_f:end,:);
+        P_G_imuA_cut    = P_G_imuA_filt  (timeIndexToPeak1_f:end,:);
+        P_G_imuB_cut    = P_G_imuB_filt  (timeIndexToPeak1_f:end,:);
+        P_G_imuC_cut    = P_G_imuC_filt  (timeIndexToPeak1_f:end,:);
         
         
         
-        % 3.2 cutting data after last peak 
+        % 2.2 cutting data after last peak 
         
         halfIndex = round(length(fCut)*0.5);
         [~,timeIndexToPeak2_f] = max(abs(fCut(halfIndex:end,chosenF_ID))); 
@@ -389,7 +393,7 @@ markersSamplingTime = 1e-2;
             grid on;
         end
         
-        % 3.3 cutting settlingTimeCutIndex samples after first peak and before second peak
+        % 2.3 cutting settlingTimeCutIndex samples after first peak and before second peak
         
         fCut = fCut(settlingCutTimeIndex:(end-settlingCutTimeIndex),:);
         t_cut_vicon = t_cut_vicon(settlingCutTimeIndex:(end-settlingCutTimeIndex));
@@ -487,7 +491,7 @@ markersSamplingTime = 1e-2;
             grid on;
        end
         
-        %% 4. data conversion
+        %% 3. data conversion
         
         % ====VICON 
         % acquired data in mm --> converted in m
@@ -556,7 +560,7 @@ markersSamplingTime = 1e-2;
             grid on;
         end
         
-        %% 5. data storing
+        %% 4. data storing
         
         synchronisedData(subjectID,trialID).samplingTime = samplingTime;
         synchronisedData(subjectID,trialID).dataTime = t_cut_vicon;

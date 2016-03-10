@@ -1,6 +1,6 @@
-function [ a_filt ] = filterSignal( polynOrder,window, a_nofilt)
+function [ a_filt ] = timeFilterSignal( polynOrder,window, a_nofilt)
 
-% FILTERSIGNAL computes the filtering of a signal that has to be in the
+% TIMEFILTERSIGNAL computes the filtering of a signal that has to be in the
 % form (lengthSignal,3).  As it uses SGolay Smoother, it requires also the 
 % polynomial order and the size of the moving window.
 
