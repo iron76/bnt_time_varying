@@ -10,7 +10,6 @@
 clear;clc;close all;
 
 %% testOptions
-
 plotSensorPrediction = true; 
 plotResultsVariances = true;
 
@@ -62,40 +61,13 @@ for subjectID = subjectList
     dmodel = currentModel.dmodel;                       % deterministic model 
     ymodel  = humanThreeLinkSens(dmodel, sens);  
    
-    dmodel  = autoTreeStochastic(dmodel, 1e-6);   % probabilistic model for D equation (added Sv and Sw)
+    dmodel  = autoTreeStochastic(dmodel, 1e-6);         % probabilistic model for D equation (added Sv and Sw)
     ymodel  = humanThreeLinkSensStochastic(ymodel);     % probabilistic model for Y(q,dq) d = y (added Sy)
    
     myModel = model(dmodel);
     mySens  = sensors(ymodel);  
    
     myMAP  = MAP(myModel, mySens);
-    
-    %%  ========================= Sensor prediction (NO MAP) ===========================
-
-%     load('./experiments/humanFixedBase/intermediateDataFiles/sensorLinkTransforms.mat');
-% 
-%     currentTrialSens = sensorLinkTransforms(subjectID,trialID);
-%     
-%     X_imu_2 = currentTrialSens.X_imu_2;
-%     XStar_fp_0 = currentTrialSens.XStar_fp_0;
-%     XStar_0_1 = currentTrialSens.XStar_0_1;
-%     
-%     
-%     load('./experiments/humanFixedBase/intermediateDataFiles/MAPresults.mat');
-%  
-%     currentMAP = MAPresults(subjectID,trialID);
-%     
-%     d = currentMAP.MAPres.d;
-%     b_Y = currentMAP.MAPres.b_Y;
-%     Ymatrix = currentMAP.MAPres.Ymatrix;
-%     
-%     fprintf('Predicting sensor measurement using MAP computation\n');
-% 
-%     y_pred_MAP = zeros (myMAP.IDmeas.m,len);
-%     for i =1:len
-%          y_pred_MAP(:,i) = myMAP.simY(d(:,i));             % without b_Y
-%          %y_pred_MAP(:,i) = y_pred_MAP(:,i) + b_Y(:,i);     % adding b_Y
-%     end   
     
     %%  ========================= Sensor prediction ===========================
     
@@ -126,7 +98,7 @@ for subjectID = subjectList
         res.Ymatrix{i,1} = myMAP.IDsens.sensorsParams.Y; 
         res.b_Y(:,i)     = myMAP.IDsens.sensorsParams.bias;
         
-        %simulate output usinf simY
+        %simulate output using simY
         res.y_pred(:,i)  = myMAP.simY(res.d(:,i));
     
          if mod(i-1,100) == 0
@@ -139,7 +111,7 @@ for subjectID = subjectList
     %% Plot predictions 
     if(plotSensorPrediction)
 
-       %% Accelerometer prediction comparison
+       %% Accelerometer prediction comparison  --> linear acceleration
        
         %fig = figure();
         fig = figure('name','MAP');
@@ -169,7 +141,7 @@ for subjectID = subjectList
         axis tight;
         grid on; 
 
-        %% Gyroscope prediction comparison
+        %% Gyroscope prediction comparison  --> angular velocities
 
         subplot(222)
         plot(dataTime,res.y_pred(7,:),dataTime,res.y_pred(8,:),dataTime,res.y_pred(9,:), 'lineWidth',2.0);
@@ -195,7 +167,7 @@ for subjectID = subjectList
         axes('Position',[0 0 1 1],'Xlim',[0 1],'Ylim',[0 1],'Box','off','Visible','off','Units','normalized','clipping' ,'off');
         text(0.5, 0.99,(sprintf('MAP measurements prediction, sensor frame (Subject: %d, Trial: %d)',subjectID, trialID)),'HorizontalAlignment','center','VerticalAlignment', 'top','FontSize',14);
 
-        %% Force prediction comparison  
+        %% Force prediction comparison  --> force  
     
         %fig = figure();
         fig = figure('name','MAP');
@@ -226,7 +198,7 @@ for subjectID = subjectList
         axis tight;
         grid on;
         
-        %% Moment prediction comparison
+        %% Moment prediction comparison  --> moment
 
         subplot(222);
         plot(dataTime,res.y_pred(1,:),dataTime,res.y_pred(2,:),dataTime,res.y_pred(3,:), 'lineWidth',2.0);
@@ -271,7 +243,7 @@ for subjectID = subjectList
             plot1= plot(dataTime,res.y_pred(i,:),'lineWidth',1.0);hold on;
             set(plot1,'color',[1 0 0]);
             xlabel('Time [s]','FontSize',15);
-            leg = legend([shad1.mainLine,shad1.patch, plot1], {'sensorData','dataVariance','predictionData'},'Location','southeast');
+            leg = legend([shad1.mainLine,shad1.patch, plot1], {'sensorData','sensorDataVariance','MAPprediction'},'Location','southeast');
             title('Comparison between real data and MAP prediction data','FontSize',13);
 
             if (i >=1 && i<4) 
@@ -294,7 +266,8 @@ for subjectID = subjectList
             
             axis tight;
             grid on; 
-        end    
+        end
+     
     end 
    end
       fprintf('\n');

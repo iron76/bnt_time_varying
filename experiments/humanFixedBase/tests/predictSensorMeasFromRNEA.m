@@ -10,7 +10,6 @@
 clear;clc;close all
 
 %% testOptions
-
 plotJointQuantities = false;
 plotLinkQuantities = false; 
 plotSensorPrediction = true; 
@@ -26,7 +25,7 @@ for subjectID = subjectList
     for trialID = trialList
          fprintf('\nTrial : %d\n',trialID);
          
-    %% Load data and model
+    %% Load data and model 
     
     load('./experiments/humanFixedBase/intermediateDataFiles/processedSensorData.mat');
 
@@ -242,16 +241,14 @@ for subjectID = subjectList
     %% Plot predictions 
     if(plotSensorPrediction)
        
-        %% Accelerometer prediction comparison
+        %% Accelerometer prediction comparison  --> linear acceleration
 
-        %fig = figure();
         fig = figure('name','RNEA');
         axes1 = axes('Parent',fig,'FontSize',16);
         box(axes1,'on');
         hold(axes1,'on');
         grid on;
         
-
         subplot(221)
         plot1 = plot(dataTime,a_imu_imuPred(1,:),dataTime,a_imu_imuPred(2,:),dataTime,a_imu_imuPred(3,:), 'lineWidth',2.0);
         leg = legend('$a_x$','$a_y$','$a_z$','Location','southeast');
@@ -273,7 +270,7 @@ for subjectID = subjectList
         axis tight;
         grid on; 
         
-        %% Gyroscope prediction comparison
+        %% Gyroscope prediction comparison  --> angular velocities
 
         subplot(222)
         plot(dataTime,omega_imu_imuPred(1,:),dataTime,omega_imu_imuPred(2,:),dataTime,omega_imu_imuPred(3,:), 'lineWidth',2.0);
@@ -299,9 +296,8 @@ for subjectID = subjectList
         axes('Position',[0 0 1 1],'Xlim',[0 1],'Ylim',[0 1],'Box','off','Visible','off','Units','normalized','clipping' ,'off');
         text(0.5, 0.99,(sprintf('RNEA measurements prediction, sensor frame (Subject: %d, Trial: %d)',subjectID, trialID)),'HorizontalAlignment','center','VerticalAlignment', 'top','FontSize',16);
 
-        %% Force prediction comparison 
-    
-        %fig = figure();
+        %% Force prediction comparison  --> force
+   
         fig = figure('name','RNEA');
         axes1 = axes('Parent',fig,'FontSize',16);
         box(axes1,'on');
@@ -330,7 +326,7 @@ for subjectID = subjectList
         axis tight;
         grid on;
 
-        %% Moment prediction comparison 
+        %% Moment prediction comparison  --> moment 
 
         subplot(222);
         plot(dataTime,f_fp_fpPred(1,:),dataTime,f_fp_fpPred(2,:),dataTime,f_fp_fpPred(3,:), 'lineWidth',2.0);
@@ -362,12 +358,12 @@ for subjectID = subjectList
     %% Plot variances
     if(plotResultsVariances)
         
-        imu = imu';
         dataRNEA = [f_fp_fpPred; omegaDot_imu_imuPred; a_imu_imuPred];
 
-        
         load('./experiments/humanFixedBase/intermediateDataFiles/MAPresults.mat');
+        
         currentMAP = MAPresults(subjectID,trialID);
+        
         data.Sy = currentMAP.data.Sy;
         data.y =currentMAP.data.y;
         
@@ -385,37 +381,25 @@ for subjectID = subjectList
             plot1 = plot(dataTime,dataRNEA(i,:),'lineWidth',1.0);hold on;
             set(plot1,'color',[1 0 0]);
             xlabel('Time [s]','FontSize',15);
-            leg = legend([shad1.mainLine,shad1.patch, plot1], {'sensorData','dataVariance','predictionData'},'Location','southeast');
+            leg = legend([shad1.mainLine,shad1.patch, plot1], {'sensorData','sensorDataVariance','RNEAprediction'},'Location','southeast');
             title('Comparison between real data and RNEA prediction data','FontSize',13);
             
             if (i >=1 && i<4) 
-                %title(sprintf('Figure %d : m1-moments ',i));
                 ylabel('f1: Moment [Nm]','FontSize',15);
             elseif (i >=4 && i<7) 
-                %title(sprintf('Figure %d : f1-forces ',i));
                 ylabel('f1: Force[N]','FontSize',15);
             elseif (i >=7 && i<10)
-                %title(sprintf('Figure %d : a2-ang',i));
                 ylabel('a2: Angular acceleration [rad/s]','FontSize',15);
             elseif (i >=10 && i<13)
-                %title(sprintf('Figure %d : a2-lin ',i));
                 ylabel('a2: Linear acceleration [m/s^2]','FontSize',15);
-%             elseif (i >=13 && i<19)
-%               title(sprintf('Figure %d : fx1 ',i));
-%             elseif (i >=19 && i<25)
-%               title(sprintf('Figure %d : fx2 ',i));
-%             elseif (i ==25)
-%               title(sprintf('Figure %d : ddq1 ',i));
-%             elseif (i ==26)
-%               title(sprintf('Figure %d : ddq2 ',i));
             end
             
             axis tight;
             grid on; 
         
-        end    
-    end 
+        end
+     
     end
     fprintf('\n');
 end
-
+end
