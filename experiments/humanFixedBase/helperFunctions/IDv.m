@@ -1,5 +1,4 @@
 function  [tau, a, v,fB, f] = IDv( model, q, qd, qdd, f_ext)
-
 % IDv is a different version of Inverse Dynamics via Recursive Newton-Euler
 % Algorithm in Fetherstone toolbox.  It returns also velocities.
 % 

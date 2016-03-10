@@ -1,16 +1,13 @@
 function [ signal_filt ] = frequencyFilterSignal( signal_nofilt, cutFreq, sensorSamplingFrequency)
-
 % FREQUENCYFILTERSIGNAL computes the filtering of a signal in the frequency domain.
 %
 %  - signal_nofilt :            no filtered signal in teh form (lengthSignal,3);
 %  - cutFreq       :            cutOff frequency of the filter;
 %  - sensorSamplingFrequency :  sampling frequency.
 
-
 signal_filt = zeros(length(signal_nofilt),3);
 
     for i = 1:3
-    
         signal = signal_nofilt (:,i);
         len = length(signal);
         Fs = sensorSamplingFrequency;            % sampling frequency of the sensor acquisition

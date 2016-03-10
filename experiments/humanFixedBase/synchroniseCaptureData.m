@@ -54,7 +54,7 @@ markersSamplingTime = 1e-2;
  for subjectID = subjectList
     fprintf('\n---------\nSubject : %d ',subjectID);
     for trialID = trialList
-         fprintf('\nTrial : %d ',trialID);
+        fprintf('\nTrial : %d ',trialID);
         
         %% 1. data interpolation
         
@@ -423,7 +423,7 @@ markersSamplingTime = 1e-2;
         
         omegaCut = omegaCut(settlingCutTimeIndex:(end-settlingCutTimeIndex),:);
         
-        if (length(t_cut_vicon) - length(t_cut_imu)) ~= 0;
+        if(length(t_cut_vicon) - length(t_cut_imu)) ~= 0;
             
             t_cutIndex = min(length(t_cut_vicon),length(t_cut_imu));
             
@@ -454,7 +454,7 @@ markersSamplingTime = 1e-2;
 
         end
          
-       if(plotSettlingTimeCutData)
+        if(plotSettlingTimeCutData)
             fig = figure();
             axes1 = axes('Parent',fig,'FontSize',16);
             box(axes1,'on');
@@ -489,7 +489,7 @@ markersSamplingTime = 1e-2;
             ylabel('AngVel [rad/s]','FontSize',12);
             axis tight;
             grid on;
-       end
+        end
         
         %% 3. data conversion
         

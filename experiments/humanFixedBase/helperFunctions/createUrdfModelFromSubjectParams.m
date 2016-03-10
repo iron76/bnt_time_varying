@@ -1,7 +1,6 @@
 % CREATEURDFMODELFROMSUBJECTPARAMS
 % Script tp create for each subject a file urdf.
 
-
 load('./experiments/humanFixedBase/data/subjectSizeParams.mat');
 
 subjectList = 1:12;
@@ -43,9 +42,6 @@ for subjectID = subjectList
     urdfModelTemplate = strrep(urdfModelTemplate,'TORSOINERTIAIZZ',num2str(subjectParams(subjectID).torsoIzz));
 
     urdfModelTemplate = strrep(urdfModelTemplate,'ANKLEVAL',num2str((-subjectParams(subjectID).footDepth)/4));
-
-    %create subject directories
-    %mkdir('human_models',sprintf('threeLinkHumanLikeSubj%d',subjectID))
 
     %% storing file into a proper folder
 

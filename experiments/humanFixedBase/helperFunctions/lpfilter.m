@@ -1,4 +1,3 @@
-
 function H = lpfilter(type, M, N, D0, n)
 %LPFILTER Computes frequency domain lowpass filters
 %   H = LPFILTER(TYPE, M, N, D0, n) creates the transfer function of

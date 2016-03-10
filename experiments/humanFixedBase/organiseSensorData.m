@@ -25,7 +25,6 @@ isTest = 'false';
 subjectList = 1:12;
 trialList = 1:4 ; 
 
-
 %% iterate through each trial 
 for subjectID = subjectList
     fprintf('\n---------\nSubject : %d ',subjectID);
@@ -89,7 +88,6 @@ for subjectID = subjectList
         %% plot q, dq, ddq
         
         if(plotJointQuantities)
-        
             fig = figure();
             axes1 = axes('Parent',fig,'FontSize',16);
             box(axes1,'on');

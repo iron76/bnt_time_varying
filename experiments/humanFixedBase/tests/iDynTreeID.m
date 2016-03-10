@@ -17,19 +17,18 @@ baseReactionForce = iDynTree.Wrench();
 torquesM =zeros(size(qM,1),dofs);
 baseReactionForceM =zeros(size(qM,1),6);
 
-for i = 1: size(qM,1)
-    q.fromMatlab(qM(i,:));
-    dq.fromMatlab(dqM(i,:));
-    ddq.fromMatlab(ddqM(i,:));
-    
-    dyntree.setRobotState(q,dq,ddq,grav);
-    
-    % compute id with inverse dynamics
-    dyntree.inverseDynamics(torques,baseReactionForce);
-    
-    torquesM(i,:) = torques.toMatlab();
-    baseReactionForceM(i,:) = baseReactionForce.toMatlab();
-end
+    for i = 1: size(qM,1)
+        q.fromMatlab(qM(i,:));
+        dq.fromMatlab(dqM(i,:));
+        ddq.fromMatlab(ddqM(i,:));
 
+        dyntree.setRobotState(q,dq,ddq,grav);
+
+        % compute id with inverse dynamics
+        dyntree.inverseDynamics(torques,baseReactionForce);
+
+        torquesM(i,:) = torques.toMatlab();
+        baseReactionForceM(i,:) = baseReactionForce.toMatlab();
+    end
 end
 

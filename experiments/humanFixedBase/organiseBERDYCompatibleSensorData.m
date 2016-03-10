@@ -61,7 +61,7 @@ for subjectID = subjectList
         
         currentTrialSens = sensorLinkTransforms(subjectID,trialID);
         
-        %IMU in link2
+        % ====IMU in link2
         X_imu_2 = currentTrialSens.X_imu_2;
         X_2_imu = InverseAdjTransform(X_imu_2);
         a_2_imu = zeros(size(a_imu_imu))';
@@ -73,7 +73,7 @@ for subjectID = subjectList
         data.ys_linkFrame_imu = a_2_imu';
 
 
-        %Force plate in link0
+        % ====Force plate in link0
         XStar_fp_0 = currentTrialSens.XStar_fp_0;
         XStar_0_fp = InverseAdjTransform(XStar_fp_0);
         y_0_fp = zeros(size(y_fp_fp))';
@@ -85,7 +85,7 @@ for subjectID = subjectList
         data.ys_link0Frame_fts = y_0_fp';
 
         
-        %Force plate in link1
+        % ====Force plate in link1
         XStar_0_1 = currentTrialSens.XStar_0_1;
         y_1_fp = zeros (6,length(data.dataTime));
   
@@ -100,7 +100,7 @@ for subjectID = subjectList
         %% Organising into a structure    
         BERDYFormattedSensorData(subjectID,trialID).data = data;       
     end
-     fprintf('\n');
+    fprintf('\n');
 end
 
 %% storing results

@@ -44,12 +44,10 @@ for subjectID = subjectList
         footBeta = P_G_1M(:,3); %height of P_G_1
         footGamma = max([norm(P_G_lheeM - P_G_ltoeM),norm(P_G_rheeM - P_G_rtoeM)]); 
         
-       
         % LEG BOX SIZE
         legAlpha = norm(P_G_lankleM - P_G_rankleM);     
         legBeta =  P_G_2M(:,3) - P_G_1M(:,3);
         legGamma = 0.5*footGamma;
-       
        
         % TORSO BOX SIZE
         torsoAlpha = norm(P_G_lshoM - P_G_rshoM);
@@ -62,7 +60,6 @@ for subjectID = subjectList
         legV = legAlpha*legBeta*legGamma;
         torsoV = torsoAlpha*torsoBeta*torsoGamma;
         totalV = footV+legV+torsoV;
-        
         
         f_fp_fp = currentTrial.wrench_fp_fp(:,4:6);
         f_fp_fpM = f_fp_fp(1:sSelec,:);

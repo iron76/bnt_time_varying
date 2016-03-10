@@ -1,7 +1,5 @@
 
 function [I_O] = createSpatialInertia (footIxx,footIyy,footIzz, m, c)
-
-
 %CREATESPATIALINERTIA compute spatial inertia in Featherstone-like
 %notatione (see Featherstone(2008),Rigid Body Dynamics Algorithms (2008), pg22).
 %
@@ -20,12 +18,7 @@ I_cBar = [footIxx         0      0      ;
 I_O = [ I_cBar + m*skew(c)*(skew(c))'   m*skew(c);
               m*(skew(c))'              m*eye(3) ];
 
-
-
 %TO DO :tests!
-
-
-
 end
 
 

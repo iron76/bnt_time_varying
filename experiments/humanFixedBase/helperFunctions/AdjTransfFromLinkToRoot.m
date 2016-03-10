@@ -13,7 +13,7 @@ function root_X_linkNum = AdjTransfFromLinkToRoot (dmodel, q, linkNum)
 % GOAL: 
 % obtain  root_X_linkNum = 0_X_1 * 1_X_2 * ... * (lambda_linkNum)_X_linkNum
 
-%%
+
 root_X_linkNum = eye(6);
 i = linkNum;
 
@@ -22,22 +22,19 @@ if linkNum > dmodel.NB
    return;
 end
 
-while (i ~= 0)
-    % using jcalc for obtaining Xj 
-    [Xj,~] = jcalc( dmodel.jtype{i}, q(i));
-    
-    i_X_lambda_i = Xj * dmodel.Xtree{i}; 
-   
-    % inverting i_X_lambda_i to lambda_i_X_i:
-    lambda_i_X_i = InverseAdjTransform(i_X_lambda_i);
- 
-    root_X_linkNum = lambda_i_X_i * root_X_linkNum;
-    i = dmodel.parent(i);
-    
-end
+    while (i ~= 0)
+        % using jcalc for obtaining Xj 
+        [Xj,~] = jcalc( dmodel.jtype{i}, q(i));
 
-end
+        i_X_lambda_i = Xj * dmodel.Xtree{i}; 
 
+        % inverting i_X_lambda_i to lambda_i_X_i:
+        lambda_i_X_i = InverseAdjTransform(i_X_lambda_i);
+
+        root_X_linkNum = lambda_i_X_i * root_X_linkNum;
+        i = dmodel.parent(i);
+    end
+end
 
 %% Code creating for kinematic chain (not for a tree)
 

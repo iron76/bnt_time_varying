@@ -25,7 +25,7 @@ addpath(strcat(path_to_drake_distro,'build/matlab'));
 addpath_drake;
 
 for subjectID = subjectIDList
-   
+    
     str = sprintf('./human_models/threeLinkHumanLikeSubj%02d/threeLinkHuman_subject%d.urdf',subjectID,subjectID);
     R = RigidBodyManipulator(str);
     humanThreeLink_dmodel = R.featherstone;
@@ -36,8 +36,7 @@ for subjectID = subjectIDList
     humanThreeLink_dmodel.jointname = {'ankle' 'hip'}; 
         
     % storing model per each subject
-    humanThreeLinkModelFromURDF(subjectID).dmodel = humanThreeLink_dmodel;
-        
+    humanThreeLinkModelFromURDF(subjectID).dmodel = humanThreeLink_dmodel;    
 end
 
 save('./experiments/humanFixedBase/intermediateDataFiles/humanThreeLinkModelFromURDF.mat','humanThreeLinkModelFromURDF');
