@@ -24,35 +24,39 @@
 clc; clear; close all;
 
 %% testOptions
-plotInterpolatedFilteredData = false;
-plotFilteredData = false;
+plotInterpolatedFilteredData = true;
+plotFilteredData = true;
 
-plotFirstCutData = false;
-plotJointQuantitiesFirstCut = false;
+plotFirstCutData = true;
+plotJointQuantitiesFirstCut = true;
 
-plotSecondCutData = false;
-plotJointQuantitiesSecondCut = false;
+plotSecondCutData = true;
+plotJointQuantitiesSecondCut = true;
 
-plotSettlingTimeCutData = false;
-plotJointQuantitiesSettlingTimeCut = false;
+plotSettlingTimeCutData = true;
+plotJointQuantitiesSettlingTimeCut = true;
 
 %% load data sources
 load('./experiments/humanFixedBase/data/VICONsaveDataGen16.mat');
 load('./experiments/humanFixedBase/data/imuExtractedDataGen16.mat');
 addpath('./experiments/humanFixedBase/helperFunctions/');
 
-subjectList = 1;
+subjectList = 7;
 trialList = 1;
 
 % Setting parameters
-samplingTime = 1e-2;  %uniform sampling rate 
-settlingCutTime = 0.8;  % secs
+samplingTime = 1e-2;  % uniform sampling rate in the interpolation
+settlingCutTime = 0.8;  % secs  -->TO BE SET PROPERLY! MAKE IT PARAMETRIC!
 settlingCutTimeIndex = ceil(settlingCutTime/samplingTime); %ensuring integer variable
 
 % from sensor acquisition
 forcePlateSamplingTime = 1e-3;
 imuSamplingTime = 1e-2;
 markersSamplingTime = 1e-2;
+
+% for filtering in frequency
+cutOffFreqForcePlate = 20; %20Hz
+cutOffFreqIMU = 20;  %20Hz
 
 
 %% iterate through each trial 
@@ -139,6 +143,25 @@ markersSamplingTime = 1e-2;
         P_G_imuB = interp1( t_markers_raw,P_G_imuB_raw,t_f);
         P_G_imuC =interp1( t_markers_raw,P_G_imuC_raw,t_f);
         
+        % filter only markers data as they are used to compute q,dq,ddq
+        
+        P_G_ltoe_filt = frequencyFilterSignal (P_G_ltoe, cutOffFreqForcePlate, 1/samplingTime);
+        P_G_lhee_filt = frequencyFilterSignal (P_G_lhee, cutOffFreqForcePlate, 1/samplingTime);
+        P_G_lankle_filt = frequencyFilterSignal (P_G_lankle, cutOffFreqForcePlate, 1/samplingTime);
+        P_G_lhip_filt = frequencyFilterSignal (P_G_lhip, cutOffFreqForcePlate, 1/samplingTime);
+        P_G_lsho_filt = frequencyFilterSignal (P_G_lsho, cutOffFreqForcePlate, 1/samplingTime);
+        
+        P_G_rtoe_filt = frequencyFilterSignal (P_G_rtoe, cutOffFreqForcePlate, 1/samplingTime);
+        P_G_rhee_filt = frequencyFilterSignal (P_G_rhee, cutOffFreqForcePlate, 1/samplingTime);
+        P_G_rankle_filt = frequencyFilterSignal (P_G_rankle, cutOffFreqForcePlate, 1/samplingTime);
+        P_G_rhip_filt = frequencyFilterSignal (P_G_rhip, cutOffFreqForcePlate, 1/samplingTime);
+        P_G_rsho_filt = frequencyFilterSignal (P_G_rsho, cutOffFreqForcePlate, 1/samplingTime);
+        
+        P_G_tors_filt = frequencyFilterSignal (P_G_tors, cutOffFreqForcePlate, 1/samplingTime);
+        P_G_imuA_filt = frequencyFilterSignal (P_G_imuA, cutOffFreqForcePlate, 1/samplingTime);
+        P_G_imuB_filt = frequencyFilterSignal (P_G_imuB, cutOffFreqForcePlate, 1/samplingTime);
+        P_G_imuC_filt = frequencyFilterSignal (P_G_imuC, cutOffFreqForcePlate, 1/samplingTime);
+ 
         
         if(plotInterpolatedFilteredData)
             fig = figure();
@@ -207,7 +230,7 @@ markersSamplingTime = 1e-2;
         [dq1,ddq1] = SgolayDerivation(3,57,q1,samplingTime);
         [dq2,ddq2] = SgolayDerivation(3,57,q2,samplingTime);
         
-        %% 4. synchronising and filtering data
+        %% 4. synchronising data
         
         % 4.1 synchronising peaks of force with imu 
         
@@ -639,34 +662,13 @@ markersSamplingTime = 1e-2;
         %% 5. filtering 
                
         % ====force plate data (filtered in freq)
-        cutOffFreqForcePlate = 20; %20Hz
         f_filt = frequencyFilterSignal(fCut, cutOffFreqForcePlate, 1/samplingTime);
         mom_filt = frequencyFilterSignal(momCut, cutOffFreqForcePlate, 1/samplingTime);
         
         % ====imu data (filtered in freq)
-        cutOffFreqIMU = 20;  %20Hz
         accl_filt = frequencyFilterSignal (accCut, cutOffFreqIMU, 1/samplingTime);
         omega_filt = frequencyFilterSignal (omegaCut, cutOffFreqIMU, 1/samplingTime);
-
-      
-% %         % ====marker data (filtered in freq) 
-% %         P_G_ltoe_filt = frequencyFilterSignal (P_G_ltoe, cutOffFreqForcePlate, 1/samplingTime);
-% %         P_G_lhee_filt = frequencyFilterSignal (P_G_lhee, cutOffFreqForcePlate, 1/samplingTime);
-% %         P_G_lankle_filt = frequencyFilterSignal (P_G_lankle, cutOffFreqForcePlate, 1/samplingTime);
-% %         P_G_lhip_filt = frequencyFilterSignal (P_G_lhip, cutOffFreqForcePlate, 1/samplingTime);
-% %         P_G_lsho_filt = frequencyFilterSignal (P_G_lsho, cutOffFreqForcePlate, 1/samplingTime);
-% %         
-% %         P_G_rtoe_filt = frequencyFilterSignal (P_G_rtoe, cutOffFreqForcePlate, 1/samplingTime);
-% %         P_G_rhee_filt = frequencyFilterSignal (P_G_rhee, cutOffFreqForcePlate, 1/samplingTime);
-% %         P_G_rankle_filt = frequencyFilterSignal (P_G_rankle, cutOffFreqForcePlate, 1/samplingTime);
-% %         P_G_rhip_filt = frequencyFilterSignal (P_G_rhip, cutOffFreqForcePlate, 1/samplingTime);
-% %         P_G_rsho_filt = frequencyFilterSignal (P_G_rsho, cutOffFreqForcePlate, 1/samplingTime);
-% %         
-% %         P_G_tors_filt = frequencyFilterSignal (P_G_tors, cutOffFreqForcePlate, 1/samplingTime);
-% %         P_G_imuA_filt = frequencyFilterSignal (P_G_imuA, cutOffFreqForcePlate, 1/samplingTime);
-% %         P_G_imuB_filt = frequencyFilterSignal (P_G_imuB, cutOffFreqForcePlate, 1/samplingTime);
-% %         P_G_imuC_filt = frequencyFilterSignal (P_G_imuC, cutOffFreqForcePlate, 1/samplingTime);
-% %         
+        
         
         if(plotFilteredData)
             fig = figure();
