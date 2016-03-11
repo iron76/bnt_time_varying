@@ -70,7 +70,7 @@ for subjectID = subjectList
     
         %%  ========================= Sensor prediction ===========================
 
-        load('./experiments/humanFixedBase/intermediateDataFiles/MAPresults.mat');
+        load('./experiments/humanFixedBase/intermediateDataFiles/finalResults.mat');
 
         currentMAP = MAPresults(subjectID,trialID);
 
