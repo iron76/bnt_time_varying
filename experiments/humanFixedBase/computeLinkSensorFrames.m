@@ -28,8 +28,8 @@ load('./experiments/humanFixedBase/intermediateDataFiles/synchronisedData.mat');
 load('./experiments/humanFixedBase/intermediateDataFiles/humanThreeLinkModelFromURDF.mat');
 %isTest = 'false'; 
 %% selected subjects and trials
-subjectList = 1:12;
-trialList = 1:4 ;  
+subjectList = 1;
+trialList = 1 ;  
 
 %% iterate through each computing transforms each time
 
@@ -56,9 +56,7 @@ for subjectID = subjectList
         P_G_G = [0,0,0];
         P_fp_fp = [0,0,0];
          
-        q1 = currentTrial.q1;
-        q2 = currentTrial.q2;
-        q = [q1 q2];
+        q = currentTrial.q;
         
         %% Computing adjoint transform 2_X_imu  --> for Ymatrix
         % we need 2_X_imu for Y matrix . 

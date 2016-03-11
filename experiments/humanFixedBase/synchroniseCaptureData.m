@@ -41,8 +41,8 @@ load('./experiments/humanFixedBase/data/VICONsaveDataGen16.mat');
 load('./experiments/humanFixedBase/data/imuExtractedDataGen16.mat');
 addpath('./experiments/humanFixedBase/helperFunctions/');
 
-subjectList = 1:12;
-trialList = 1:4;
+subjectList = 1;
+trialList = 1;
 
 % Setting parameters
 samplingTime = 1e-2;  %uniform sampling rate 
@@ -734,12 +734,9 @@ markersSamplingTime = 1e-2;
         synchronisedData(subjectID,trialID).P_G_2 = P_G_2;
         synchronisedData(subjectID,trialID).P_G_3 = P_G_3;
         
-        synchronisedData(subjectID,trialID).q1 = q1;
-        synchronisedData(subjectID,trialID).q2 = q2;
-        synchronisedData(subjectID,trialID).dq1 = dq1;
-        synchronisedData(subjectID,trialID).dq2 = dq2;
-        synchronisedData(subjectID,trialID).ddq1 = ddq1;
-        synchronisedData(subjectID,trialID).ddq2 = ddq2;    
+        synchronisedData(subjectID,trialID).q = [q1 q2];
+        synchronisedData(subjectID,trialID).dq = [dq1 dq2];
+        synchronisedData(subjectID,trialID).ddq = [ddq1 ddq2];  
         
     end   
     fprintf('\n');

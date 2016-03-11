@@ -11,8 +11,8 @@ load('./experiments/humanFixedBase/intermediateDataFiles/synchronisedData.mat');
 load('./experiments/humanFixedBase/intermediateDataFiles/sensorLinkTransforms.mat');
 
 %% selected subjects and trials
-subjectList = 1:12;
-trialList = 1:4;  
+subjectList = 1;
+trialList = 1;  
 
 %% iterate through each computing transforms each time
 
@@ -23,17 +23,10 @@ for subjectID = subjectList
 
         currentTrial = synchronisedData(subjectID,trialID);
         
-        q1 = currentTrial.q1;
-        q2 = currentTrial.q2; 
-        dq1 = currentTrial.dq1;
-        dq2 = currentTrial.dq2;
-        ddq1 = currentTrial.ddq1;
-        ddq2 = currentTrial.ddq2;
-        
         data.dataTime = currentTrial.dataTime;
-        data.q = [q1 q2];
-        data.dq = [dq1 dq2];
-        data.ddq = [ddq1 ddq2];
+        data.q = currentTrial.q;
+        data.dq = currentTrial.dq;
+        data.ddq = currentTrial.ddq;
         
         
         %% data expressed in sensor frame --> data.y_sensFrame --> for Ymatrix created manually
