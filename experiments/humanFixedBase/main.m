@@ -2,6 +2,7 @@ clear;clc;close all;
 
 %% testOptions
 plotMAPtorques = true;
+plotCovariances = false;
 plotPaper = false;
 
 %% folder for plots
@@ -300,45 +301,48 @@ for subjectID = subjectList
         end
     
         %% Plot covariances
+        
+        if(plotCovariances)
+            fig = figure();
+            axes1 = axes('Parent',fig,'FontSize',16);
+            box(axes1,'on');
+            hold(axes1,'on');
+            grid on;
 
-        fig = figure();
-        axes1 = axes('Parent',fig,'FontSize',16);
-        box(axes1,'on');
-        hold(axes1,'on');
-        grid on;
+            subplot(221);
+            imagesc(full(myMAP.Sd));
+            colorbar;
+            axis tight;
+            title('Sigma (d|y)');
 
-        subplot(221);
-        imagesc(full(myMAP.Sd));
-        colorbar;
-        axis tight;
-        title('Sigma (d|y)');
+            subplot(222);
+            imagesc(full(mySens.sensorsParams.Sy_inv));
+            colorbar;                                                
+            axis tight;
+            title('Sigma (y)');
 
-        subplot(222);
-        imagesc(full(mySens.sensorsParams.Sy_inv));
-        colorbar;                                                
-        axis tight;
-        title('Sigma (y)');
+            subplot(223);
+            imagesc(full(dmodel.Sv_inv.matrix));
+            colorbar;
+            axis tight;
+            title('Sigma (D)');
 
-        subplot(223);
-        imagesc(full(dmodel.Sv_inv.matrix));
-        colorbar;
-        axis tight;
-        title('Sigma (D)');
+            subplot(224);
+            imagesc(full(dmodel.Sw_inv.matrix));
+            colorbar;
+            axis tight;
+            title('Sigma (d)');
 
-        subplot(224);
-        imagesc(full(dmodel.Sw_inv.matrix));
-        colorbar;
-        axis tight;
-        title('Sigma (d)');
-
-        axes('Position',[0 0 1 1],'Xlim',[0 1],'Ylim',[0 1],'Box','off','Visible','off','Units','normalized','clipping' ,'off');
-        text(0.5, 0.99,(sprintf('Covariances (Subject: %d, Trial: %d)',subjectID, trialID)),'HorizontalAlignment','center','VerticalAlignment', 'top','FontSize',14);
+            axes('Position',[0 0 1 1],'Xlim',[0 1],'Ylim',[0 1],'Box','off','Visible','off','Units','normalized','clipping' ,'off');
+            text(0.5, 0.99,(sprintf('Covariances (Subject: %d, Trial: %d)',subjectID, trialID)),'HorizontalAlignment','center','VerticalAlignment', 'top','FontSize',14);
+        end
 
         %% Organising into a structure    
         MAPresults(subjectID,trialID).MAPres = res;
         MAPresults(subjectID,trialID).data.y = data.y;
         MAPresults(subjectID,trialID).data.Sy = data.Sy;
-        MAPresults(subjectID,trialID).dmodel = dmodel;
+        MAPresults(subjectID,trialID).Sv_inv = dmodel.Sv_inv.matrix;
+        MAPresults(subjectID,trialID).Sw_inv = dmodel.Sw_inv.matrix;
         clear res;
 
     end

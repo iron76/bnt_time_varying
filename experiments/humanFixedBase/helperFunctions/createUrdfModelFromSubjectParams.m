@@ -3,7 +3,7 @@
 
 load('./experiments/humanFixedBase/data/subjectSizeParams.mat');
 
-subjectList = 1:2;
+subjectList = 1:12;
 
 for subjectID = subjectList
     

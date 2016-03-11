@@ -11,7 +11,8 @@
 %    4.1 re-aligns samples on the first peak cutting data before it;
 %    4.2 cuts samples after the second peak;
 %    4.3 cuts for both peaks  x seconds of acquisition; 
-% 5. stores data into a file.mat
+% 5. filters forceplate and IMU data;
+% 6. stores data into a file.mat
 
 
 % Assumptions:
@@ -23,8 +24,8 @@
 clc; clear; close all;
 
 %% testOptions
-plotInterpolatedFilteredData = true;
-plotFilteredData = true;
+plotInterpolatedFilteredData = false;
+plotFilteredData = false;
 
 plotFirstCutData = false;
 plotJointQuantitiesFirstCut = false;
@@ -32,16 +33,16 @@ plotJointQuantitiesFirstCut = false;
 plotSecondCutData = false;
 plotJointQuantitiesSecondCut = false;
 
-plotSettlingTimeCutData = true;
-plotJointQuantitiesSettlingTimeCut = true;
+plotSettlingTimeCutData = false;
+plotJointQuantitiesSettlingTimeCut = false;
 
 %% load data sources
 load('./experiments/humanFixedBase/data/VICONsaveDataGen16.mat');
 load('./experiments/humanFixedBase/data/imuExtractedDataGen16.mat');
 addpath('./experiments/humanFixedBase/helperFunctions/');
 
-subjectList = 1:2;
-trialList = 1:2;
+subjectList = 1:12;
+trialList = 1:4;
 
 % Setting parameters
 samplingTime = 1e-2;  %uniform sampling rate 
@@ -63,7 +64,7 @@ markersSamplingTime = 1e-2;
         
         %% 1. data conversion
         
-        % ====VIVON MARKERS
+        % ====VICON MARKERS
         % acquired data in mm --> converted in m
         convConst = 1e-3;
         
@@ -99,13 +100,13 @@ markersSamplingTime = 1e-2;
         
         %% 2. data interpolation
         
-        % ====force plate data  
+        % ====FORCE PLATE 
         t_f_raw = 0:forcePlateSamplingTime:(forcePlateSamplingTime*(size(f_raw,1) -1));
         t_f = 0:samplingTime:t_f_raw(end);
         f = interp1(t_f_raw,f_raw,t_f);
         mom = interp1(t_f_raw,mom_raw,t_f);
         
-        % ====imu data      
+        % ====IMU      
         if(~isempty(find(diff(imuData(subjectID,trialID).t)<=0)))
             ttemp = imuData(subjectID,trialID).t;
             t_imu_raw = linspace(0,ttemp(end),length(ttemp))./1000;
@@ -117,7 +118,7 @@ markersSamplingTime = 1e-2;
         accl = interp1(t_imu_raw,accl_raw,t_imu);
         omega = interp1(t_imu_raw,omega_raw,t_imu);
         
-        % ====markers
+        % ====VICON MARKERS
         t_markers_raw = 0:markersSamplingTime:(markersSamplingTime*size(subjectData(subjectID,trialID).markers.ltoe,1));
         t_markers_raw = t_markers_raw(1:end-1);
         
@@ -218,87 +219,16 @@ markersSamplingTime = 1e-2;
         [val,timeIndexToPeak1_accl] = max(abs(accl(1:round(end*0.5),chosenA_ID)));
         timeToPeak1_accl = t_imu(timeIndexToPeak1_accl);
 
-        
-        % ========================= filtering==============================
-               
-        % ====force plate data (filtered in freq)
-        cutOffFreqForcePlate = 20; %20Hz
-        f_filt = frequencyFilterSignal(f, cutOffFreqForcePlate, 1/samplingTime);
-        %f_filt_SG = timeFilterSignal (polynOrder,filterWindow,f);
-        mom_filt = frequencyFilterSignal(mom, cutOffFreqForcePlate, 1/samplingTime);
-        
-        % ====imu data (filtered in freq)
-        cutOffFreqIMU = 20;
-        accl_filt = frequencyFilterSignal (accl, cutOffFreqIMU, 1/samplingTime);
-        omega_filt = frequencyFilterSignal (omega, cutOffFreqIMU, 1/samplingTime);
 
-      
-% %         % ====marker data (filtered in freq) 
-% %         P_G_ltoe_filt = frequencyFilterSignal (P_G_ltoe, cutOffFreqForcePlate, 1/samplingTime);
-% %         P_G_lhee_filt = frequencyFilterSignal (P_G_lhee, cutOffFreqForcePlate, 1/samplingTime);
-% %         P_G_lankle_filt = frequencyFilterSignal (P_G_lankle, cutOffFreqForcePlate, 1/samplingTime);
-% %         P_G_lhip_filt = frequencyFilterSignal (P_G_lhip, cutOffFreqForcePlate, 1/samplingTime);
-% %         P_G_lsho_filt = frequencyFilterSignal (P_G_lsho, cutOffFreqForcePlate, 1/samplingTime);
-% %         
-% %         P_G_rtoe_filt = frequencyFilterSignal (P_G_rtoe, cutOffFreqForcePlate, 1/samplingTime);
-% %         P_G_rhee_filt = frequencyFilterSignal (P_G_rhee, cutOffFreqForcePlate, 1/samplingTime);
-% %         P_G_rankle_filt = frequencyFilterSignal (P_G_rankle, cutOffFreqForcePlate, 1/samplingTime);
-% %         P_G_rhip_filt = frequencyFilterSignal (P_G_rhip, cutOffFreqForcePlate, 1/samplingTime);
-% %         P_G_rsho_filt = frequencyFilterSignal (P_G_rsho, cutOffFreqForcePlate, 1/samplingTime);
-% %         
-% %         P_G_tors_filt = frequencyFilterSignal (P_G_tors, cutOffFreqForcePlate, 1/samplingTime);
-% %         P_G_imuA_filt = frequencyFilterSignal (P_G_imuA, cutOffFreqForcePlate, 1/samplingTime);
-% %         P_G_imuB_filt = frequencyFilterSignal (P_G_imuB, cutOffFreqForcePlate, 1/samplingTime);
-% %         P_G_imuC_filt = frequencyFilterSignal (P_G_imuC, cutOffFreqForcePlate, 1/samplingTime);
-% %         
-        
-        if(plotFilteredData)
-            fig = figure();
-            axes1 = axes('Parent',fig,'FontSize',16);
-            box(axes1,'on');
-            hold(axes1,'on');
-            
-            grid on;
-            subplot(411);
-            plot(t_f,f_filt, 'lineWidth',2.0);
-            xlabel('Time [s]','FontSize',12);
-            ylabel('Force [N] ','FontSize',12);
-            axis tight;
-            grid on; 
-            title(sprintf('Subject : %d, Trial : %d, filtered data',subjectID,trialID));
-            
-            subplot(412);
-            plot(t_f,mom_filt, 'lineWidth',2.0);
-            xlabel('Time [s]','FontSize',12);
-            ylabel('Moment [Nmm] ','FontSize',12);
-            axis tight;
-            grid on;
-            
-            subplot(413);
-            plot(t_imu,accl_filt, 'lineWidth',2.0);
-            xlabel('Time [s]','FontSize',12);
-            ylabel('LinAcc [m/sec^2]','FontSize',12);
-            axis tight;
-            grid on;
-            subplot(414);
-            plot(t_imu,omega_filt, 'lineWidth',2.0);
-            xlabel('Time [s]','FontSize',12);
-            ylabel('AngVel [rad/s]','FontSize',12);
-            axis tight;
-            grid on;
-        end
-        % =================================================================
-        
-        
         % t=0 in f dal campione timeToPeak1_f
-        fCut = f_filt(timeIndexToPeak1_f:end,:);
+        fCut = f(timeIndexToPeak1_f:end,:);
         t_cut_vicon = t_f(timeIndexToPeak1_f:end) - t_f(timeIndexToPeak1_f);
-        momCut = mom_filt(timeIndexToPeak1_f:end,:);
+        momCut = mom(timeIndexToPeak1_f:end,:);
         
         % t=o in acc dal campione timeToPeak1_accl
-        accCut = accl_filt(timeIndexToPeak1_accl:end,:);
+        accCut = accl(timeIndexToPeak1_accl:end,:);
         t_cut_imu = t_imu(timeIndexToPeak1_accl:end) - t_imu(timeIndexToPeak1_accl);
-        omegaCut = omega_filt(timeIndexToPeak1_accl:end,:);
+        omegaCut = omega(timeIndexToPeak1_accl:end,:);
         
         % synchro also q,dq,ddq
         q1 = q1(timeIndexToPeak1_f:end,:);
@@ -572,6 +502,13 @@ markersSamplingTime = 1e-2;
         
         omegaCut = omegaCut(settlingCutTimeIndex:(end-settlingCutTimeIndex),:);
         
+        q1 = q1(settlingCutTimeIndex:(end-settlingCutTimeIndex),:);
+        q2 = q2(settlingCutTimeIndex:(end-settlingCutTimeIndex),:);
+        dq1 = dq1(settlingCutTimeIndex:(end-settlingCutTimeIndex),:);
+        dq2 = dq2(settlingCutTimeIndex:(end-settlingCutTimeIndex),:);
+        ddq1 = ddq1(settlingCutTimeIndex:(end-settlingCutTimeIndex),:);
+        ddq2 = ddq2(settlingCutTimeIndex:(end-settlingCutTimeIndex),:);
+        
         if(length(t_cut_vicon) - length(t_cut_imu)) ~= 0;
             
             t_cutIndex = min(length(t_cut_vicon),length(t_cut_imu));
@@ -601,15 +538,17 @@ markersSamplingTime = 1e-2;
             P_G_imuB_cut    = P_G_imuB_cut  (1:t_cutIndex,:);
             P_G_imuC_cut    = P_G_imuC_cut  (1:t_cutIndex,:);
 
+            q1 = q1(1:t_cutIndex,:);
+            q2 = q2(1:t_cutIndex,:);
+            dq1 = dq1(1:t_cutIndex,:);
+            dq2 = dq2(1:t_cutIndex,:);
+            ddq1 = ddq1(1:t_cutIndex,:);
+            ddq2 = ddq2(1:t_cutIndex,:);
+            
         end
          
         
-        q1 = q1(settlingCutTimeIndex:(end-settlingCutTimeIndex),:);
-        q2 = q2(settlingCutTimeIndex:(end-settlingCutTimeIndex),:);
-        dq1 = dq1(settlingCutTimeIndex:(end-settlingCutTimeIndex),:);
-        dq2 = dq2(settlingCutTimeIndex:(end-settlingCutTimeIndex),:);
-        ddq1 = ddq1(settlingCutTimeIndex:(end-settlingCutTimeIndex),:);
-        ddq2 = ddq2(settlingCutTimeIndex:(end-settlingCutTimeIndex),:);
+
         
         if(plotSettlingTimeCutData)
             fig = figure();
@@ -697,15 +636,82 @@ markersSamplingTime = 1e-2;
             grid on;
         end
         
+        %% 5. filtering 
+               
+        % ====force plate data (filtered in freq)
+        cutOffFreqForcePlate = 20; %20Hz
+        f_filt = frequencyFilterSignal(fCut, cutOffFreqForcePlate, 1/samplingTime);
+        mom_filt = frequencyFilterSignal(momCut, cutOffFreqForcePlate, 1/samplingTime);
         
-        %% 5. data storing
+        % ====imu data (filtered in freq)
+        cutOffFreqIMU = 20;  %20Hz
+        accl_filt = frequencyFilterSignal (accCut, cutOffFreqIMU, 1/samplingTime);
+        omega_filt = frequencyFilterSignal (omegaCut, cutOffFreqIMU, 1/samplingTime);
+
+      
+% %         % ====marker data (filtered in freq) 
+% %         P_G_ltoe_filt = frequencyFilterSignal (P_G_ltoe, cutOffFreqForcePlate, 1/samplingTime);
+% %         P_G_lhee_filt = frequencyFilterSignal (P_G_lhee, cutOffFreqForcePlate, 1/samplingTime);
+% %         P_G_lankle_filt = frequencyFilterSignal (P_G_lankle, cutOffFreqForcePlate, 1/samplingTime);
+% %         P_G_lhip_filt = frequencyFilterSignal (P_G_lhip, cutOffFreqForcePlate, 1/samplingTime);
+% %         P_G_lsho_filt = frequencyFilterSignal (P_G_lsho, cutOffFreqForcePlate, 1/samplingTime);
+% %         
+% %         P_G_rtoe_filt = frequencyFilterSignal (P_G_rtoe, cutOffFreqForcePlate, 1/samplingTime);
+% %         P_G_rhee_filt = frequencyFilterSignal (P_G_rhee, cutOffFreqForcePlate, 1/samplingTime);
+% %         P_G_rankle_filt = frequencyFilterSignal (P_G_rankle, cutOffFreqForcePlate, 1/samplingTime);
+% %         P_G_rhip_filt = frequencyFilterSignal (P_G_rhip, cutOffFreqForcePlate, 1/samplingTime);
+% %         P_G_rsho_filt = frequencyFilterSignal (P_G_rsho, cutOffFreqForcePlate, 1/samplingTime);
+% %         
+% %         P_G_tors_filt = frequencyFilterSignal (P_G_tors, cutOffFreqForcePlate, 1/samplingTime);
+% %         P_G_imuA_filt = frequencyFilterSignal (P_G_imuA, cutOffFreqForcePlate, 1/samplingTime);
+% %         P_G_imuB_filt = frequencyFilterSignal (P_G_imuB, cutOffFreqForcePlate, 1/samplingTime);
+% %         P_G_imuC_filt = frequencyFilterSignal (P_G_imuC, cutOffFreqForcePlate, 1/samplingTime);
+% %         
+        
+        if(plotFilteredData)
+            fig = figure();
+            axes1 = axes('Parent',fig,'FontSize',16);
+            box(axes1,'on');
+            hold(axes1,'on');
+            
+            grid on;
+            subplot(411);
+            plot(t_cut_vicon,f_filt, 'lineWidth',2.0);
+            xlabel('Time [s]','FontSize',12);
+            ylabel('Force [N] ','FontSize',12);
+            axis tight;
+            grid on; 
+            title(sprintf('Subject : %d, Trial : %d, filtered data',subjectID,trialID));
+            
+            subplot(412);
+            plot(t_cut_vicon,mom_filt, 'lineWidth',2.0);
+            xlabel('Time [s]','FontSize',12);
+            ylabel('Moment [Nmm] ','FontSize',12);
+            axis tight;
+            grid on;
+            
+            subplot(413);
+            plot(t_cut_vicon,accl_filt, 'lineWidth',2.0);
+            xlabel('Time [s]','FontSize',12);
+            ylabel('LinAcc [m/sec^2]','FontSize',12);
+            axis tight;
+            grid on;
+            subplot(414);
+            plot(t_cut_vicon,omega_filt, 'lineWidth',2.0);
+            xlabel('Time [s]','FontSize',12);
+            ylabel('AngVel [rad/s]','FontSize',12);
+            axis tight;
+            grid on;
+        end 
+        
+        %% 6. data storing
         
         synchronisedData(subjectID,trialID).samplingTime = samplingTime;
         synchronisedData(subjectID,trialID).dataTime = t_cut_vicon;
-        synchronisedData(subjectID,trialID).aLin_imu_imu = accCut;
-        synchronisedData(subjectID,trialID).omega_imu_imu = omegaCut; 
-        synchronisedData(subjectID,trialID).imu = [accCut omegaCut];
-        synchronisedData(subjectID,trialID).wrench_fp_fp = [momCut,fCut];
+        synchronisedData(subjectID,trialID).aLin_imu_imu = accl_filt;
+        synchronisedData(subjectID,trialID).omega_imu_imu = omega_filt; 
+        synchronisedData(subjectID,trialID).imu = [accl_filt accl_filt];
+        synchronisedData(subjectID,trialID).wrench_fp_fp = [mom_filt,f_filt];
         
         synchronisedData(subjectID,trialID).P_G_ltoe =P_G_ltoe;
         synchronisedData(subjectID,trialID).P_G_lhee =P_G_lhee;
@@ -742,4 +748,4 @@ markersSamplingTime = 1e-2;
 %% save result 
 save('./experiments/humanFixedBase/intermediateDataFiles/synchronisedData.mat','synchronisedData');
 fprintf('---------\n\n');
-fprintf('\nFinished synchronising data\n');
+fprintf('Finished synchronising data\n');

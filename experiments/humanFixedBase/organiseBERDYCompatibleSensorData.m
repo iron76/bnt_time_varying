@@ -11,8 +11,8 @@ load('./experiments/humanFixedBase/intermediateDataFiles/synchronisedData.mat');
 load('./experiments/humanFixedBase/intermediateDataFiles/sensorLinkTransforms.mat');
 
 %% selected subjects and trials
-subjectList = 1;
-trialList = 1;  
+subjectList = 1:12;
+trialList = 1:4;  
 
 %% iterate through each computing transforms each time
 
@@ -107,4 +107,4 @@ end
  save('./experiments/humanFixedBase/intermediateDataFiles/BERDYFormattedSensorData.mat','BERDYFormattedSensorData')
  
 fprintf('---------\n');
-fprintf('addedDone!\n');
+fprintf('Done!\n');
