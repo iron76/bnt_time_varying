@@ -30,18 +30,12 @@ for subjectID = subjectList
 
         currentTrial = synchronisedData(subjectID,trialID);
 
-        q1 = currentTrial.q1;
-        q2 = currentTrial.q2; 
-        dq1 = currentTrial.dq1;
-        dq2 = currentTrial.dq2;
-        ddq1 = currentTrial.ddq1;
-        ddq2 = currentTrial.ddq2;    
         dataTime = currentTrial.dataTime;
-
         len = length(dataTime);
-        q = [q1 q2];
-        dq = [dq1 dq2];
-        ddq = [ddq1 ddq2];
+        
+        q = currentTrial.q;
+        dq = currentTrial.dq;
+        ddq = currentTrial.ddq;
 
         wrench_fp_fp = currentTrial.wrench_fp_fp;
         imu = currentTrial.imu;
@@ -358,8 +352,8 @@ for subjectID = subjectList
 
             dataRNEA = [f_fp_fpPred; omegaDot_imu_imuPred; a_imu_imuPred];
 
-            load('./experiments/humanFixedBase/intermediateDataFiles/MAPresults.mat');
-            currentMAP = MAPresults(subjectID,trialID);
+            load('./experiments/humanFixedBase/intermediateDataFiles/finalResults.mat');
+            currentMAP = finalResults(subjectID,trialID);
 
             data.Sy = currentMAP.data.Sy;
             data.y =currentMAP.data.y;
