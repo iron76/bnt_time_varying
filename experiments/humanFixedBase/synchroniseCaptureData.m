@@ -24,25 +24,25 @@
 clc; clear; close all;
 
 %% testOptions
-plotInterpolatedFilteredData = true;
-plotFilteredData = true;
+plotInterpolatedFilteredData = false;
+plotFilteredData = false;
 
-plotFirstCutData = true;
-plotJointQuantitiesFirstCut = true;
+plotFirstCutData = false;
+plotJointQuantitiesFirstCut = false;
 
-plotSecondCutData = true;
-plotJointQuantitiesSecondCut = true;
+plotSecondCutData = false;
+plotJointQuantitiesSecondCut = false;
 
-plotSettlingTimeCutData = true;
-plotJointQuantitiesSettlingTimeCut = true;
+plotSettlingTimeCutData = false;
+plotJointQuantitiesSettlingTimeCut = false;
 
 %% load data sources
 load('./experiments/humanFixedBase/data/VICONsaveDataGen16.mat');
 load('./experiments/humanFixedBase/data/imuExtractedDataGen16.mat');
 addpath('./experiments/humanFixedBase/helperFunctions/');
 
-subjectList = 7;
-trialList = 1;
+subjectList = 1:1;
+trialList = 1:4;
 
 % Setting parameters
 samplingTime = 1e-2;  % uniform sampling rate in the interpolation
@@ -712,7 +712,7 @@ cutOffFreqIMU = 20;  %20Hz
         synchronisedData(subjectID,trialID).dataTime = t_cut_vicon;
         synchronisedData(subjectID,trialID).aLin_imu_imu = accl_filt;
         synchronisedData(subjectID,trialID).omega_imu_imu = omega_filt; 
-        synchronisedData(subjectID,trialID).imu = [accl_filt accl_filt];
+        synchronisedData(subjectID,trialID).imu =  [accl_filt omega_filt];
         synchronisedData(subjectID,trialID).wrench_fp_fp = [mom_filt,f_filt];
         
         synchronisedData(subjectID,trialID).P_G_ltoe =P_G_ltoe;
