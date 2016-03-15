@@ -2,7 +2,7 @@ clear;clc;close all;
 
 %% testOptions
 plotMAPtorques = true;
-plotCovariances = true;
+plotCovariances = false;
 plotPaper = false;
 
 %% folder for plots
@@ -12,7 +12,7 @@ if(exist(figFolder,'dir')==0)
 end
 
 %% selected subjects and trials
-subjectList = 1;
+subjectList = 8;
 trialList = 1;  
 
 for subjectID = subjectList
@@ -208,6 +208,8 @@ for subjectID = subjectList
         
         %% Computing MAP method
 
+        resMAP.Sd = cell(len,1);
+        
         for i = 1 : len
 
             myMAP = myMAP.setState(data.q(i,:)', data.dq(i,:)');
@@ -216,13 +218,15 @@ for subjectID = subjectList
             myMAP = myMAP.setBias(b_Y(:,i));
             myMAP = myMAP.solveID();
 
+           
             resMAP.d(:,i)       = myMAP.d;
-            resMAP.Sd(:,:,i)    = myMAP.Sd; %full() passing from sparse to double matrix
+            %resMAP.Sd(:,:,i)    = myMAP.Sd; %full() passing from sparse to double matrix
+            resMAP.Sd{i} = myMAP.Sd;
             resMAP.Ymatrix{i,1} = myMAP.IDsens.sensorsParams.Y; 
             resMAP.b_Y(:,i)     = myMAP.IDsens.sensorsParams.bias;
             %resMAP.y(:,i)      = (Ymatrix{i} * res.d(:,i)) + b_Y(:,i); 
             %resMAP.Sy(:,:,i)   = Ymatrix{i} * res.Sd(:,:,i) * Ymatrix{i}';
-
+            
              if mod(i-1,100) == 0
                     fprintf('Processing %d %% of the dataset\n', round(i/len*100));
              end
@@ -242,28 +246,28 @@ for subjectID = subjectList
 
                  %a
                  ind  = '1 + 26*(i-1) : 26*(i-1) +  6';
-                 eval(['resMAP.a_'    link '(:,j)   =  resMAP.d(' ind '        ,j);'])
-                 eval(['resMAP.Sa_'   link '(:,:,j) = resMAP.Sd(' ind ',' ind ',j);'])
+                 eval(['resMAP.a_'    link '(:,j) = resMAP.d      (' ind '        ,j);'])
+                 eval(['resMAP.Sa_'   link '{j,1} = resMAP.Sd{j,1}(' ind ',' ind '  );'])
                  %fB
                  ind  = '7 + 26*(i-1) : 26*(i-1) + 12';
-                 eval(['resMAP.fB_'   link '(:,j)   =  resMAP.d(' ind '        ,j);'])
-                 eval(['resMAP.SfB_'  link '(:,:,j) = resMAP.Sd(' ind ',' ind ',j);'])
+                 eval(['resMAP.fB_'   link '(:,j) = resMAP.d      (' ind '        ,j);'])
+                 eval(['resMAP.SfB_'  link '{j,1} = resMAP.Sd{j,1}(' ind ',' ind '  );'])
                  %f
                  ind  = '13 + 26*(i-1) : 26*(i-1) + 18';
-                 eval(['resMAP.f_'    link '(:,j)   =  resMAP.d(' ind '        ,j);'])
-                 eval(['resMAP.Sf_'   link '(:,:,j) = resMAP.Sd(' ind ',' ind ',j);'])
+                 eval(['resMAP.f_'    link '(:,j) = resMAP.d      (' ind '        ,j);'])
+                 eval(['resMAP.Sf_'   link '{j,1} = resMAP.Sd{j,1}(' ind ',' ind '  );'])
                  %tau
                  ind  = '19 + 26*(i-1) : 26*(i-1) + 19';
-                 eval(['resMAP.tau_'  joint '(:,j)   =  resMAP.d(' ind '        ,j);'])
-                 eval(['resMAP.Stau_' joint '(:,:,j) = resMAP.Sd(' ind ',' ind ',j);'])
+                 eval(['resMAP.tau_'  joint '(:,j) = resMAP.d      (' ind '        ,j);'])
+                 eval(['resMAP.Stau_' joint '{j,1} = resMAP.Sd{j,1}(' ind ',' ind '  );'])
                  %fx
                  ind  = '20 + 26*(i-1) : 26*(i-1) + 25';
-                 eval(['resMAP.fx_'   link '(:,j)   =  resMAP.d(' ind '        ,j);'])
-                 eval(['resMAP.Sfx_'  link '(:,:,j) = resMAP.Sd(' ind ',' ind ',j);'])
+                 eval(['resMAP.fx_'   link '(:,j) = resMAP.d      (' ind '        ,j);'])
+                 eval(['resMAP.Sfx_'  link '{j,1} = resMAP.Sd{j,1}(' ind ',' ind '  );'])
                  %ddq
                  ind  = '26 + 26*(i-1) : 26*(i-1) + 26';
-                 eval(['resMAP.d2q_'  joint '(:,j)   =  resMAP.d(' ind '        ,j);'])
-                 eval(['resMAP.Sd2q_' joint '(:,:,j) = resMAP.Sd(' ind ',' ind ',j);'])
+                 eval(['resMAP.d2q_'  joint '(:,j) = resMAP.d      (' ind '        ,j);'])
+                 eval(['resMAP.Sd2q_' joint '{j,1} = resMAP.Sd{j,1}(' ind ',' ind '  );'])
              end
         end 
     
@@ -348,13 +352,6 @@ for subjectID = subjectList
         %% Organising into a structure    
         finalResults(subjectID,trialID).resMAP = resMAP;
         
-        finalResults(subjectID,trialID).data.y = data.y;
-        finalResults(subjectID,trialID).data.Sy = data.Sy;
-        
-        finalResults(subjectID,trialID).sigma.Sprior_inv = sigma.Sprior_inv;
-        finalResults(subjectID,trialID).sigma.SD_inv = sigma.SD_inv;
-        finalResults(subjectID,trialID).sigma.Sy_inv = sigma.Sy_inv;
-
         clear res;
 
     end
