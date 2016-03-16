@@ -2,7 +2,7 @@ clear;clc;close all;
 
 %% testOptions
 plotMAPtorques = true;
-plotCovariances = false;
+%plotCovariances = false;
 plotPaper = false;
 
 %% folder for plots
@@ -12,8 +12,8 @@ if(exist(figFolder,'dir')==0)
 end
 
 %% selected subjects and trials
-subjectList = 8;
-trialList = 1;  
+subjectList = 1;
+trialList = 1:4;  
 
 for subjectID = subjectList
     fprintf('\n---------\nSubject : %d ',subjectID);
@@ -92,6 +92,7 @@ for subjectID = subjectList
 
 
         d= zeros (26*myRNEA.IDmodel.modelParams.NB,len);
+        resRNEA.tau = zeros(length(dataTime),dmodel.NB);
         for i = 1 : len
              myRNEA = myRNEA.setState(q(:,i), dq(:,i));
              myRNEA = myRNEA.setY(y_RNEA(:,i));
@@ -207,9 +208,12 @@ for subjectID = subjectList
         clear footIzz;
         
         %% Computing MAP method
-
+      
+        resMAP.d  = zeros(26*dmodel.NB,len);
         resMAP.Sd = cell(len,1);
-        
+        resMAP.Ymatrix = cell(len,1);
+        resMAP.b_Y = zeros (myMAP.IDsens.sensorsParams.m,len);
+                
         for i = 1 : len
 
             myMAP = myMAP.setState(data.q(i,:)', data.dq(i,:)');
@@ -221,7 +225,7 @@ for subjectID = subjectList
            
             resMAP.d(:,i)       = myMAP.d;
             %resMAP.Sd(:,:,i)    = myMAP.Sd; %full() passing from sparse to double matrix
-            resMAP.Sd{i} = myMAP.Sd;
+            resMAP.Sd{i,1} = myMAP.Sd;
             resMAP.Ymatrix{i,1} = myMAP.IDsens.sensorsParams.Y; 
             resMAP.b_Y(:,i)     = myMAP.IDsens.sensorsParams.bias;
             %resMAP.y(:,i)      = (Ymatrix{i} * res.d(:,i)) + b_Y(:,i); 
@@ -232,22 +236,38 @@ for subjectID = subjectList
              end
         end
         % ========end MAP
-        %% Rerrange solution
+        %% Rearrange solution
 
         for i = 1 : dmodel.NB
-             for j = 1 : len
-
-                 link = strrep(myMAP.IDmodel.modelParams.linkname{i}, '+', '_');
-                 joint = strrep(myMAP.IDmodel.modelParams.jointname{i}, '+', '_');
-
-                 di   = ['resMAP.d_'   link  '(:,j)'];
-                 ind  = '1 + 26*(i-1) : 26*(i-1) + 26';
-                 eval([di '   = d(' ind ',j);'])
-
+             
+            link = strrep(myMAP.IDmodel.modelParams.linkname{i}, '+', '_');
+            joint = strrep(myMAP.IDmodel.modelParams.jointname{i}, '+', '_');
+             
+            % initialize variables
+            eval(['resMAP.a_'    link ' = zeros(6, len );']);
+            eval(['resMAP.Sa_'    link ' = cell(len, 1);']);
+            
+            eval(['resMAP.fB_'    link ' = zeros(6, len );']);
+            eval(['resMAP.SfB_'    link ' = cell(len, 1);']);
+            
+            eval(['resMAP.f_'    link ' = zeros(6, len );']);
+            eval(['resMAP.Sf_'     link ' = cell(len, 1);']);
+            
+            eval(['resMAP.tau_'    joint ' = zeros(1, len );']);
+            eval(['resMAP.Stau_'    joint ' = cell(len, 1);']);
+            
+            eval(['resMAP.fx_'    link ' = zeros(6, len );']);
+            eval(['resMAP.Sfx_'    link ' = cell(len, 1);']);
+            
+            eval(['resMAP.d2q_'    joint ' = zeros(1, len );']);
+            eval(['resMAP.Sd2q_'    joint ' = cell(len, 1);']);
+             
+            
+            for j = 1 : len
                  %a
                  ind  = '1 + 26*(i-1) : 26*(i-1) +  6';
-                 eval(['resMAP.a_'    link '(:,j) = resMAP.d      (' ind '        ,j);'])
-                 eval(['resMAP.Sa_'   link '{j,1} = resMAP.Sd{j,1}(' ind ',' ind '  );'])
+                 eval(['resMAP.a_'    link '(:,j) = resMAP.d      (' ind '       ,j);'])
+                 eval(['resMAP.Sa_'   link '{j,1} = resMAP.Sd{j,1}(' ind ',' ind ' );'])
                  %fB
                  ind  = '7 + 26*(i-1) : 26*(i-1) + 12';
                  eval(['resMAP.fB_'   link '(:,j) = resMAP.d      (' ind '        ,j);'])
@@ -267,10 +287,11 @@ for subjectID = subjectList
                  %ddq
                  ind  = '26 + 26*(i-1) : 26*(i-1) + 26';
                  eval(['resMAP.d2q_'  joint '(:,j) = resMAP.d      (' ind '        ,j);'])
-                 eval(['resMAP.Sd2q_' joint '{j,1} = resMAP.Sd{j,1}(' ind ',' ind '  );'])
+                 eval(['resMAP.Sd2q_' joint '{j,1} = resMAP.Sd{j,1}(' ind ',' ind '  );'])   
              end
         end 
-    
+        
+     
         %% ======================= COMPARISON RNEA/MAP =========================
         if(plotMAPtorques)    
             %% Comparing RNEA/MAP torques
@@ -298,7 +319,7 @@ for subjectID = subjectList
             set(leg,'Interpreter','latex');
             set(leg,'FontSize',18);
             xlabel('Time [s]','FontSize',20);
-            ylabel('Torque [Nm]','FontSize',20);
+            ylabel('Joint Torque [Nm]','FontSize',20);
             axis tight;
             grid on;
 
@@ -309,49 +330,65 @@ for subjectID = subjectList
     
         %% Plot covariances
         
-        sigma.Sd = myMAP.Sd;
-        sigma.Sy_inv = full(mySens.sensorsParams.Sy_inv);
-        sigma.SD_inv = full(dmodel.Sv_inv.matrix);
-        sigma.Sprior_inv = full(dmodel.Sw_inv.matrix);
-        
-        if(plotCovariances)
-            fig = figure();
-            axes1 = axes('Parent',fig,'FontSize',16);
-            box(axes1,'on');
-            hold(axes1,'on');
-            grid on;
+%         sigma.Sd = myMAP.Sd;
+%         sigma.Sy_inv = full(mySens.sensorsParams.Sy_inv);
+%         sigma.SD_inv = full(dmodel.Sv_inv.matrix);
+%         sigma.Sprior_inv = [ zeros(38),          zeros(38,14)       ;
+%                             zeros(14,38), full(dmodel.Sw_inv.matrix)];
+%         
+%         
+%         if(plotCovariances)
+%             fig = figure();
+%             axes1 = axes('Parent',fig,'FontSize',16);
+%             box(axes1,'on');
+%             hold(axes1,'on');
+%             grid on;
+% 
+%             subplot(221);
+%             imagesc(sigma.Sd);
+%             colorbar;
+%             axis tight;
+%             title('Sigma (d|y)');
+% 
+%             subplot(222);
+%             imagesc(sigma.Sy_inv);
+%             colorbar;                                                
+%             axis tight;
+%             title('Sigma (y)');
+% 
+%             subplot(223);
+%             imagesc(sigma.SD_inv);
+%             colorbar;
+%             axis tight;
+%             title('Sigma (D)');
+% 
+%             subplot(224);
+%             imagesc(sigma.Sprior_inv);
+%             colorbar;
+%             axis tight;
+%             title('Sigma (d)');
+% 
+%             axes('Position',[0 0 1 1],'Xlim',[0 1],'Ylim',[0 1],'Box','off','Visible','off','Units','normalized','clipping' ,'off');
+%             text(0.5, 0.99,(sprintf('Covariances (Subject: %d, Trial: %d)',subjectID, trialID)),'HorizontalAlignment','center','VerticalAlignment', 'top','FontSize',14);
+%         end
 
-            subplot(221);
-            imagesc(sigma.Sd);
-            colorbar;
-            axis tight;
-            title('Sigma (d|y)');
-
-            subplot(222);
-            imagesc(sigma.Sy_inv);
-            colorbar;                                                
-            axis tight;
-            title('Sigma (y)');
-
-            subplot(223);
-            imagesc(sigma.SD_inv);
-            colorbar;
-            axis tight;
-            title('Sigma (D)');
-
-            subplot(224);
-            imagesc(sigma.Sprior_inv);
-            colorbar;
-            axis tight;
-            title('Sigma (d)');
-
-            axes('Position',[0 0 1 1],'Xlim',[0 1],'Ylim',[0 1],'Box','off','Visible','off','Units','normalized','clipping' ,'off');
-            text(0.5, 0.99,(sprintf('Covariances (Subject: %d, Trial: %d)',subjectID, trialID)),'HorizontalAlignment','center','VerticalAlignment', 'top','FontSize',14);
-        end
+        %%
 
         %% Organising into a structure    
         finalResults(subjectID,trialID).resMAP = resMAP;
-        
+%         finalResults(subjectID,trialID).resMAP.D = myMAP.D;
+%         finalResults(subjectID,trialID).resMAP.SD_inv = sigma.SD_inv;
+%         finalResults(subjectID,trialID).resMAP.Sy = myMAP.IDsens.sensorsParams.Sy;
+%         finalResults(subjectID,trialID).resMAP.m = myMAP.IDsens.m;
+%         finalResults(subjectID,trialID).resMAP.data.y = data.y;
+%         %finalResults(subjectID,trialID).resMAP.data.Sy = data.Sy;
+%         finalResults(subjectID,trialID).resMAP.Sy_inv = sigma.Sy_inv;
+%         finalResults(subjectID,trialID).resMAP.SD_inv = sigma.SD_inv;
+%         finalResults(subjectID,trialID).resMAP.Sprior_inv = sigma.Sprior_inv;
+%         finalResults(subjectID,trialID).resMAP.Sy = myMAP.IDsens.sensorsParams.Sy;
+%         finalResults(subjectID,trialID).resMAP.dataTime = dataTime;
+%         
+%         finalResults(subjectID,trialID).resRNEA.D = myRNEA.D.matrix;
         clear res;
 
     end
