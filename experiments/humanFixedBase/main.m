@@ -13,7 +13,7 @@ end
 
 %% selected subjects and trials
 subjectList = 1;
-trialList = 1:4;  
+trialList = 1:2;  
 
 for subjectID = subjectList
     fprintf('\n---------\nSubject : %d ',subjectID);
@@ -91,8 +91,10 @@ for subjectID = subjectList
         end
 
 
-        d= zeros (26*myRNEA.IDmodel.modelParams.NB,len);
+        d = zeros (26*myRNEA.IDmodel.modelParams.NB,len);
+        v_RNEA = cell(len,1);
         resRNEA.tau = zeros(length(dataTime),dmodel.NB);
+        
         for i = 1 : len
              myRNEA = myRNEA.setState(q(:,i), dq(:,i));
              myRNEA = myRNEA.setY(y_RNEA(:,i));
@@ -100,6 +102,7 @@ for subjectID = subjectList
 
              d(:,i) = myRNEA.d;
              
+             v_RNEA{i,:} = myRNEA.v; 
              resRNEA.tau(i,:) = myRNEA.tau;
         end
         
@@ -185,19 +188,10 @@ for subjectID = subjectList
              fext{i}    = fx;
         end
 
-        
-        % For the following computation are necessary velocities.  For this
-        %reason it is utiliseda modified version of ID of Featherstone.  
-        % So the path is not:
-        % ../bnt_time_varying/extern/featherstone/dynamics/ID.m
-        % but
-        % ../bnt_time_varying/experiments/humanFixedBase/helperFunction/IDv.m
+        % exploiting velocitiy v_RNEA coming from RNEA class computation
         for i = 1 : len 
-            [~, ~,v_i,~,~] = IDv(dmodel, q(:,i), dq(:,i), ddq(:,i), fext); 
-            v(i,:) = v_i;
-
-            A =R_imu_2*v{i,2}(1:3,1);
-            B =((X_imu_2(4:6,1:3)*v{i,2}(1:3,1))+(R_imu_2*v{i,2}(4:6,1)));
+            A =R_imu_2*v_RNEA{i,1}(1:3,2);
+            B =((X_imu_2(4:6,1:3)*v_RNEA{i,1}(1:3,2))+(R_imu_2*v_RNEA{i,1}(4:6,2)));
             b_Y(10:12,i) = cross(A,B);
         end 
         
@@ -380,8 +374,8 @@ for subjectID = subjectList
 %         finalResults(subjectID,trialID).resMAP.SD_inv = sigma.SD_inv;
 %         finalResults(subjectID,trialID).resMAP.Sy = myMAP.IDsens.sensorsParams.Sy;
 %         finalResults(subjectID,trialID).resMAP.m = myMAP.IDsens.m;
-%         finalResults(subjectID,trialID).resMAP.data.y = data.y;
-%         %finalResults(subjectID,trialID).resMAP.data.Sy = data.Sy;
+        finalResults(subjectID,trialID).resMAP.data.y = data.y;
+        finalResults(subjectID,trialID).resMAP.data.Sy = data.Sy;
 %         finalResults(subjectID,trialID).resMAP.Sy_inv = sigma.Sy_inv;
 %         finalResults(subjectID,trialID).resMAP.SD_inv = sigma.SD_inv;
 %         finalResults(subjectID,trialID).resMAP.Sprior_inv = sigma.Sprior_inv;

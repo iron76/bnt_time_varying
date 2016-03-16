@@ -1,11 +1,18 @@
 % predictSensorMeasFromRNEA
 % Script makes a prediction of the sensor measurements using variables from
-% RNEA computation. Sensors are the VICON markers, IMU placed on the chest 
-% and force place on the bottom of the foot. 
+% RNEA computation. 
 %
 % Toolbox requirements:
 % - iDynTree - mex
 % - Featherstone toolbox (v2)
+
+% Measurements equations are:
+% y_2(acc)  = S_lin*(imu_X_2 * a_2_2) + S_ang*(imu_X_2 * v_2_2) x S_lin*(imu_X_2 * v_2_2)
+% y_2(gyro) = S_ang*(imu_X_2 * v_2_2)
+% y_1(fp)   = fp_XStar_0 * ((0_XStar_1*f_1_1)) - I_0 * ag)
+%
+% To predict  measurements we use quantities coming from RNEA computation.
+
 
 clear;clc;close all
 
@@ -25,7 +32,7 @@ for subjectID = subjectList
     for trialID = trialList
          fprintf('\nTrial : %d\n',trialID);
          
-        %% Load data 
+        %% load data 
         load('./experiments/humanFixedBase/intermediateDataFiles/synchronisedData.mat');
 
         currentTrial = synchronisedData(subjectID,trialID);
@@ -39,33 +46,71 @@ for subjectID = subjectList
 
         wrench_fp_fp = currentTrial.wrench_fp_fp;
         imu = currentTrial.imu;
+        
+        %% build models
 
         load('./experiments/humanFixedBase/intermediateDataFiles/humanThreeLinkModelFromURDF.mat');
+        
+        
+        % =====structure of sensors
+        sens.parts    = {'leg'         ,'torso'};       %force of the forceplate is trasmitted into the leg
+        sens.labels   = {'fts'         ,'imu'  };
+        sens.ndof     = {6             ,6      };
+        
+        currentModel = humanThreeLinkModelFromURDF(subjectID);
+        dmodel  = currentModel.dmodel;                      %deterministic model 
+        ymodel  = humanThreeLinkSens(dmodel, sens);  
 
-        currentModel = humanThreeLinkModelFromURDF(subjectID).dmodel;
-        dmodel = currentModel;
+        dmodel  = autoTreeStochastic(dmodel, 1e-6);         % probabilistic model for D equation (added Sv and Sw)
+        ymodel  = humanThreeLinkSensStochastic(ymodel);     % probabilistic model for Y(q,dq) d = y (added Sy)
 
-        %% Compute tau using Newton-Euler with Featherstone toolbox
+        myModel = model(dmodel);
+        mySens  = sensors(ymodel);  
+        
+        %% RNEA class for computing prediction variables
+        
+        ymodel_RNEA  = autoSensRNEA(dmodel);
+        mySens_RNEA  = sensors(ymodel_RNEA);
+        myRNEA       = RNEA(myModel, mySens_RNEA);
 
-        tau = zeros(size (q));          % joint torques
-        f_1_1 = zeros(size(q,1),6);     % force transmitted from link0 to link1
-        a_2_2 = zeros(size(q,1),6);     % spatial acceleration link2
-        v_2_2 = zeros(size(q,1),6);     % spatial velocity link2
-        fx = zeros (6,1);
+        y_RNEA_f = zeros(6*dmodel.NB, len);
+        y_RNEA_ddq = zeros(dmodel.NB, len);
+        fx = cell(dmodel.NB);
 
-        fext    = cell(1,2);
+        % Ordering y_RNEA in the form [fx1 fx2 ddq1 ddq2]
         for i = 1 : dmodel.NB
-             fext{i}    = fx;
+            for t = 1 : len
+                fx{i,1} = zeros(6,1); 
+                y_RNEA_f(((1:6)+(i-1)*6), t) = [fx{i,1}];
+                y_RNEA_ddq(i, t) = [ddq(t,i)];
+            end
+            y_RNEA = [y_RNEA_f ; y_RNEA_ddq];
         end
 
-        for i = 1:len
-             [tau_i, a_i, v_i, fB_i, f_i] = IDv(dmodel, q(i,:), dq(i,:), ddq(i,:), fext);
-             tau(i,:) = tau_i';
-             a_2_2(i,:) = a_i{2}';
-             v_2_2(i,:) = v_i{2}';
-             f_1_1(i,:) = f_i{1}';
+        
+        v_2_RNEA = zeros(len,6);
+        a_2_RNEA = zeros(len,6);
+        f_1_RNEA = zeros(len,6);
+        tau_RNEA = zeros(length(dataTime),dmodel.NB);
+        
+        for i = 1 : len
+             myRNEA = myRNEA.setState(q(i,:)', dq(i,:)');
+             myRNEA = myRNEA.setY(y_RNEA(:,i));
+             myRNEA = myRNEA.solveID();
+             
+%              v_RNEA{i,:} = myRNEA.v;      %containing both v_1_1 and v_2_2
+%              a_RNEA{i,:} = myRNEA.a;      %containing both a_1_1 and a_2_2
+%              f_RNEA{i,:} = myRNEA.f;      %containing both f_1_1 and f_2_2
+%                        
+             v_2_RNEA(i,:) = myRNEA.v(:,2);      %v_2_2
+             a_2_RNEA(i,:) = myRNEA.a(:,2);      %a_2_2
+             f_1_RNEA(i,:) = myRNEA.f(:,1);      %f_1_1 
+             tau_RNEA(i,:) = myRNEA.tau; 
         end
-
+        
+        clear fx;
+        % ========end RNEA
+       
         %% Plot raw components
         
         if(plotJointQuantities)
@@ -76,9 +121,9 @@ for subjectID = subjectList
             grid on;
 
             subplot(311);
-            plot1 = plot(dataTime,(180/pi)*q1,'lineWidth',2.0); hold on;
+            plot1 = plot(dataTime,(180/pi)*q(:,1),'lineWidth',2.0); hold on;
             set(plot1,'color',[1 0 0]);
-            plot2= plot(dataTime,(180/pi)*q2,'lineWidth',2.0); hold on;
+            plot2= plot(dataTime,(180/pi)*q(:,2),'lineWidth',2.0); hold on;
             set(plot2,'color',[0 0.498039215803146 0]);
             leg = legend('$q_1$','$q_2$','Location','northeast');
             set(leg,'Interpreter','latex');
@@ -89,9 +134,9 @@ for subjectID = subjectList
             grid on;
 
             subplot(312);
-            plot1 = plot(dataTime,(180/pi)*dq1,'lineWidth',2.0); hold on;
+            plot1 = plot(dataTime,(180/pi)*dq(:,1),'lineWidth',2.0); hold on;
             set(plot1,'color',[1 0 0]);
-            plot2= plot(dataTime,(180/pi)*dq2,'lineWidth',2.0); hold on;
+            plot2= plot(dataTime,(180/pi)*dq(:,2),'lineWidth',2.0); hold on;
             set(plot2,'color',[0 0.498039215803146 0]);
             leg = legend('$\dot q_1$','$\dot q_2$','Location','northeast');
             set(leg,'Interpreter','latex');
@@ -102,9 +147,9 @@ for subjectID = subjectList
             grid on;
 
             subplot(313);
-            plot1 = plot(dataTime,tau(:,1), 'lineWidth',2.0); hold on;
+            plot1 = plot(dataTime,tau_RNEA(:,1), 'lineWidth',2.0); hold on;
             set(plot1,'color',[1 0 0]);
-            plot2 = plot(dataTime,tau(:,2), 'lineWidth',2.0); hold on;
+            plot2 = plot(dataTime,tau_RNEA(:,2), 'lineWidth',2.0); hold on;
             set(plot2,'color',[0 0.498039215803146 0]);
             leg = legend('$\tau_1$','$\tau_2$','Location','northeast');
             set(leg,'Interpreter','latex');
@@ -119,13 +164,7 @@ for subjectID = subjectList
         end
 
         %%  ========================= Sensor prediction ===========================
-        % Measurements equations are:
-        % y_2(acc)  = S_lin*(imu_X_2 * a_2_2) + S_ang*(imu_X_2 * v_2_2) x S_lin*(imu_X_2 * v_2_2)
-        % y_2(gyro) = S_ang*(imu_X_2 * v_2_2)
-        % y_1(fp)   = fp_XStar_0 * ((0_XStar_1*f_1_1)) - I_0 * ag)
-        %
-        % To predict  measurements we use quantities coming from ID Featherstone
-
+        
         load('./experiments/humanFixedBase/intermediateDataFiles/sensorLinkTransforms.mat');
 
         currentTrialSens = sensorLinkTransforms(subjectID,trialID);
@@ -152,9 +191,9 @@ for subjectID = subjectList
         fprintf('Predicting sensor measurement using RNEA computation\n');
 
         % ====IMU PREDICTION
-        a_imu_imuPred = S_lin*(X_imu_2*a_2_2') + skew(S_ang*X_imu_2*v_2_2')*(S_lin*X_imu_2*v_2_2'); %skew or cross product are equivalent
-        omega_imu_imuPred = S_ang*(X_imu_2*v_2_2');
-        omegaDot_imu_imuPred = S_ang*(X_imu_2*a_2_2');
+        a_imu_imuPred = S_lin*(X_imu_2*a_2_RNEA') + skew(S_ang*X_imu_2*v_2_RNEA')*(S_lin*X_imu_2*v_2_RNEA'); %skew or cross product are equivalent
+        omega_imu_imuPred = S_ang*(X_imu_2*v_2_RNEA');
+        omegaDot_imu_imuPred = S_ang*(X_imu_2*a_2_RNEA');
 
         % ====FORCE PLATE PREDICTION
         a_G_grav = [0;0;0;0;0;-9.8100];    %Featherstone-like notation, in global reference
@@ -166,10 +205,10 @@ for subjectID = subjectList
 
         f_fp_fpPred = zeros(6,len);
         f_0_1 = zeros(6,len);
-        f_1_1 = f_1_1';
+        f_1_RNEA = f_1_RNEA';
 
         for i = 1 : len
-             f_0_1(:,i) = (XStar_0_1{i,1} * f_1_1(:,i)); 
+             f_0_1(:,i) = (XStar_0_1{i,1} * f_1_RNEA(:,i)); 
              f_fp_fpPred(:,i) = XStar_fp_0 * ((f_0_1(:,i))-(I_0 * a_0_grav));
         end
   
@@ -183,7 +222,7 @@ for subjectID = subjectList
             grid on;
 
             subplot(211);
-            plot1 = plot(dataTime,S_lin*a_2_2','lineWidth',2.0); hold on; 
+            plot1 = plot(dataTime,S_lin*a_2_RNEA','lineWidth',2.0); hold on; 
             leg = legend('$a_x$','$a_y$','$a_z$','Location','northeast');
             set(leg,'Interpreter','latex');
             set(leg,'FontSize',18);
@@ -194,7 +233,7 @@ for subjectID = subjectList
             grid on;
 
             subplot(212);
-            plot2 = plot(dataTime,S_ang*v_2_2','lineWidth',2.0); hold on;
+            plot2 = plot(dataTime,S_ang*v_2_RNEA','lineWidth',2.0); hold on;
             leg = legend('$w_x$','$w_y$','$w_z$','Location','northeast');
             set(leg,'Interpreter','latex');
             set(leg,'FontSize',18);
@@ -205,7 +244,7 @@ for subjectID = subjectList
 
             figure()
             subplot(211)
-            plot3 = plot(dataTime,f_1_1(4:6,:),'lineWidth',2.0); hold on;
+            plot3 = plot(dataTime,f_1_RNEA(4:6,:),'lineWidth',2.0); hold on;
             leg = legend('$F_x$','$F_y$','$F_z$','Location','northeast');
             set(leg,'Interpreter','latex');
             set(leg,'FontSize',18);
@@ -216,7 +255,7 @@ for subjectID = subjectList
             grid on;
 
             subplot(212)
-            plot4 = plot(dataTime,f_1_1(1:3,:),'lineWidth',2.0); hold on;
+            plot4 = plot(dataTime,f_1_RNEA(1:3,:),'lineWidth',2.0); hold on;
             leg = legend('$\mu_x$','$\mu_y$','$\mu_z$','Location','northeast');
             set(leg,'Interpreter','latex');
             set(leg,'FontSize',18);
@@ -355,8 +394,8 @@ for subjectID = subjectList
             load('./experiments/humanFixedBase/intermediateDataFiles/finalResults.mat');
             currentMAP = finalResults(subjectID,trialID);
 
-            data.Sy = currentMAP.data.Sy;
-            data.y =currentMAP.data.y;
+            data.Sy = currentMAP.resMAP.data.Sy;
+            data.y =currentMAP.resMAP.data.y;
 
             for i = 1:12
                 fig = figure();
