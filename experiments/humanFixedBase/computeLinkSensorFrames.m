@@ -1,18 +1,18 @@
-%%COMPUTELINKSENSORFRAMES
+% COMPUTELINKSENSORFRAMES
 % Script to compute the link-sensor frames associated with the
 % Human-Dynamics estimation experiment. Sensors are an IMU
 % placed on the chest and force place on the bottom of the foot. 
-% The transforms being calculated are imu_X_2, and fp_XStar_2.
+% The transforms will be used for building Ymatrix.
 %
 %
-%% Note on the transforms : 
+% Note on the transforms : 
 % The Featherstone convention is utilised [Featherstone(2008), 
 % Rigid Body Dynamics Algorithms (2008), pg22]
 % This implies that it is a transform for a spatial vector organised in 
 % the angular-linear format.
 %
 %
-%% Assumption of model URDF: 
+% Assumption of model URDF: 
 % 1) P0, point in link0, origin of frame associated to the link0;
 % 2) P1, point between link0 and link1, origin of frame associated to the link1.
 % The orientation of P1 is the same of link1.
@@ -21,15 +21,13 @@
 % 4) P3, point at the top of link2, since link3 doesn't exist.
 
 
-clc; clear; close all;
-
 %% load processed data and models
 load('./experiments/humanFixedBase/intermediateDataFiles/synchronisedData.mat');
 load('./experiments/humanFixedBase/intermediateDataFiles/humanThreeLinkModelFromURDF.mat');
 %isTest = 'false'; 
 %% selected subjects and trials
-subjectList = 1;
-trialList = 1 ;  
+subjectList = 1:12;
+trialList = 1:4 ;  
 
 %% iterate through each computing transforms each time
 
@@ -89,18 +87,18 @@ for subjectID = subjectList
 
         
    
-       %% notes: 
-       % if we compute 0_X_1 and 1_X_2 as follows:
-       %            
-       % X_0_1 = AdjTransfFromLinkToRoot (humanThreeLinkModelFromURDF(subjectID).dmodel, mean(q(1:samples,:)), 1);                   
-       % X_1_2   = inv(X_0_1) * X_0_2;
-       %
-       % we denote that 0_R_1 in 0_X_1 is not similar to an identity matrix
-       % implying that a rotation has occurred (clearly the same condition is in 0_R_2).
-       % Instead looking 1_R_2 in 1_X_2 is very similar to an identity matrix since there is not a
-       % frame rotation.  
-       % This is a consequence of Drake parsing.
-       
+               %% notes: 
+               % if we compute 0_X_1 and 1_X_2 as follows:
+               %            
+               % X_0_1 = AdjTransfFromLinkToRoot (humanThreeLinkModelFromURDF(subjectID).dmodel, mean(q(1:samples,:)), 1);                   
+               % X_1_2   = inv(X_0_1) * X_0_2;
+               %
+               % we denote that 0_R_1 in 0_X_1 is not similar to an identity matrix
+               % implying that a rotation has occurred (clearly the same condition is in 0_R_2).
+               % Instead looking 1_R_2 in 1_X_2 is very similar to an identity matrix since there is not a
+               % frame rotation.  
+               % This is a consequence of Drake parsing.
+
        
         %% Computing adjoint transform fp_Xstar_0  --> for Ymatrix
         % we need fp_Xstar_0 for Y matrix

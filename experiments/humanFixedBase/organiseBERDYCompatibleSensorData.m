@@ -1,18 +1,14 @@
+% ORGANISEBERDYCOMPATIBLESENSORDATA 
+% Reorganises the sensor data into a BERDY compatible form.
 
-%ORGANISEBERDYCOMPATIBLESENSORDATA Reorganises the sensor data from human
-%capture into a BERDY compatible form
-%   loads sensor transfors and organises data to generate the y and ys
-%   matrices in correct form
-
-clc; clear; close all;
 
 %% load processed data and sensor link transforms
 load('./experiments/humanFixedBase/intermediateDataFiles/synchronisedData.mat');
 load('./experiments/humanFixedBase/intermediateDataFiles/sensorLinkTransforms.mat');
 
 %% selected subjects and trials
-subjectList = 1;
-trialList = 1;  
+subjectList = 1:12;
+trialList = 1:4;  
 
 %% iterate through each computing transforms each time
 

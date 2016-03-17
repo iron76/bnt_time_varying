@@ -1,5 +1,5 @@
-% synchroniseCaptureData
-% Script to synchronise the captured IMU and VICON/force plate data. The 
+% SYNCHRONISECAPTUREDATA
+% Script to synchronise the captured IMU and VICON/force plate data.
 % It looks for the spikes in beginning and end of both the sources 
 % (corresponding to the little tiptoe gesture performed by subjects in the 
 % start and conclusion of the bowing motion experiment). It:
@@ -23,6 +23,28 @@
 
 clc; clear; close all;
 
+%% add paths
+
+dataFolder = './experiments/humanFixedBase/data/';
+if (exist (dataFolder)==7)
+    addpath(genpath(dataFolder));
+end
+
+helperFunctionsFolder = './experiments/humanFixedBase/helperFunctions/';
+if (exist (helperFunctionsFolder)==7)
+    addpath(genpath(helperFunctionsFolder));
+end
+
+intermediateDataFilesFolder = './experiments/humanFixedBase/intermediateDataFiles/';
+if (exist(intermediateDataFilesFolder)==7)
+    addpath(genpath(intermediateDataFilesFolder));
+end
+
+testsFolder = './experiments/humanFixedBase/tests/';
+if (exist(testsFolder)==7)
+    addpath(genpath(testsFolder));
+end
+
 %% testOptions
 plotInterpolatedFilteredData = false;
 plotFilteredData = false;
@@ -41,7 +63,7 @@ load('./experiments/humanFixedBase/data/VICONsaveDataGen16.mat');
 load('./experiments/humanFixedBase/data/imuExtractedDataGen16.mat');
 addpath('./experiments/humanFixedBase/helperFunctions/');
 
-subjectList = 1:1;
+subjectList = 1:12;
 trialList = 1:4;
 
 % Setting parameters

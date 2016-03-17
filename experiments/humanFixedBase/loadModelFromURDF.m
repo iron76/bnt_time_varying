@@ -1,6 +1,6 @@
-% loadModelFromURDF
+% LOADMODELFROMURDF
 % Script to generate a Featherstone spatial v1/drake model from the URDF.
-% The generated model is stored within a mat file. The option of
+% The generated model is stored within a file.MAT. The option of
 % loadingFromDrake is used to reload the mat file instead of reloading from
 % drake. That way, the drake loading can be performed by users who have
 % drake and spatial installed alongwith bnt_time_varying

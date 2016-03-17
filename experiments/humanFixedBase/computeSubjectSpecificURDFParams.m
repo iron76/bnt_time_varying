@@ -1,8 +1,7 @@
-
-% TO DO: SCRIPT DESCRIPTION
-%this analysis must to be computed only on one trial!
-
-clc; clear; close all;
+% COMPUTESUBJECTSPECIFICURDFPARAMS
+% Script to compute specific parameters for each subject.  It doesn't
+% depend on trials. Obtained parameters are used to build bounding boxes
+% for URDF.
 
 %% load data
 load('./experiments/humanFixedBase/intermediateDataFiles/synchronisedData.mat');

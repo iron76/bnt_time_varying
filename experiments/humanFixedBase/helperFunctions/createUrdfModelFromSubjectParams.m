@@ -1,6 +1,11 @@
 % CREATEURDFMODELFROMSUBJECTPARAMS
-% Script tp create for each subject a file urdf.
+% Script to create for fill URDF template for each subject.
 
+
+% Assumptions:
+% human_models folder containing threeLinHumanLikeTemplate
+
+%% load data
 load('./experiments/humanFixedBase/data/subjectSizeParams.mat');
 
 subjectList = 1:12;
