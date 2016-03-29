@@ -5,9 +5,9 @@ close all;
 subjectList = 1;
 trialList = 1;  
 
-dispSensors = 'off'; % turn on to see sensor data in link and in sensor frames
+dispSensors = 'on'; % turn on to see sensor data in link and in sensor frames
 simpleMeasurement = 'off'; % use only IMU
-selectedPercentage = 2; % percentage of time points used for estimation (reduce to speed up while losing accuracy)
+selectedPercentage = 10; % percentage of time points used for estimation (reduce to speed up while losing accuracy)
 
 for subjectID = subjectList
     fprintf('\n---------\nSubject : %d ',subjectID);
@@ -232,7 +232,7 @@ for subjectID = subjectList
             %% data must be brought to the link-wise frames
            %% first we combine bias matrix (in sensor frame) with sensor measurements
 
-           data.yBiasComp(:,i) = data.y(:,i) - b_Y(:,i);
+           data.yBiasComp(:,i) = data.y(:,i);% - b_Y(:,i);
 
            %% recomputing the Force plate and IMU data into link frames
 
@@ -306,12 +306,12 @@ for subjectID = subjectList
 end
 
 if(strcmp(dispSensors,'on')==1)
-   % plotMeasurements(data.dataTime,data.y,'sensorFrame',...
-   %                                data.yLinkFrame,'LinkFrame');
+    plotMeasurements(data.dataTime,data.y,'sensorFrame',...
+                                   data.yLinkFrame,'LinkFrame');
    % plotMeasurements(data.dataTime(1:n),data.yLinkFrame(:,1:n),'sensorFrame',...
    %                                cell2mat(sample),'evidence');
-   %  plotMeasurements(data.dataTime,data.yLinkFrame,'SensorLinkFrame',...
-   %                                  yLinkFrameRNEA,'RNEALinkFrame');
+   plotMeasurements(data.dataTime,data.yLinkFrame,'SensorLinkFrame',...
+                                     yLinkFrameRNEA,'RNEALinkFrame');
    plotEvidence(data.dataTime(1:n),cell2mat(sample),cell2mat(sampleTest));                               
                                
 end
