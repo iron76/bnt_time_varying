@@ -113,5 +113,5 @@ end
 for i = 1 : obj.IDsens.sensorsParams.ny
    yi  = obj.bnt.nodes.index{NB + i};
    nyi = obj.bnt.nodes.sizes{NB + i};
-   obj.bnt.bnet.CPD{yi} = gaussian_CPD(obj.bnt.bnet, yi, 'mean', zeros(nyi, 1), 'cov', obj.IDsens.sensorsParams.Sy(i,i), 'weights', obj.bnt.Wy{i,1}, 'clamp_mean', 1, 'clamp_weights', 1, 'cov_prior_weight', obj.covPriorWeight);
+   obj.bnt.bnet.CPD{yi} = gaussian_CPD(obj.bnt.bnet, yi, 'mean', zeros(nyi, 1), 'cov', obj.IDsens.sensorsParams.Sy{i}, 'weights', obj.bnt.Wy{i,1}, 'clamp_mean', 1, 'clamp_weights', 1, 'cov_prior_weight', obj.covPriorWeight);
 end

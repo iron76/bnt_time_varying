@@ -1,4 +1,4 @@
-function [bnet, LL, engine] = learn_params_em_modified(engine, evidence, max_iter, thresh)
+function [bnet, LL, engine, finalBnetStore] = learn_params_em_modified(engine, evidence, max_iter, thresh)
 % LEARN_PARAMS_EM Set the parameters of each adjustable node to their ML/MAP values using batch EM.
 % [bnet, LLtrace, engine] = learn_params_em(engine, data, max_iter, thresh)
 %
@@ -31,20 +31,28 @@ previous_loglik = -inf;
 converged = 0;
 num_iter = 1;
 LL = [];
-
+finalBnetStore = [];
+engineStore = [];
 while ~converged & (num_iter <= max_iter)
+   tic;
   [engine, loglik] = EM_step_modified(engine, evidence);
-  if verbose, fprintf('EM iteration %d, ll = %8.4f\n', num_iter, loglik); end
+  if verbose, fprintf('EM iteration %d, ll = %8.4f, step time : %3.3f\n', num_iter, loglik,toc()); end
   num_iter = num_iter + 1;
   converged = em_converged(loglik, previous_loglik, thresh);
   previous_loglik = loglik;
   LL = [LL loglik];
+  engineStore = [engineStore engine];
 end
 if verbose, fprintf('\n'); end
 
-[mEng, nEng] = size(engine);
-for k = 1 : nEng
-    bnet{k} = bnet_from_engine(engine{k});
+for i = 1:length(LL)
+    engine = engineStore(i);
+    [mEng, nEng] = size(engine);
+    for k = 1 : nEng
+        bnet{k} = bnet_from_engine(engine{k});
+    end
+    finalBnetStore = [finalBnetStore bnet{k}];
+    fprintf('Bnet corresponding to %d trial infered\n',i);
 end
 
 %%%%%%%%%
