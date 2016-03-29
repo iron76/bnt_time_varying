@@ -23,16 +23,20 @@ my = 1;
 % sd       = 10e+4 * 50*0.2; % joint acceleration
 
 multConst = 1;
-so       = multConst * 5;           %IMU gyroscope
-sa       = multConst * 5;           %IMU accelerometer
-sf       = multConst * 4;           % FT moment
-su       = multConst * 4;           % FT force
-sd       = multConst * 1e-4;          % joint acceleration
+so       = multConst * 0.0011111;           %IMU gyroscope
+sa       = multConst * 2e-4;           %IMU accelerometer
+sf       = multConst * [2.25 0 0; 0 2.25 0; 0 0 0.56];           % FT moment
+su       = multConst * [59 0 0; 0 59 0; 0 0 36];           % FT force
+sd       = multConst * 6.6e-6;          % joint acceleration
+sx       = multConst * 1e-2;        % external wrench
 
 imuS = [so*eye(3) zeros(3,3); zeros(3,3) sa*eye(3)];
+
+%% modification to account for the theoretically non existent 
+
 ftsS = [sf*eye(3) zeros(3,3); zeros(3,3) su*eye(3)];
 accS = imuS(1:3, 1:3);
-ftxS = ftsS;
+ftxS = [sx*eye(3) zeros(3,3); zeros(3,3) sx*eye(3)];
 d2qS = sd;
 
 for i = 1 : model.ny
