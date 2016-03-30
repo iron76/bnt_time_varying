@@ -1,13 +1,21 @@
-function [] = priorAnalysis_plotResults(myBNEA,ll,bnetHat,i_learn,mySens)
+function [] = priorAnalysis_plotResults(onlyIMUMeasurement,numSensorsOption,myBNEA,ll,bnetHat,i_learn,mySens)
 
     close all
+    
+    if(nargin==0)
+        onlyIMUMeasurement = 'on';
+    end
+    
     if(nargin<5)
         %% loading from memory if not called as a function
-        close all; 
-        clear;
-        fprintf('Loading from saved result\n');
-        load('./experiments/humanFixedBase/intermediateDataFiles/savedBNet.mat');
-        load('./experiments/humanFixedBase/intermediateDataFiles/EMResult.mat');
+        fprintf('Loading from saved result (onlyIMU) \n');
+        if(strcmp(onlyIMUMeasurement,'on')==1)
+            load('./experiments/humanFixedBase/intermediateDataFiles/EMResult_onlyIMU.mat');
+            load('./experiments/humanFixedBase/intermediateDataFiles/savedBNet_onlyIMU.mat');
+        else
+            load('./experiments/humanFixedBase/intermediateDataFiles/EMResult_IMUandFTS.mat');
+            load('./experiments/humanFixedBase/intermediateDataFiles/savedBNet_IMUandFTS.mat');
+        end
     end
 
     
@@ -90,7 +98,14 @@ function [] = priorAnalysis_plotResults(myBNEA,ll,bnetHat,i_learn,mySens)
 
    %% covariance visulaization for IMU and FTS
    covStoreSenseFrame = covStore;
-   for i = [3,4]%1:length(dispVect)
+   
+   if(strcmp(onlyIMUMeasurement,'on')==1)
+       covPlotIdx = 3;
+   else
+       covPlotIdx = [3,4];
+   end
+   
+   for i = covPlotIdx%[3,dispVect]%1:length(dispVect)
         for j = 1:4%length(ll)+1;
             figure(i+lastFig);
             subplot(2,2,j);
@@ -120,8 +135,9 @@ figure;
 
 %plot(-log(-ll),'-o','lineWidth',2.0); axis tight; hold on;
 semilogy(ll,'-o','lineWidth',2.0); axis tight; hold on;
+grid on;
 xlabel('EM run');
-ylabel('Log(Log likelihood)');
+ylabel('Log likelihood');
 title('EM propogation');
    
 end

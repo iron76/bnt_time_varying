@@ -41,19 +41,25 @@ while ~converged & (num_iter <= max_iter)
   converged = em_converged(loglik, previous_loglik, thresh);
   previous_loglik = loglik;
   LL = [LL loglik];
+  bnetTemp = bnet_from_engine(engine{1});
+  finalBnetStore = [finalBnetStore bnetTemp];
   engineStore = [engineStore engine];
+  
+  %dispSensorCovariances(bnetTemp);
 end
 if verbose, fprintf('\n'); end
+% 
+bnet = bnet_from_engine(engine{end});
 
-for i = 1:length(LL)
-    engine = engineStore(i);
-    [mEng, nEng] = size(engine);
-    for k = 1 : nEng
-        bnet{k} = bnet_from_engine(engine{k});
-    end
-    finalBnetStore = [finalBnetStore bnet{k}];
-    fprintf('Bnet corresponding to %d trial infered\n',i);
-end
+%for i = 1:length(LL)
+%     engine = engineStore(i);
+%     [mEng, nEng] = size(engine);
+%     for k = 1 : nEng
+%         bnet{k} = bnet_from_engine(engine{k});
+%     end
+%     finalBnetStore = [finalBnetStore bnet{k}];
+%     fprintf('Bnet corresponding to %d trial infered\n',i);
+% end
 
 %%%%%%%%%
 
@@ -70,7 +76,10 @@ for k = 1 : nEng
         adjustable(e) = adjustable_CPD(CPDs{e});
     end
     adj = find(adjustable);
+    %% until now extract the indices of adjustable nodes    
     n = length(bnet{k}.dag);
+    
+    
     
     for e=adj(:)'
         CPDs{e} = reset_ess(CPDs{e});
@@ -80,18 +89,20 @@ for k = 1 : nEng
     
     evidence = cases(:,k);
     [engine{k}, ll] = enter_evidence(engine{k}, evidence);
-    loglik = loglik + ll;
+    loglik = loglik + ll; %% log likelihood gets summed up with each point
     hidden_bitv = zeros(1,n);
     hidden_bitv(isemptycell(evidence))=1;
-    for i=1:n
+    for i=1:n  %% for each adjustable node
         e = bnet{k}.equiv_class(i);
         if adjustable(e)
             fmarg = marginal_family(engine{k}, i);
             if k == 1 
-                CPDs{e} = update_ess_modified(CPDs{e}, CPDs{e}, fmarg, evidence, bnet{k}.node_sizes, bnet{k}.cnodes, hidden_bitv);
+                CPDs{e} = update_ess_modified(CPDs{e}, CPDs{e},...
+                    fmarg, evidence, bnet{k}.node_sizes, bnet{k}.cnodes, hidden_bitv);
                 CPDp{e} = CPDs{e};
             else
-                CPDs{e} = update_ess_modified(CPDs{e}, CPDp{e}, fmarg, evidence, bnet{k}.node_sizes, bnet{k}.cnodes, hidden_bitv);
+                CPDs{e} = update_ess_modified(CPDs{e}, CPDp{e},...
+                    fmarg, evidence, bnet{k}.node_sizes, bnet{k}.cnodes, hidden_bitv);
                 CPDp{e} = CPDs{e};
             end 
         end

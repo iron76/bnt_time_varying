@@ -51,11 +51,17 @@ for i=1:n
 end
 
 fprintf('Learning params using EM \n');
-
+%maxSteps = 2;
 [bnetHat, ll, eng, finalBnetStore] = learn_params_em_modified(engineStd, samStd, maxSteps, 1e-4);
 
 fprintf('Removing standardization\n');
 
 for i = 1:length(ll)
-    bnetHatStore      = [bnetHatStore removeStandardization(finalBnetStore(i), M, S, i_obs, cov_prior_weight)];
+   % fprintf('------------Before standardisation:\n');
+   % dispSensorCovariances(finalBnetStore(i));
+   % fprintf('------------After standardisation:\n');
+    bnetDestandardised = removeStandardization(finalBnetStore(i), M, S, i_obs, cov_prior_weight);
+   % dispSensorCovariances(bnetDestandardised);
+    
+    bnetHatStore      = [bnetHatStore bnetDestandardised];
 end

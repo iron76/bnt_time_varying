@@ -5,8 +5,8 @@ close all;
 subjectList = 1;
 trialList = 1;  
 
-dispSensors = 'off'; % turn on to see sensor data in link and in sensor frames
-simpleMeasurement = 'off'; % use only IMU
+dispSensors = 'off'; % turn on to see sensor data in link and in sensor frames (only when not using simple measurement)
+onlyIMUMeasurement = 'on'; % use only IMU
 selectedPercentage = 5; % percentage of time points used for estimation (reduce to speed up while losing accuracy)
 
 for subjectID = subjectList
@@ -33,7 +33,7 @@ for subjectID = subjectList
     XStar_0_1 = currentTrialSens.XStar_0_1;
     
     
-    if(strcmp(simpleMeasurement,'on')==1)
+    if(strcmp(onlyIMUMeasurement,'on')==1)
         %% =====structure from files
         data.parts    = {'torso'};
         data.labels   = {'imu'  };
@@ -76,15 +76,15 @@ for subjectID = subjectList
    
     myModel = model(dmodel);
     mySens  = sensors(ymodel);  
-
-%     myMAP   = MAP(myModel, mySens);
+    
     %% ================================ RNEA ==================================
     % Computing d using Newton-Euler with inverse dynamics.
     % Function ID was modified for having velocities.  So the path is not:
-    % ../bnt_time_varying/extern/featherstone/dynamics/ID.m
+    % ../bnt_time_varying/extern/featherstone/dynamics/ID.msimple
     % but
     % ../bnt_time_varying/experiments/humanFixedBase/helperFunction/IDv.m
 
+    %% RNEA is used to validate link frame sensor signals
     tau = zeros(size(q))';
     a = cell (size(q))';
     fB = cell (size(q))';
@@ -149,44 +149,10 @@ for subjectID = subjectList
     data.Sy = [];
     
      
-   
-%     for i = 1 : length(myMAP.IDsens.sensorsParams.labels)
-% 
-%          data.Sy = [data.Sy; diag(myMAP.IDsens.sensorsParams.Sy{i})];
-%          
-%          if(isempty(strfind(myMAP.IDsens.sensorsParams.labels{i},'d2q')))
-%              figure(ceil(i/4));
-%              subplot(2,2,mod(i,4)+1);
-%              bar(myMAP.IDsens.sensorsParams.Sy{i},'stacked');
-%              title(myMAP.IDsens.sensorsParams.labels{i});
-%          end
-%     end
-%     data.Sy = repmat(data.Sy, 1, len-1);
-%     data.Sy = [data.Sy data.Sy(:,end)];
-%     drawnow();
-
-%     %% ================================ MAP ===================================
-%     %% Build Ymatrix manually
-%     % Ymatrix has to be consistent with measurements form [f1 a2 ftx1 ftx2 ddq1 ddq2]
-%     
-%     Y = zeros (ymodel.m,26*dmodel.NB);
-%     Y(10:12,27:32) = X_imu_2(4:6,:);
-%     Y(13:18,20:25) = eye(6);
-%     Y(19:24,46:51) = eye(6);
-%     Y(25,26) = eye(1);
-%     Y(26,52) = eye(1);
-% 
-%     
-%     Ymatrix = cell(len,1);
-%     for i = 1 : len
-%         %the only row in Ymatrix that is time varying
-%         Y(1:6,13:18) = XStar_fp_0 * XStar_0_1{i};
-%         Ymatrix{i} = Y; 
-%     end
-%     
-%     clear Y;
-%    
     %% Build bias b_Y manually
+    % the measurements are represented in link frames after subtracting the
+    % bias b_Y : 
+    % y_linkFrame = transforms * (y_sensorFrame - bY)
     % b_Y has to be consistent with Ymatrix
     
     load('./experiments/humanFixedBase/data/subjectSizeParams.mat');
@@ -208,14 +174,22 @@ for subjectID = subjectList
           
     I_0 = createSpatialInertia(footIxx,footIyy,footIzz,footMass,posP_0);
 
-    b_Y(1:6,1:len)   = repmat((-XStar_fp_0 * I_0 * a_0_grav),1,len);
-    
-    for i = 1 : len   
-        A =R_imu_2*v{i,2}(1:3,1);
-        B =((X_imu_2(4:6,1:3)*v{i,2}(1:3,1))+(R_imu_2*v{i,2}(4:6,1)));
-        b_Y(10:12,i) = cross(A,B);
-    end 
+    if(strcmp(onlyIMUMeasurement,'on')==1)
+        for i = 1 : len   
+            A =R_imu_2*v{i,2}(1:3,1);
+            B =((X_imu_2(4:6,1:3)*v{i,2}(1:3,1))+(R_imu_2*v{i,2}(4:6,1)));
+            b_Y(4:6,i) = cross(A,B);
+        end 
+    else
+        b_Y(1:6,1:len)   = repmat((-XStar_fp_0 * I_0 * a_0_grav),1,len);
 
+        for i = 1 : len   
+            A =R_imu_2*v{i,2}(1:3,1);
+            B =((X_imu_2(4:6,1:3)*v{i,2}(1:3,1))+(R_imu_2*v{i,2}(4:6,1)));
+            b_Y(10:12,i) = cross(A,B);
+        end 
+    end
+        
     clear A;
     clear B;
     
@@ -234,8 +208,8 @@ for subjectID = subjectList
     
     %% recomputing data in link frames
     
-    if(strcmp(simpleMeasurement,'on')==1)
-        data.yBiasComp = data.y;
+    if(strcmp(onlyIMUMeasurement,'on')==1)
+        data.yBiasComp = data.y - b_Y;
         data.yLinkFrame = data.yBiasComp;
         data.yLinkFrame(1:6,:) = ((X_imu_2)^(-1))*data.yBiasComp(1:6,:);
         yLinkFrameRNEA = [ aRNEA;...
@@ -250,7 +224,7 @@ for subjectID = subjectList
             %% data must be brought to the link-wise frames
            %% first we combine bias matrix (in sensor frame) with sensor measurements
 
-           data.yBiasComp(:,i) = data.y(:,i);% - b_Y(:,i);
+           data.yBiasComp(:,i) = data.y(:,i) - b_Y(:,i);
 
            %% recomputing the Force plate and IMU data into link frames
 
@@ -259,32 +233,41 @@ for subjectID = subjectList
            data.yLinkFrame(13:end,i) = data.yBiasComp(13:end,i);
            
         end
-        %% rotating the senor covariances to bring to link frame (only for FTS and IMU) and only in initial configuration
-      %% future analysis
+        
+        yLinkFrameRNEA = [ fRNEA;aRNEA;...
+        zeros(12,length(data.dataTime));ddqRNEA];
+    
+    end
+   %% rotating the senor covariances to bring to link frame (only for FTS and IMU) and only in initial configuration
+   %% future analysis
+   %% SigmaRot = X*Sigma*X^T
            
-           mySens.sensorsParams.sensXLink{1} = XStar_fp_0 * XStar_0_1{1};
-           mySens.sensorsParams.sensXLink{2} = X_imu_2;
-           mySens.sensorsParams.Sy{1} = ((XStar_fp_0 * XStar_0_1{1} ))^(-1)*mySens.sensorsParams.Sy{1}*(((XStar_fp_0 * XStar_0_1{1} ))^(-1))';
-           mySens.sensorsParams.Sy{2} =  ((X_imu_2)^(-1))*mySens.sensorsParams.Sy{2}*((X_imu_2)^(-1))';
-           
-       my = 1;idSy_inv = []; jdSy_inv = []; dSy_inv=[];    
-       %% recomputing sensorParams.sy_inv    
-        for i = 1 : mySens.sensorsParams.ny
+    if(strcmp(onlyIMUMeasurement,'on')==1)
+       fprintf('Recomputing covariances in link frames with only IMU \n');
+       mySens.sensorsParams.sensXLink{1} = X_imu_2;
+       mySens.sensorsParams.Sy{1}
+       mySens.sensorsParams.Sy{1} = ((X_imu_2)^(-1))*mySens.sensorsParams.Sy{1}*((X_imu_2)^(-1))'
+     else
+       fprintf('Recomputing covariances in link frames with all sensors\n');
+       mySens.sensorsParams.sensXLink{1} = XStar_fp_0 * XStar_0_1{1};
+       mySens.sensorsParams.sensXLink{2} = X_imu_2;
+       mySens.sensorsParams.Sy{1} = ((XStar_fp_0 * XStar_0_1{1} ))^(-1)*mySens.sensorsParams.Sy{1}*(((XStar_fp_0 * XStar_0_1{1} ))^(-1))';
+       mySens.sensorsParams.Sy{2} =  ((X_imu_2)^(-1))*mySens.sensorsParams.Sy{2}*((X_imu_2)^(-1))';
+     end
+     my = 1;idSy_inv = []; jdSy_inv = []; dSy_inv=[];    
+       
+    %% recomputing sensorParams.sy_inv    
+    for i = 1 : mySens.sensorsParams.ny
             dy = mySens.sensorsParams.sizes{i,1};
            [ii, jj, ss] = placeSubmatrixSparse(my, my, inv(mySens.sensorsParams.Sy{i,1}));
            idSy_inv = [idSy_inv; ii];
            jdSy_inv = [jdSy_inv; jj];
            dSy_inv  = [dSy_inv;  ss];
            my = my + dy;
-        end
-        mySens.sensorsParams.Sy_inv = sparse(idSy_inv, jdSy_inv, dSy_inv);
-           
-          % mySens.sensorsParams.Sy_inv{1} = mySens.sensorsParams.Sy{1}^(-1);
-          % mySens.sensorsParams.Sy_inv{2} = mySens.sensorsParams.Sy{2}^(-1);
-    
-        yLinkFrameRNEA = [ fRNEA;aRNEA;...
-            zeros(12,length(data.dataTime));ddqRNEA];
     end
+    mySens.sensorsParams.Sy_inv = sparse(idSy_inv, jdSy_inv, dSy_inv);
+           
+    
     
     
     %% displaying sensorCovariances
@@ -311,8 +294,12 @@ for subjectID = subjectList
     
     n = round(nTot*(selectedPercentage/100));
     
-    bnet    = cell(1,n);
+    bnet    = cell(1,n); %% the network is a cell array of length = num of time points
+    % every single time point, the bnet is recomputed since the state
+    % (q,qDot) changes.
+    
     engine  = cell(1,n);
+    % vector used to store the evidence used for EM learning
     sample  = cell(NB*6+myBNEA.IDsens.sensorsParams.ny,n);
     sampleTest  = cell(NB*6+myBNEA.IDsens.sensorsParams.ny,n);
     
@@ -323,7 +310,6 @@ for subjectID = subjectList
     %disp(bnet);
     
     sortYidxComplexMeasurement = [4:6 1:3 10:12 7:9 13:26]; %% hack to fix evidence ordering
-    %sortYidxComplexMeasurement = 1:26;%[4:6 1:3 10:12 7:9 13:26];
     sortYidxSimpleMeasurement = [4:6 1:3 7:20]; 
     
     for i = 1 : n
@@ -337,21 +323,20 @@ for subjectID = subjectList
        %myBNEA = myBNEA.setY(data.yLinkFrame(:,i));
        
        
-       if(strcmp(simpleMeasurement,'on')==1)
+       if(strcmp(onlyIMUMeasurement,'on')==1)
           myBNEA=myBNEA.setY(data.yLinkFrame(sortYidxSimpleMeasurement,i));  
        else
           myBNEA=myBNEA.setY(data.yLinkFrame(sortYidxComplexMeasurement,i));
        end   
-       %myBNEA = myBNEA.setY(yLinkFrameRNEA(:,i)); %% set from RNEA
-       % myBNEA = myBNEA.setY(zeros(size(data.yLinkFrame(:,i)))); %% set
-       % all zeros
+       % myBNEA = myBNEA.setY(yLinkFrameRNEA(:,i)); % set from RNEA
+       % myBNEA = myBNEA.setY(zeros(size(data.yLinkFrame(:,i)))); % set all zeros
 
        bnet{1,i}   = myBNEA.bnt.bnet;
        engine{1,i} = myBNEA.bnt.engine;
        sample(:,i) = myBNEA.evd';
         
        %% sampleTest is used to check accuracy of stored evidence in sample
-       if(strcmp(simpleMeasurement,'on')==1)
+       if(strcmp(onlyIMUMeasurement,'on')==1)
            sampleTest(2,i) = {data.yLinkFrame(20,i)}; % ddq2
            sampleTest(4,i) = {data.yLinkFrame(13:18,i)}; % fx2
            sampleTest(6,i) = {data.yLinkFrame(19,i)}; % ddq1
@@ -370,14 +355,24 @@ for subjectID = subjectList
     end
 end
 
-if(strcmp(dispSensors,'on')==1)
+if(strcmp(onlyIMUMeasurement,'on')~=1 && strcmp(dispSensors,'on')==1)
+
+ %% Uncomment the plot that is needed :    
  %   plotMeasurements(data.dataTime,data.y,'sensorFrame',...
-  %                                 data.yLinkFrame,'LinkFrame');
-   % plotMeasurements(data.dataTime(1:n),data.yLinkFrame(:,1:n),'sensorFrame',...
-   %                                cell2mat(sample),'evidence');
-  % plotMeasurements(data.dataTime,data.yLinkFrame,'SensorLinkFrame',...
-  %                                   yLinkFrameRNEA,'RNEALinkFrame');
-   plotEvidence(data.dataTime(1:n),cell2mat(sample),cell2mat(sampleTest));                               
-                               
+ %                                 data.yLinkFrame,'LinkFrame'); % sensor
+ %                                 frame measurements vs linkframe
+ %                                 measurements
+ %
+ % plotMeasurements(data.dataTime,data.yLinkFrame,'SensorLinkFrame',...
+ %                                   yLinkFrameRNEA,'RNEALinkFrame'); %
+ %                                   sensor Link frame measurements vs RNEA
+ %                                   predictions 
+ 
+    plotEvidence(data.dataTime(1:n),cell2mat(sample),cell2mat(sampleTest));                                                              
 end
-save('./experiments/humanFixedBase/intermediateDataFiles/savedBNet.mat','data','myModel','mySens','myBNEA','bnet','engine','sample','data','XStar_fp_0');
+
+if(strcmp(onlyIMUMeasurement,'on')==1)
+    save('./experiments/humanFixedBase/intermediateDataFiles/savedBNet_onlyIMU.mat','data','myModel','mySens','myBNEA','bnet','engine','sample','data','XStar_fp_0');
+else
+    save('./experiments/humanFixedBase/intermediateDataFiles/savedBNet_IMUandFTS.mat','data','myModel','mySens','myBNEA','bnet','engine','sample','data','XStar_fp_0');
+end
