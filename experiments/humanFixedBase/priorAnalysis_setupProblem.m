@@ -5,9 +5,9 @@ close all;
 subjectList = 1;
 trialList = 1;  
 
-dispSensors = 'on'; % turn on to see sensor data in link and in sensor frames
+dispSensors = 'off'; % turn on to see sensor data in link and in sensor frames
 simpleMeasurement = 'off'; % use only IMU
-selectedPercentage = 10; % percentage of time points used for estimation (reduce to speed up while losing accuracy)
+selectedPercentage = 5; % percentage of time points used for estimation (reduce to speed up while losing accuracy)
 
 for subjectID = subjectList
     fprintf('\n---------\nSubject : %d ',subjectID);
@@ -268,6 +268,9 @@ for subjectID = subjectList
     
     emptyNodeIdx = [1,3,5,7,8,10,11,12,13,14,16,18];
     
+    sortYidxComplexMeasurement = [4:6 1:3 10:12 7:9 13:26];
+    sortYidxSimpleMeasurement = [4:6 1:3 7:20];
+    
     for i = 1 : n
 
       if(i == printPts(printPtsCtr))
@@ -276,7 +279,13 @@ for subjectID = subjectList
       end
       
        myBNEA = myBNEA.setState(data.q(i,:)', data.dq(i,:)');
-       myBNEA = myBNEA.setY(data.yLinkFrame(:,i));
+       %myBNEA = myBNEA.setY(data.yLinkFrame(:,i));
+       
+       if(strcmp(simpleMeasurement,'on')==1)
+          myBNEA=myBNEA.setY(data.yLinkFrame(sortYidxSimpleMeasurement,i));  
+       else
+          myBNEA=myBNEA.setY(data.yLinkFrame(sortYidxComplexMeasurement,i));
+       end   
        %myBNEA = myBNEA.setY(yLinkFrameRNEA(:,i)); %% set from RNEA
        % myBNEA = myBNEA.setY(zeros(size(data.yLinkFrame(:,i)))); %% set
        % all zeros
@@ -306,12 +315,12 @@ for subjectID = subjectList
 end
 
 if(strcmp(dispSensors,'on')==1)
-    plotMeasurements(data.dataTime,data.y,'sensorFrame',...
-                                   data.yLinkFrame,'LinkFrame');
+ %   plotMeasurements(data.dataTime,data.y,'sensorFrame',...
+  %                                 data.yLinkFrame,'LinkFrame');
    % plotMeasurements(data.dataTime(1:n),data.yLinkFrame(:,1:n),'sensorFrame',...
    %                                cell2mat(sample),'evidence');
-   plotMeasurements(data.dataTime,data.yLinkFrame,'SensorLinkFrame',...
-                                     yLinkFrameRNEA,'RNEALinkFrame');
+  % plotMeasurements(data.dataTime,data.yLinkFrame,'SensorLinkFrame',...
+  %                                   yLinkFrameRNEA,'RNEALinkFrame');
    plotEvidence(data.dataTime(1:n),cell2mat(sample),cell2mat(sampleTest));                               
                                
 end

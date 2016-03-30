@@ -24,24 +24,28 @@ NB = myModel.modelParams.NB;
     % as to have non-decresing EM steps.
     cov_prior_weight = cell(18,1);
     for i = 1:length(i_learn);
-        cov_prior_weight{i_learn(i)} = 1e-3;%1e1 ;
+        cov_prior_weight{i_learn(i)} = 1e-2;%1e1 ;
     end
     
     %cov_prior_weight{3} = 1e-3*eye(6);
     %cov_prior_weight{3}(2,2)= 9e-4;
     %cov_prior_weight{3}(3,3)= 9e-4;
     
+    
+   SimuAng_2 = [1e0 1e-3 1e0];
+   SimuLin_2 = [1e-3 1e0 1e-3];
+    
     %% standardisation matrix for FT in the 0 frame
-   SfTStandMu_0 = [1e1 1e-3 1e1];
-   SfTStandF_0 = [1e-3 1e1 1e-3];
+   SfTStandMu_0 = [1e0 1e0 1e-3];
+   SfTStandF_0 = [1e-3 1e-3 1e0];
     
     %SfTStandMu_0 = [1e-10 1e-3 1e-10];
     %SfTStandF_0 = [1e-3 1e-10 1e-3];
+   cov_prior_weight{17} = diag([SfTStandMu_0,SfTStandF_0]);
+   cov_prior_weight{9} = diag([SimuAng_2 SimuLin_2]); 
    
     %% standardisation applied in FT frame
  %   cov_prior_weight{17} = (XStar_fp_0^(-1))*diag([SfTStandMu_0 SfTStandMu_0]);
-    
-    
     maxSteps = 3;
     
     [bnetHat, ll] = EM_bnet_learn(bnet, sample, cov_prior_weight, i_learn, maxSteps);

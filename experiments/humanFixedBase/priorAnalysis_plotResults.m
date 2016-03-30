@@ -15,30 +15,36 @@ function [] = priorAnalysis_plotResults(myBNEA,ll,bnetHat,i_learn)
             cov_ini = cell(length(i_learn),1);
             dispVect = i_learn;
             for j = 1:length(dispVect)
-                cov_ini{j} = get_field(myBNEA.bnt.bnet.CPD{dispVect(j)}, 'cov');
-                cov_ini_diag{j} = diag(get_field(myBNEA.bnt.bnet.CPD{dispVect(j)}, 'cov'));
+                cov_ini{j} = struct(myBNEA.bnt.bnet.CPD{dispVect(j)}).cov;
+                cov_ini_diag{j} = diag(struct(myBNEA.bnt.bnet.CPD{dispVect(j)}).cov);
             end
 
             fprintf('Initial y_fts covariance :');
             disp(cov_ini_diag{j}');
             fprintf('\n EM computed y_fts covariance \n');
 
+            %covStore = zeros(
+            
             for j = 1:length(dispVect)
                 s = size(cov_ini{j});
                 cov_est_j = cov_ini{j};
+                
+                covStore{j,1}=cov_ini{j};
                 cov_est_j_diag = cov_ini_diag{j};
 
                 for i = 1:length(ll)
-                   loc_cov = get_field(bnetHat(i).CPD{dispVect(j)},'cov');
+                   loc_cov = struct(bnetHat(i).CPD{dispVect(j)}).cov;
+                   covStore{j,1+i}=loc_cov;
                    loc_cov_diag = diag(loc_cov);
                    cov_est_j = [cov_est_j loc_cov];
                    cov_est_j_diag = [cov_est_j_diag loc_cov_diag];
 
                    %% printing FT cov
-                   if(dispVect(j)==17)
-                       fprintf('Step %d, FT Cov diag : ',i);
-                       disp(loc_cov_diag');
-                   end
+                   %if(dispVect(j)==17)
+                   %    fprintf('Step %d, FT Cov diag : ',i);
+                   %    disp(loc_cov_diag');
+                   %end
+                 %   fprintf('[INFO] %s was updated by %f \n', myBNEA.bnt.nodes.labels{j}, norm(cov_upd)./norm(cov_ini));
                 end
                 cov_est{j} = cov_est_j;
                 cov_est_diag{j} = cov_est_j_diag;
@@ -50,6 +56,20 @@ function [] = priorAnalysis_plotResults(myBNEA,ll,bnetHat,i_learn)
                 bar3(1:1+length(ll),cov_est_diag{i}');
                 title(myBNEA.bnt.nodes.labels{dispVect(i)});
            end
+
+%             l_length = length(ll);  
+%             l_vect = 0:10:10*l_length;
+%             dispVect = [3,4];
+%             for i =1:length(dispVect)
+%                 figure(i);
+%                 for j = 1:length(ll)
+%                   %  X = size(covStore{i,j},1);
+%                   %  Y = size(covStore{i,j},2);
+%                     [~,h] = contour(covStore{i,j},20);
+%                     set_contour_z_level(h, l_vect(j))
+%                 end
+%             end
+
     else
 
         dir_ind = cell2mat(myBNEA.bnt.nodes.index);
@@ -94,5 +114,21 @@ function [] = priorAnalysis_plotResults(myBNEA,ll,bnetHat,i_learn)
 
                 % end
         end
+    end
+end
+
+function set_contour_z_level(h, zlevel)
+    % check that we got the correct kind of graphics handle
+    assert(isa(handle(h), 'specgraph.contourgroup'), ...
+        'Expecting a handle returned by contour/contour3');
+    assert(isscalar(zlevel));
+
+    % handle encapsulates a bunch of child patch objects
+    % with ZData set to empty matrix
+    hh = get(h, 'Children');
+    for i=1:numel(hh)
+        ZData = get(hh(i), 'XData');   % get matrix shape
+        ZData(:) = zlevel;             % fill it with constant Z value
+        set(hh(i), 'ZData',ZData);     % update patch
     end
 end
