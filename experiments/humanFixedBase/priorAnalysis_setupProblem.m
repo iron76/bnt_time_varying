@@ -77,7 +77,7 @@ for subjectID = subjectList
     myModel = model(dmodel);
     mySens  = sensors(ymodel);  
 
-    myMAP   = MAP(myModel, mySens);
+%     myMAP   = MAP(myModel, mySens);
     %% ================================ RNEA ==================================
     % Computing d using Newton-Euler with inverse dynamics.
     % Function ID was modified for having velocities.  So the path is not:
@@ -134,7 +134,7 @@ for subjectID = subjectList
     % - the form [f1 a2 ftx1 ftx2 ddq1 ddq2]
     % - sensor frame
 
-    %% ==== data.y
+    %% ==== data.y (in sensor frame)
     data.y  = [];
     for i = 1 : length(sens.labels)
          eval(['data.y  = [data.y  data.ys_sensFrame_' sens.labels{i} '];']);
@@ -147,19 +147,23 @@ for subjectID = subjectList
 
     %% ==== data.Sy
     data.Sy = [];
-    for i = 1 : length(myMAP.IDsens.sensorsParams.labels)
-         data.Sy = [data.Sy; diag(myMAP.IDsens.sensorsParams.Sy{i})];
-         
-         if(isempty(strfind(myMAP.IDsens.sensorsParams.labels{i},'d2q')))
-             figure(ceil(i/4));
-             subplot(2,2,mod(i,4)+1);
-             bar(myMAP.IDsens.sensorsParams.Sy{i},'stacked');
-             title(myMAP.IDsens.sensorsParams.labels{i});
-         end
-    end
-    data.Sy = repmat(data.Sy, 1, len-1);
-    data.Sy = [data.Sy data.Sy(:,end)];
-    drawnow();
+    
+     
+   
+%     for i = 1 : length(myMAP.IDsens.sensorsParams.labels)
+% 
+%          data.Sy = [data.Sy; diag(myMAP.IDsens.sensorsParams.Sy{i})];
+%          
+%          if(isempty(strfind(myMAP.IDsens.sensorsParams.labels{i},'d2q')))
+%              figure(ceil(i/4));
+%              subplot(2,2,mod(i,4)+1);
+%              bar(myMAP.IDsens.sensorsParams.Sy{i},'stacked');
+%              title(myMAP.IDsens.sensorsParams.labels{i});
+%          end
+%     end
+%     data.Sy = repmat(data.Sy, 1, len-1);
+%     data.Sy = [data.Sy data.Sy(:,end)];
+%     drawnow();
 
 %     %% ================================ MAP ===================================
 %     %% Build Ymatrix manually
@@ -214,6 +218,20 @@ for subjectID = subjectList
 
     clear A;
     clear B;
+    
+        %% displaying sensorCovariances
+    for i = 1 : length(mySens.sensorsParams.labels)
+
+         %data.Sy = [data.Sy; diag(mySens.sensorsParams.Sy{i})];
+         if(isempty(strfind(mySens.sensorsParams.labels{i},'d2q')))
+             figure(ceil(i/4));
+             subplot(2,2,mod(i,4)+1);
+             imagesc(mySens.sensorsParams.Sy{i});
+             title([mySens.sensorsParams.labels{i},' sensorFrame']);
+         end
+    end
+    
+    
     %% recomputing data in link frames
     
     if(strcmp(simpleMeasurement,'on')==1)
@@ -239,11 +257,49 @@ for subjectID = subjectList
            data.yLinkFrame(1:6,i) = ((XStar_fp_0 * XStar_0_1{i} ))^(-1)*data.yBiasComp(1:6,i);
            data.yLinkFrame(7:12,i) = ((X_imu_2)^(-1))*data.yBiasComp(7:12,i);
            data.yLinkFrame(13:end,i) = data.yBiasComp(13:end,i);
+           
         end
+        %% rotating the senor covariances to bring to link frame (only for FTS and IMU) and only in initial configuration
+      %% future analysis
+           
+           mySens.sensorsParams.sensXLink{1} = XStar_fp_0 * XStar_0_1{1};
+           mySens.sensorsParams.sensXLink{2} = X_imu_2;
+           mySens.sensorsParams.Sy{1} = ((XStar_fp_0 * XStar_0_1{1} ))^(-1)*mySens.sensorsParams.Sy{1}*(((XStar_fp_0 * XStar_0_1{1} ))^(-1))';
+           mySens.sensorsParams.Sy{2} =  ((X_imu_2)^(-1))*mySens.sensorsParams.Sy{2}*((X_imu_2)^(-1))';
+           
+       my = 1;idSy_inv = []; jdSy_inv = []; dSy_inv=[];    
+       %% recomputing sensorParams.sy_inv    
+        for i = 1 : mySens.sensorsParams.ny
+            dy = mySens.sensorsParams.sizes{i,1};
+           [ii, jj, ss] = placeSubmatrixSparse(my, my, inv(mySens.sensorsParams.Sy{i,1}));
+           idSy_inv = [idSy_inv; ii];
+           jdSy_inv = [jdSy_inv; jj];
+           dSy_inv  = [dSy_inv;  ss];
+           my = my + dy;
+        end
+        mySens.sensorsParams.Sy_inv = sparse(idSy_inv, jdSy_inv, dSy_inv);
+           
+          % mySens.sensorsParams.Sy_inv{1} = mySens.sensorsParams.Sy{1}^(-1);
+          % mySens.sensorsParams.Sy_inv{2} = mySens.sensorsParams.Sy{2}^(-1);
     
         yLinkFrameRNEA = [ fRNEA;aRNEA;...
             zeros(12,length(data.dataTime));ddqRNEA];
     end
+    
+    
+    %% displaying sensorCovariances
+    for i = 1 : length(mySens.sensorsParams.labels)
+
+         %data.Sy = [data.Sy; diag(mySens.sensorsParams.Sy{i})];
+         if(isempty(strfind(mySens.sensorsParams.labels{i},'d2q')))
+             figure(1+ceil(i/4));
+             subplot(2,2,mod(i,4)+1);
+             imagesc(mySens.sensorsParams.Sy{i});
+             title([mySens.sensorsParams.labels{i},'linkFrame']);
+         end
+    end
+ 
+    
     %% Creating the Bayesian Network
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -266,10 +322,9 @@ for subjectID = subjectList
     fprintf('Updating Bayesian network with state and Y using %d points \n',n);
     %disp(bnet);
     
-    emptyNodeIdx = [1,3,5,7,8,10,11,12,13,14,16,18];
-    
-    sortYidxComplexMeasurement = [4:6 1:3 10:12 7:9 13:26];
-    sortYidxSimpleMeasurement = [4:6 1:3 7:20];
+    sortYidxComplexMeasurement = [4:6 1:3 10:12 7:9 13:26]; %% hack to fix evidence ordering
+    %sortYidxComplexMeasurement = 1:26;%[4:6 1:3 10:12 7:9 13:26];
+    sortYidxSimpleMeasurement = [4:6 1:3 7:20]; 
     
     for i = 1 : n
 
@@ -280,6 +335,7 @@ for subjectID = subjectList
       
        myBNEA = myBNEA.setState(data.q(i,:)', data.dq(i,:)');
        %myBNEA = myBNEA.setY(data.yLinkFrame(:,i));
+       
        
        if(strcmp(simpleMeasurement,'on')==1)
           myBNEA=myBNEA.setY(data.yLinkFrame(sortYidxSimpleMeasurement,i));  

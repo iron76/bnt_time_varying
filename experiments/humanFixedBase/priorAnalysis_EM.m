@@ -24,7 +24,7 @@ NB = myModel.modelParams.NB;
     % as to have non-decresing EM steps.
     cov_prior_weight = cell(18,1);
     for i = 1:length(i_learn);
-        cov_prior_weight{i_learn(i)} = 1e-2;%1e1 ;
+        cov_prior_weight{i_learn(i)} = 1e-5;%1e1 ;
     end
     
     %cov_prior_weight{3} = 1e-3*eye(6);
@@ -41,12 +41,12 @@ NB = myModel.modelParams.NB;
     
     %SfTStandMu_0 = [1e-10 1e-3 1e-10];
     %SfTStandF_0 = [1e-3 1e-10 1e-3];
-   cov_prior_weight{17} = diag([SfTStandMu_0,SfTStandF_0]);
-   cov_prior_weight{9} = diag([SimuAng_2 SimuLin_2]); 
+  % cov_prior_weight{17} = diag([SfTStandMu_0,SfTStandF_0]);
+  % cov_prior_weight{9} = diag([SimuAng_2 SimuLin_2]); 
    
     %% standardisation applied in FT frame
  %   cov_prior_weight{17} = (XStar_fp_0^(-1))*diag([SfTStandMu_0 SfTStandMu_0]);
-    maxSteps = 3;
+    maxSteps =3;
     
     [bnetHat, ll] = EM_bnet_learn(bnet, sample, cov_prior_weight, i_learn, maxSteps);
 
@@ -111,5 +111,6 @@ NB = myModel.modelParams.NB;
 %    end
 
     fprintf('Analysing and plotting results \n');
-    priorAnalysis_plotResults(myBNEA,ll,bnetHat,i_learn);
-    %save('./experiments/humanFixedBase/intermediateDataFiles/EMResult.mat','myModel','mySens','bnet','bnetHat','ll');
+    save('./experiments/humanFixedBase/intermediateDataFiles/EMResult.mat','myModel','mySens','bnet','bnetHat','ll','i_learn');
+    priorAnalysis_plotResults(myBNEA,ll,bnetHat,i_learn,mySens);
+    
