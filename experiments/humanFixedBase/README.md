@@ -26,15 +26,15 @@ Execution
 The execution sequence is as follows : 
 
 1. synchroniseCaptureData
-2. organiseSensorData
-3. computeSubjectSpecificURDFParams (createUrdfModelFromSubjectParams: step to be computed only for the first time)
-4. loadModelFromURDF
-5. computeLinkSensorFrame
-6. organiseBERDYCompatibleSensorData
-7. main
+2. computeSubjectSpecificURDFParams (createUrdfModelFromSubjectParams: step to be computed only for the first time)
+3. loadModelFromURDF
+4. computeLinkSensorFrame
+5. organiseBERDYCompatibleSensorData
+6. main
+7. plotFinalData
 
 
-The output of 1,2,5,6,7, produces a .mat file in the subfolder called intermediateDataFiles)
+The output of 1,4,5 produces a .mat file in the subfolder called intermediateDataFiles)
 
 Tests
 -------------------
