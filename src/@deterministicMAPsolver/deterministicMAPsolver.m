@@ -201,7 +201,7 @@ classdef deterministicMAPsolver
               %we transform the full matrix into a cell array of matrices
               %we assume the size of the single cells do not change w.r.t.
               %the current one
-              obj.IDsens.sensorsParams.Y = mat2cell(Y,cell2mat(obj.IDsens.sensorsParams.sizes)',obj.IDsens.sensorsParams.m * ones(1, obj.IDsens.sensorsParams.NB));
+              obj.IDsens.sensorsParams.Y = mat2cell(Y,cell2mat(obj.IDsens.sensorsParams.sizes)', 26 * ones(1, obj.IDsens.sensorsParams.NB));
               obj.IDsens.sensorsParams.Ys = sparse(Y);
           end
       end

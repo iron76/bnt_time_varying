@@ -22,15 +22,15 @@ my = 1;
 % su       = 10e+4 * 0.031; % FT - momment
 % sd       = 10e+4 * 50*0.2; % joint acceleration
 
-multConst = 1;
-so       = multConst * 5;           %IMU gyroscope
-sa       = multConst * 5;           %IMU accelerometer
-sf       = multConst * 4;           % FT moment
-su       = multConst * 4;           % FT force
-sd       = multConst * 1e-4;          % joint acceleration
+%multConst = 1e4;
+so       =  2 * 1e-4;            %IMU gyroscope
+sa       =  0.0011111;           %IMU accelerometer
+% sf       =  3;               % FT moment
+% su       =  4;               % FT force
+sd       =  6.66 * 10e-6;      % joint acceleration
 
 imuS = [so*eye(3) zeros(3,3); zeros(3,3) sa*eye(3)];
-ftsS = [sf*eye(3) zeros(3,3); zeros(3,3) su*eye(3)];
+ftsS = diag([2.25,2.25,0.56,59,59,36]); %[sf*eye(3) zeros(3,3); zeros(3,3) su*eye(3)];
 accS = imuS(1:3, 1:3);
 ftxS = ftsS;
 d2qS = sd;

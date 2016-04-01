@@ -56,6 +56,7 @@ ymodel.m  = sum(cell2mat(sens.ndof));
 ymodel.Y  = cell(ymodel.ny, ymodel.NB);
 ymodel.Ys = cell(ymodel.ny, ymodel.NB);
 ymodel.bias  = cell(ymodel.ny, 1);
+ymodel.sizes = cell(ymodel.ny, 1);
 
 for i = 1 : ymodel.ny
    ny = ny + 1;
