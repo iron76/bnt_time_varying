@@ -6,7 +6,7 @@
 % drake and spatial installed alongwith bnt_time_varying
 
 
-clc; close all;clear;
+close all;clear;
 
 %% loading subject parameters
 load('./experiments/humanFixedBase/data/subjectSizeParams.mat');

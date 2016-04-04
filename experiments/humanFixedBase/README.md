@@ -23,18 +23,13 @@ The subject specific URDF must also be located into a subfolder called data
 Execution
 ---------
 
-The execution sequence is as follows : 
+Run main.  It incorporates the following execution sequence:
 
 1. synchroniseCaptureData
 2. computeSubjectSpecificURDFParams (createUrdfModelFromSubjectParams: step to be computed only for the first time)
 3. loadModelFromURDF
 4. computeLinkSensorFrame
 5. organiseBERDYCompatibleSensorData
-6. main
-7. plotFinalData
-
-
-The output of 1,4,5 produces a .mat file in the subfolder called intermediateDataFiles)
 
 Tests
 -------------------

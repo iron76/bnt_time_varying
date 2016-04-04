@@ -1,6 +1,73 @@
 
 clear;clc;close all;
 
+%% add folders
+
+dataFolder = './experiments/humanFixedBase/data/';
+if (exist (dataFolder,'dir')==7)
+    addpath(genpath(dataFolder));
+end
+
+helperFunctionsFolder = './experiments/humanFixedBase/helperFunctions/';
+if (exist (helperFunctionsFolder,'dir')==7)
+    addpath(genpath(helperFunctionsFolder));
+end
+
+intermediateDataFilesFolder = './experiments/humanFixedBase/intermediateDataFiles/';
+if (exist(intermediateDataFilesFolder,'dir')==7)
+    addpath(genpath(intermediateDataFilesFolder));
+end
+
+testsFolder = './experiments/humanFixedBase/tests/';
+if (exist(testsFolder,'dir')==7)
+    addpath(genpath(testsFolder));
+end
+
+%% add files .mat
+
+fprintf('Starting synchronisedData computation\n');
+file = './experiments/humanFixedBase/intermediateDataFiles/synchronisedData.mat';
+if(exist(file,'file')==2)
+    load(file);
+else    
+    synchroniseCaptureData
+end
+%
+fprintf('\nStarting computeSubjectSpecificURDFPrams computation\n');
+file = './experiments/humanFixedBase/data/subjectSizeParams.mat';
+if(exist(file,'file')==2)
+    load(file);
+else    
+    computeSubjectSpecificURDFParams
+end
+%
+fprintf('\nStarting createUrdfModelFromSubjectParam computation\n');
+folder = './human_models/';
+if(exist(folder,'dir')==7)
+    addpath(genpath(folder))
+else    
+    createUrdfModelFromSubjectParams
+end
+%
+fprintf('\nStarting loadModelFromURDF computation\n');  
+    loadModelFromURDF
+%
+fprintf('\nStarting computeLinkSensorFrames computation\n');
+file = './experiments/humanFixedBase/intermediateDataFiles/sensorLinkTransforms.mat';
+if(exist(file,'file')==2)
+    load(file);
+else    
+    computeLinkSensorFrames
+end
+%
+fprintf('\nStarting organiseBERDYCompatibleSensorData computation\n');
+file = './experiments/humanFixedBase/intermediateDataFiles/BERDYFormattedSensorData.mat';
+if(exist(file,'file')==2)
+    load(file);
+else    
+    organiseBERDYCompatibleSensorData
+end
+
 %% selected subjects and trials
 subjectList = 1:2;
 trialList = 1:2;  

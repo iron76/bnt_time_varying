@@ -21,30 +21,7 @@
 % - previous processing to generate the IMU data in .mat file;
 
 
-clc; clear; close all;
-
-%% add paths
-
-dataFolder = './experiments/humanFixedBase/data/';
-if (exist (dataFolder)==7)
-    addpath(genpath(dataFolder));
-end
-
-helperFunctionsFolder = './experiments/humanFixedBase/helperFunctions/';
-if (exist (helperFunctionsFolder)==7)
-    addpath(genpath(helperFunctionsFolder));
-end
-
-intermediateDataFilesFolder = './experiments/humanFixedBase/intermediateDataFiles/';
-if (exist(intermediateDataFilesFolder)==7)
-    addpath(genpath(intermediateDataFilesFolder));
-end
-
-testsFolder = './experiments/humanFixedBase/tests/';
-if (exist(testsFolder)==7)
-    addpath(genpath(testsFolder));
-end
-
+clear; close all;
 %% testOptions
 plotInterpolatedFilteredData = false;
 plotFilteredData = false;
