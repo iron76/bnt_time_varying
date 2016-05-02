@@ -29,7 +29,7 @@ sa       =  0.0011111;           %IMU accelerometer
 % su       =  4;               % FT force
 sd       =  6.66 * 10e-6;      % joint acceleration
 
-imuS = [so*eye(3) zeros(3,3); zeros(3,3) sa*eye(3)];
+imuS = 1e10*[so*eye(3) zeros(3,3); zeros(3,3) sa*eye(3)];
 ftsS = diag([2.25,2.25,0.56,59,59,36]); %[sf*eye(3) zeros(3,3); zeros(3,3) su*eye(3)];
 accS = imuS(1:3, 1:3);
 ftxS = ftsS;

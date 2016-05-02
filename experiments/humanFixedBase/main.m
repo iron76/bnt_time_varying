@@ -69,8 +69,8 @@ else
 end
 
 %% selected subjects and trials
-subjectList = 1:2;
-trialList = 1:2;  
+subjectList = 2:3;
+trialList = 1;  
 
 for subjectID = subjectList
     fprintf('\n---------\nSubject : %d ',subjectID);
@@ -82,7 +82,7 @@ for subjectID = subjectList
 
         currentTrial = BERDYFormattedSensorData(subjectID,trialID); 
         data = currentTrial.data;
-        dataTime = currentTrial.data.dataTime;
+        dataTime = data.dataTime;
         q = currentTrial.data.q';
         dq = currentTrial.data.dq';
         ddq = currentTrial.data.ddq';

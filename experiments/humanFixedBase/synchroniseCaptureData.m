@@ -36,11 +36,11 @@ plotSettlingTimeCutData = false;
 plotJointQuantitiesSettlingTimeCut = false;
 
 %% load data sources
-load('./experiments/humanFixedBase/data/VICONsaveDataGen16.mat');
-load('./experiments/humanFixedBase/data/imuExtractedDataGen16.mat');
+load('./experiments/humanFixedBase/data/VICONsaveDataGen16_fake.mat');
+load('./experiments/humanFixedBase/data/imuExtractedDataGen16_fake.mat');
 addpath('./experiments/humanFixedBase/helperFunctions/');
 
-subjectList = 1:12;
+subjectList = 1:15;
 trialList = 1:4;
 
 % Setting parameters

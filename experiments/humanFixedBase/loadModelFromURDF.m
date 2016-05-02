@@ -6,13 +6,11 @@
 % drake and spatial installed alongwith bnt_time_varying
 
 
-close all;clear;
-
 %% loading subject parameters
-load('./experiments/humanFixedBase/data/subjectSizeParams.mat');
+load('./experiments/humanFixedBase/data/subjectSizeParams_fake.mat');
 addpath(genpath('./human_models/'));
 
-subjectIDList = 1:12;
+subjectIDList = 1:15;
    
 fprintf('Loading the model from URDF...\n');
 fprintf('-----------------------------\n\n');

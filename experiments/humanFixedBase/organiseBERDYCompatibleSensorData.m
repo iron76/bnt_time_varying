@@ -7,8 +7,8 @@ load('./experiments/humanFixedBase/intermediateDataFiles/synchronisedData.mat');
 load('./experiments/humanFixedBase/intermediateDataFiles/sensorLinkTransforms.mat');
 
 %% selected subjects and trials
-subjectList = 1:12;
-trialList = 1:4;  
+subjectList = 1:15;
+trialList = 1:2;  
 
 %% iterate through each computing transforms each time
 

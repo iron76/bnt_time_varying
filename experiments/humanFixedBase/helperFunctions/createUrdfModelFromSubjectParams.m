@@ -6,9 +6,9 @@
 % human_models folder containing threeLinHumanLikeTemplate
 
 %% load data
-load('./experiments/humanFixedBase/data/subjectSizeParams.mat');
+load('./experiments/humanFixedBase/data/subjectSizeParams_fake.mat');
 
-subjectList = 1:12;
+subjectList = 1:13;
 
 for subjectID = subjectList
     

@@ -6,7 +6,7 @@
 %% load data
 load('./experiments/humanFixedBase/intermediateDataFiles/synchronisedData.mat');
 
-subjectList = 1:12;
+subjectList = 1:13;
 
 for subjectID = subjectList
     fprintf('\n---------\nSubject : %d \n',subjectID);
