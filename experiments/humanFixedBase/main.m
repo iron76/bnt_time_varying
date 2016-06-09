@@ -69,8 +69,8 @@ else
 end
 
 %% selected subjects and trials
-subjectList = 2:3;
-trialList = 1;  
+subjectList = 1;
+trialList = 1:4;  
 
 for subjectID = subjectList
     fprintf('\n---------\nSubject : %d ',subjectID);
@@ -336,7 +336,7 @@ for subjectID = subjectList
         %% Build bias b_Y manually
         % b_Y has to be consistent with Ymatrix
         
-        load('./experiments/humanFixedBase/data/subjectSizeParams.mat');
+        load('./experiments/humanFixedBase/data/subjectSizeParams_fake.mat');
 
         currentParams = subjectParams(subjectID);
 
@@ -655,11 +655,6 @@ for subjectID = subjectList
         %% Organising into a structure    
         
         finalResults(subjectID,trialID).dataTime = dataTime;
-        finalResults(subjectID,trialID).resMAP.Sprior_inv = [  zeros(38),          zeros(38,14)       ;
-                                                              zeros(14,38), full(dmodel.Sw_inv.matrix)];
-        finalResults(subjectID,trialID).resMAP.D = myMAP_2sens.D;
-        finalResults(subjectID,trialID).resMAP.b_D = myMAP_2sens.b_D;
-        finalResults(subjectID,trialID).resMAP.SD_inv = full(dmodel.Sv_inv.matrix);
                                                           
         finalResults(subjectID,trialID).resMAP_2sens = resMAP_2sens;
         finalResults(subjectID,trialID).resMAP_2sens.m = mySens_2sens.m;
@@ -678,10 +673,8 @@ for subjectID = subjectList
         finalResults(subjectID,trialID).resMAP_4sens.data.y = data.y_4sens;
         finalResults(subjectID,trialID).resMAP_4sens.Sy_inv = full(mySens_4sens.sensorsParams.Sy_inv);
         finalResults(subjectID,trialID).resMAP_2sens.jIndex = myMAP_4sens.jIndex;
-
-%         finalResults(subjectID,trialID).resMAP.data.Sy = data.Sy;
-
-         clear res;
+        
+        clear res;
 
     end
     fprintf('\n');

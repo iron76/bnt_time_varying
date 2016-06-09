@@ -29,13 +29,22 @@ function [ model ] = autoTreeStochastic( model , sModel, sUknown )
 %  sparse matrix in its inverse model.Sw_inv
 
 if nargin == 1
-   sModel  = 1;
-   sUknown = 1;
+   sModel  = ones(model.NB, 1);
+   sUknown = ones(model.NB, 1);
    generateS = @(n)eye(n);
 elseif nargin == 2
-   sUknown = sModel*1e3;
+    if length(sModel) == 1
+        sModel = sModel * ones(model.NB, 1);
+    end
+   sUknown = sModel.*1e3;
    generateS = @(n)generateSPDmatrix(n);
 else
+    if length(sModel) == 1
+        sModel = sModel * ones(model.NB, 1);
+    end
+    if length(sUknown) == 1
+        sUknown = sUknown * ones(model.NB, 1);
+    end
    generateS = @(n)generateSPDmatrix(n);
 end
 
@@ -53,19 +62,19 @@ model.Sv_inv = submatrixSparse(iSv_s, jSv_s, (1:length(iSv_s))', (1:length(jSv_s
 model.Sv     = submatrixSparse(iSv_s, jSv_s, (1:length(iSv_s))', (1:length(jSv_s))');
 
 for i = 1 : model.NB
-   S = sModel.*generateS(6);
+   S = sModel(i).*generateS(6);
    model.Sv_inv = set(model.Sv_inv, inv(S), (i-1)*4+1, (i-1)*4+1);
    model.Sv     = set(model.Sv    ,     S , (i-1)*4+1, (i-1)*4+1);
 
-   S = sModel.*generateS(6);
+   S = sModel(i).*generateS(6);
    model.Sv_inv = set(model.Sv_inv, inv(S), (i-1)*4+2, (i-1)*4+2);
    model.Sv     = set(model.Sv    ,     S , (i-1)*4+2, (i-1)*4+2);
 
-   S = sModel.*generateS(6);
+   S = sModel(i).*generateS(6);
    model.Sv_inv = set(model.Sv_inv, inv(S), (i-1)*4+3, (i-1)*4+3);
    model.Sv     = set(model.Sv    ,     S , (i-1)*4+3, (i-1)*4+3);
 
-   S = sModel.*generateS(1);
+   S = sModel(i).*generateS(1);
    model.Sv_inv = set(model.Sv_inv, inv(S), (i-1)*4+4, (i-1)*4+4);
    model.Sv     = set(model.Sv    ,     S , (i-1)*4+4, (i-1)*4+4);
 end
@@ -81,11 +90,11 @@ model.Sw_inv = submatrixSparse(iSw_s, jSw_s, (1:length(iSw_s))', (1:length(jSw_s
 model.Sw     = submatrixSparse(iSw_s, jSw_s, (1:length(iSw_s))', (1:length(jSw_s))');
 
 for i = 1 : model.NB
-   S = sUknown.*generateS(6);
+   S = sUknown(i).*generateS(6);
    model.Sw_inv = set(model.Sw_inv, inv(S), (i-1)*2+1, (i-1)*2+1);
    model.Sw     = set(model.Sw    ,     S , (i-1)*2+1, (i-1)*2+1);
 
-   S = sUknown.*generateS(1);
+   S = sUknown(i).*generateS(1);
    model.Sw_inv = set(model.Sw_inv, inv(S), (i-1)*2+2, (i-1)*2+2);
    model.Sw     = set(model.Sw    ,     S , (i-1)*2+2, (i-1)*2+2);
 end
