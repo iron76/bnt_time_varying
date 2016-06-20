@@ -63,7 +63,7 @@ classdef deterministicMAPsolver
    properties (SetAccess = protected)
       Xup %% Cell array of mdl.n elements. Xup{i} contains {}^{i}X_{\lambda(i)}
       Xa  %% Cell array of mdl.n elements. Xa{i}  contains {}^{i}X_{0}
-      vJ, v, a, fB, f, fx, d2q, tau, 
+      vJ, v, a, fB, f, fx, d2q, tau, IA, Ia
       % iD, jD
    end
    
@@ -81,6 +81,8 @@ classdef deterministicMAPsolver
             a.IDmeas  = meas(sns.m);
             a.Xup     = cell(mdl.n, 1);
             a.Xa      = cell(mdl.n, 1);
+            a.IA      = cell(mdl.n, 1);
+            a.Ia      = cell(mdl.n, 1);
             a.vJ      = zeros(6, mdl.n);
             a.d       = zeros(26*mdl.n,1);
             a.Sd      = zeros(26*mdl.n,26*mdl.n);
@@ -167,10 +169,23 @@ classdef deterministicMAPsolver
          % obj.v(:,i) contains {}^{i}v_i
          for i = 1 : obj.IDstate.n
             obj.vJ(:,i) = obj.IDmodel.S{i}*dq(i);
+            obj.IA{i} = obj.IDmodel.modelParams.I{i};
             if obj.IDmodel.modelParams.parent(i) == 0
                obj.v(:,i) = obj.vJ(:,i);
             else
                obj.v(:,i) = obj.Xup{i}*obj.v(:,obj.IDmodel.modelParams.parent(i)) + obj.vJ(:,i);
+            end
+         end
+         
+         %% Compute the articulated inertias Ia and IA
+         D = cell(obj.IDstate.n, 1);
+         U = cell(obj.IDstate.n, 1);
+         for i = obj.IDstate.n:-1:1
+            U{i} = obj.IA{i} * obj.IDmodel.S{i};
+            D{i} = obj.IDmodel.S{i}' * U{i};
+            if obj.IDmodel.modelParams.parent(i) ~= 0
+               obj.Ia{i} = obj.IA{i} - U{i}/D{i}*U{i}';
+               obj.IA{obj.IDmodel.modelParams.parent(i)} = obj.IA{obj.IDmodel.modelParams.parent(i)} + obj.Xup{i}' * obj.Ia{i} * obj.Xup{i};
             end
          end
          
