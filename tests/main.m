@@ -116,6 +116,11 @@ res = res || testMAP(dmodel_SNEA, ymodel_SNEA);
 disp('Running testdMAP')
 res = res || testdMAP(dmodel_SNEA, ymodel_SNEA);
 
+disp('Running testLU on RNEA')
+res = res || testLU_RNEA(dmodel_RNEA);
+
+disp('Running testLU on ABA')
+res = res || testLU_ABA(dmodel_RNEA);
 
 if res ~=0 
    disp('[ERROR] One of the tests failed!')
@@ -160,6 +165,12 @@ res = res || testCalibration(dmodel_DNEA, ymodel_DNEA, dmodel_SNEA, ymodel_SNEA,
 res = res || testMAP(dmodel_SNEA, ymodel_SNEA);
 
 res = res || testdMAP(dmodel_SNEA, ymodel_SNEA);
+
+disp('Running testLU on RNEA')
+res = res || testLU_RNEA(dmodel_SNEA);
+
+disp('Running testLU on ABA')
+res = res || testLU_ABA(dmodel_SNEA);
 
 if res ~=0 
    disp('[ERROR] One of the tests failed!')
