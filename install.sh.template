@@ -48,6 +48,8 @@ cp -v  $BNT_TIME_VARYING_FOLDER/extern/featherstone/spatial/crmmult.m $SPATIAL_F
 
 cp -v  $BNT_TIME_VARYING_FOLDER/extern/featherstone/models/autoTreeNonPlanar.m $SPATIAL_FOLDER/models/autoTreeNonPlanar.m
 
+cp -v  $BNT_TIME_VARYING_FOLDER/extern/bnt/BNT/CPDs/@gaussian_net_wrench_CPD/sample_node.m $BNT_FOLDER/BNT/CPDs/@gaussian_net_wrench_CPD/sample_node.m
+
 cp -v  $BNT_TIME_VARYING_FOLDER/extern/bnt/BNT/CPDs/@gaussian_net_wrench_CPD/convert_to_pot.m $BNT_FOLDER/BNT/CPDs/@gaussian_net_wrench_CPD/convert_to_pot.m
 
 cp -v  $BNT_TIME_VARYING_FOLDER/extern/bnt/BNT/CPDs/@gaussian_net_wrench_CPD/gaussian_CPD_params_given_dps.m $BNT_FOLDER/BNT/CPDs/@gaussian_net_wrench_CPD/gaussian_CPD_params_given_dps.m
