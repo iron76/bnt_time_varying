@@ -27,6 +27,10 @@ Sd1   = myMAP.Sd;
 % with these definitions [Y(:,J); D(I, J)] is lower-triangular
 I      = [myMAP.ia; myMAP.ifB; myMAP.iF(end:-1:1, 1); myMAP.itau];
 J      = [myMAP.jfx; myMAP.jd2q; myMAP.ja; myMAP.jfB; myMAP.jF(end:-1:1, 1); myMAP.jtau];
+% D      = sparse(myMAP.iDs, myMAP.jDs, myMAP.Ds, 19*NB, 26*NB);
+% Y      = myMAP.IDsens.sensorsParams.Ys;
+% imagesc([Y(:,J); -D(I, J)])
+
 K      = myMAP.id;
 Iinv(I)= 1:length(I);
 Jinv(J)= 1:length(J);
