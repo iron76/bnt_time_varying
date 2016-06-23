@@ -1,4 +1,4 @@
-function  df  = deriv( f, q )
+function  df  = deriv( f, q)
 %DERIV Computes the numerical derivative of a function f (passed by handle)
 %
 %   This function computes the numerical derivative of a function f at
@@ -8,39 +8,64 @@ function  df  = deriv( f, q )
 %   f  = @(x) sin(x);
 %   df = deriv(f,0); 
 
+
 [m , n] = size(q);
-if n ~= 1
-   error('In computing df(x), x should be a column vector')
-end
+% if n ~= 1
+%    error('In computing df(x), x should be a column vector')
+% end
 
 [h , k] = size(f(q));
-if k ~= 1 && m ~= 1
-   error('In computing df(x), f should be a column vector or (if not) x should be scalar')
-end
+% if k ~= 1 && m ~= 1
+%    error('In computing df(x), f should be a column vector or (if not) x should be scalar')
+% end
 
-if m == 1
+%% CASE 1
+if m==1 && n==1
    q1 = q;
-   h  = sqrt(eps)*max([abs(q1), 1]);
-   q2 = q1 + h;
+   delta  = sqrt(eps)*max([abs(q1), 1]);
+   q2 = q1 + delta;
    
    f1 = f( q1 );
    f2 = f( q2 );
    
    df = (f2 - f1) ./ (q2 - q1);
-   
-else
-   df = zeros(h,m);   
+
+
+%%  CASE 2
+elseif h == 1 && k==1
+    
+    delta  = sqrt(eps);
+    df = zeros(size(q));
+    for i =1:m
+        for j = 1:n
+
+            epsMatrix = zeros(size(q));
+            epsMatrix(i,j) = delta;
+            if (i ~= j)
+                epsMatrix(j, i) = delta;
+            end
+            
+            df(i,j) = (f(q + epsMatrix) - f(q))/delta;
+        end
+    end
+
+%% CASE 3   
+else  
+    
+   %df = zeros(h,m); 
    for i = 1 : m
       q1 =  q;
       q2 =  q;
-      h  = sqrt(eps)*max([abs(q1(i,1)), 1]);
-      q2(i,1) = q1(i,1) + h;
+      delta  = sqrt(eps)*max([abs(q1(i,1)), 1]);
+      q2(i,1) = q1(i,1) + delta;
       
       f1 = f( q1 );
       f2 = f( q2 );
       
       df(:,i) = (f2 - f1) ./ (q2(i,1) - q1(i,1));
-   end
+   end 
+end
+
 end
 
 
