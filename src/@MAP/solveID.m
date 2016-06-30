@@ -92,6 +92,9 @@ end
 SBar_D_inv  = D'*S_Dinv*D + S_dinv;
 muBar_D = SBar_D_inv\((S_dinv*mu_d) - D'*S_Dinv*b_D);
 
+obj.muBarD = muBar_D;
+obj.sigmaBarD = inv(SBar_D_inv);
+
 %% mean and covariance matrix of p(d|y) ~ N(mu_d|y, S_d|y)
 % Note : mu_d|y --> d (as we are considering MAP estimator);
 %        S_d|y  --> Sd
@@ -105,6 +108,7 @@ YDsize = size(YD);
 % d= inv([D;Y])*[-b_D;y-b_Y];
 
 %%
+
 obj.d  = d(obj.id,1);
 obj.Sd = Sd(obj.id,obj.id);
 

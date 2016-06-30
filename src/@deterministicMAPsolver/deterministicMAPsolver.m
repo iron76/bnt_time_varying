@@ -22,7 +22,7 @@
 % setYmatrix - set the current Y matrix
 %       setY - set the current value for the measurement y
 %    setBias - set the current b_Y vector
-% 
+
 % Author: Francesco Nori
 % Genova, Dec 2014
 
@@ -37,6 +37,9 @@ classdef deterministicMAPsolver
       IDsens  %% sensor model
       d       %% computed maximum-a-posteriori d
       Sd      %% computed maximum-a-posteriori variance
+      
+      muBarD
+      sigmaBarD
 
       iDs     %% i-indeces for the sparse representation of D
       jDs     %% j- indeces for the sparse representation of D
@@ -211,7 +214,11 @@ classdef deterministicMAPsolver
           obj.IDsens.sensorsParams.bias = bias;
       end
 
-
+      %% SETMEASCOVARIANCE
+      function obj = setMeasCovariance(obj,Sy_inv)
+          obj.IDsens.sensorsParams.Sy_inv = full(Sy_inv);
+      end
+      
       %% SIMULATE OUTPUT
       function y = simY(obj, d)
          % fprintf('Calling the deterministicMAPsolver simY method \n');
