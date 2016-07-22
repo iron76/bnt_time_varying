@@ -1,4 +1,5 @@
-function [mu_dgiveny, Sigma_dgiveny, mapObj ] = computeMAP( mapObj,q,dq,Ymatrix, y,b_y, Sigma_ygivend )
+function [mu_dgiveny, Sigma_dgiveny, mapObj ] = computeMAP( mapObj,q,dq,Ymatrix, y,b_y, Sigma_ygivend_inv)
+%function [mu_dgiveny, Sigma_dgiveny, mapObj ] = computeMAP( mapObj,q,dq,Ymatrix, y,b_y, Sigma_ygivend, Sigma_model)
 %UNTITLED5 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -12,7 +13,8 @@ mapObj = mapObj.setState(q, dq);
 mapObj = mapObj.setY(y);
 mapObj = mapObj.setYmatrix(Ymatrix);
 mapObj = mapObj.setBias(b_y);
-mapObj = mapObj.setMeasCovariance(Sigma_ygivend);
+mapObj = mapObj.setMeasCovariance(Sigma_ygivend_inv);
+%mapObj = mapObj.setModelCovariance(Sigma_model);
 
 mapObj = mapObj.solveID();
 
