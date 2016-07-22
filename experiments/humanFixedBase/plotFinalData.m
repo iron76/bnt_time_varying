@@ -1,7 +1,7 @@
 clear;clc;close all;
 
 %% testOptions
-Section1 = true;         % Section 1 plots for each subject the mean of trials/case all sensors.
+Section1 = false;         % Section 1 plots for each subject the mean of trials/case all sensors.
     plotPaper1 = true;
 
 Section2 = true;         % Section 2 plots q,dq,tau_MAP(all sensors).
@@ -33,7 +33,7 @@ if(Section1)
 
         %% cut each trial up to lenMin sample
         subjectNum =1;
-        trialNum = 2;
+        trialNum = 1;
         
         
         len = zeros(trialNum,subjectNum);
@@ -127,7 +127,7 @@ if(Section2)
         load('./experiments/humanFixedBase/intermediateDataFiles/finalResults.mat');
 
         subjectList = 1;
-        trialList = 2;
+        trialList = 1;
         
         for subjectID = subjectList
             fprintf('\n---------\nSubject : %d ',subjectID);
@@ -228,7 +228,7 @@ if(Section3)
         load('./experiments/humanFixedBase/intermediateDataFiles/finalResults.mat');
 
         subjectList = 1;
-        trialList = 2;
+        trialList = 1;
         
         for subjectID = subjectList
             fprintf('\n---------\nSubject : %d ',subjectID);
@@ -274,22 +274,25 @@ if(Section3)
                     hold(axes1,'on');
                     grid on;
                     %title(sprintf('Subject: %d, Trial: %d',subjectID, trialID))
-                    lineProps = {'LineWidth', 4.0};
 
                     %MAP 2 sens
-                    lineProps.col = [0.87058824300766 0.490196079015732 0];
-                    shad1 = shadedErrorBar(dataTime,resMAP_2sens.tau_ankle,2.*sqrt(resMAP_2sens.Stau_ankle),lineProps,1); 
+                    col = [0.87058824300766 0.490196079015732 0];
+                    shad1 = shadedErrorBar(dataTime,resMAP_2sens.tau_ankle,2.*sqrt(resMAP_2sens.Stau_ankle), ...
+                        {'LineWidth', 4.0, 'Color',  col},1); 
 
                     %MAP 3 sens
-                    lineProps.col = [0.494117647409439 0.184313729405403 0.556862771511078];
-                    shad2 = shadedErrorBar(dataTime,resMAP_3sens.tau_ankle,2.*sqrt(resMAP_3sens.Stau_ankle),lineProps,1); 
+                    col = [0.494117647409439 0.184313729405403 0.556862771511078];
+                    shad2 = shadedErrorBar(dataTime,resMAP_3sens.tau_ankle,2.*sqrt(resMAP_3sens.Stau_ankle), ...
+                        {'LineWidth', 4.0, 'Color',  col},1); 
 
                     %MAP 4 sens
-                    lineProps.col = [0.466666668653488 0.674509823322296 0.18823529779911];
-                    shad3 = shadedErrorBar(dataTime,resMAP_4sens.tau_ankle,2.*sqrt(resMAP_4sens.Stau_ankle),lineProps,1); 
+                    col = [0.466666668653488 0.674509823322296 0.18823529779911];
+                    shad3 = shadedErrorBar(dataTime,resMAP_4sens.tau_ankle,2.*sqrt(resMAP_4sens.Stau_ankle), ...
+                        {'LineWidth', 4.0, 'Color',  col},1); 
 
                     leg = legend([shad1.mainLine,shad1.patch,shad2.mainLine,shad2.patch,shad3.mainLine,shad3.patch],...
-                        {'$\mu_{\tau_1|{\ddot q}}$','$2\sigma_{\tau_1|{\ddot q}}$','$\mu_{\tau_1|{\ddot q,y_1}}$','$2\sigma_{\tau_1|{\ddot q,y_1}}$','$\mu_{\tau_1|{\ddot q,y_1,y_2}}$','$2\sigma_{\tau_1|{\ddot q,y_1,y_2}}$'},'Location','northeast');
+                        {'$\mu_{\tau_1|{\ddot q}}$','$2\sigma_{\tau_1|{\ddot q}}$','$\mu_{\tau_1|{\ddot q,y_1}}$',...
+                        '$2\sigma_{\tau_1|{\ddot q,y_1}}$','$\mu_{\tau_1|{\ddot q,y_1,y_2}}$','$2\sigma_{\tau_1|{\ddot q,y_1,y_2}}$'},'Location','northeast');
                     set(leg,'Interpreter','latex');
                     set(leg,'FontSize',18);
 
@@ -316,22 +319,26 @@ if(Section3)
                     hold(axes1,'on');
                     grid on;
                     %title(sprintf('Subject: %d, Trial: %d',subjectID, trialID))
-                    lineProps = {'LineWidth', 4.0};
+                    %lineProps = {'LineWidth', 4.0};
 
                     %MAP 2 sens
-                    lineProps.col = [0.87058824300766 0.490196079015732 0];
-                    shad1 = shadedErrorBar(dataTime,resMAP_2sens.tau_hip,2.*sqrt(resMAP_2sens.Stau_hip),lineProps,1);
+                    col = [0.87058824300766 0.490196079015732 0];
+                    shad1 = shadedErrorBar(dataTime,resMAP_2sens.tau_hip,2.*sqrt(resMAP_2sens.Stau_hip),...
+                        {'LineWidth', 4.0, 'Color',  col},1);
 
                     %MAP 3 sens
-                    lineProps.col = [0.494117647409439 0.184313729405403 0.556862771511078];
-                    shad2 = shadedErrorBar(dataTime,resMAP_3sens.tau_hip,2.*sqrt(resMAP_3sens.Stau_hip),lineProps,1);
+                    col = [0.494117647409439 0.184313729405403 0.556862771511078];
+                    shad2 = shadedErrorBar(dataTime,resMAP_3sens.tau_hip,2.*sqrt(resMAP_3sens.Stau_hip),...
+                        {'LineWidth', 4.0, 'Color',  col},1);
 
                     %MAP 4 sens
-                    lineProps.col = [0.466666668653488 0.674509823322296 0.18823529779911];
-                    shad3 = shadedErrorBar(dataTime,resMAP_4sens.tau_hip,2.*sqrt(resMAP_4sens.Stau_hip),lineProps,1);
+                    col = [0.466666668653488 0.674509823322296 0.18823529779911];
+                    shad3 = shadedErrorBar(dataTime,resMAP_4sens.tau_hip,2.*sqrt(resMAP_4sens.Stau_hip),...
+                        {'LineWidth', 4.0, 'Color',  col},1); 
 
                     leg = legend([shad1.mainLine,shad1.patch,shad2.mainLine,shad2.patch,shad3.mainLine,shad3.patch],...
-                        {'$\mu_{\tau_2|{\ddot q}}$','$2\sigma_{\tau_2|{\ddot q}}$','$\mu_{\tau_2|{\ddot q,y_1}}$','$2\sigma_{\tau_2|{\ddot q,y_1}}$','$\mu_{\tau_2|{\ddot q,y_1,y_2}}$','$2\sigma_{\tau_2|{\ddot q,y_1,y_2}}$'},'Location','northeast');
+                        {'$\mu_{\tau_2|{\ddot q}}$','$2\sigma_{\tau_2|{\ddot q}}$','$\mu_{\tau_2|{\ddot q,y_1}}$',...
+                        '$2\sigma_{\tau_2|{\ddot q,y_1}}$','$\mu_{\tau_2|{\ddot q,y_1,y_2}}$','$2\sigma_{\tau_2|{\ddot q,y_1,y_2}}$'},'Location','northeast');
                     set(leg,'Interpreter','latex');
                     set(leg,'FontSize',18);
 
