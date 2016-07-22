@@ -218,6 +218,11 @@ classdef deterministicMAPsolver
       function obj = setMeasCovariance(obj,Sy_inv)
           obj.IDsens.sensorsParams.Sy_inv = full(Sy_inv);
       end
+       
+      %% SETMODELCOVARIANCE
+      function obj = setModelCovariance(obj,SBar_D_inv)
+          obj.IDsens.sensorsParams.SBar_D_inv = SBar_D_inv;
+      end
       
       %% SIMULATE OUTPUT
       function y = simY(obj, d)
