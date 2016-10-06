@@ -9,7 +9,7 @@ its value is a function of t, i.e. B_{i,t} in equation (1).
 DEPENDENCIES
  
  Currently the dependencies are (a) BNT toolbox and (b) FEATHERSTONE toolbox:
-(0.a) https://bnt.googlecode.com/files/FullBNT-1.0.7.zip
+(0.a) https://github.com/bayesnet/bnt.git
 (0.b) http://royfeatherstone.org/spatial/v2/spatial_v2.zip
 
 DOCUMENTATION 

@@ -72,27 +72,27 @@ end
 [a_LU,fB_LU,f_LU,tau_LU,~,~] = extractDynVar(NB, myLU.d);
 
 if res==0
-   if (abs(sum(tau_LU-tau_ID)) > 1e-4)
+   if (abs(sum(tau_LU-tau_ID)) > 1e-3)
       disp(['[LU_RNEA] Something wrong with the tau variable check ', num2str(abs(sum(tau_LU-tau_ID)))]);
       res = 1;
    end
 
    for i = 1:NB
-      if (abs(sum(f_LU{1,i}-f_ID{1,i})) > 1e-4)
+      if (abs(sum(f_LU{1,i}-f_ID{1,i})) > 1e-3)
          disp(['[LU_RNEA] Something wrong with the f variable check ', num2str(abs(sum(f_LU{1,i}-f_ID{1,i})))]);
          res = 1;
       end
    end
       
    for i = 1:NB
-      if (abs(sum(a_LU{1,i}-a_ID{1,i})) > 1e-4)
+      if (abs(sum(a_LU{1,i}-a_ID{1,i})) > 1e-3)
          disp(['[LU_RNEA] Something wrong with the a variable check ', num2str(abs(sum(a_LU{1,i}-a_ID{1,i})))]);
          res = 1;
       end
    end
    
    for i = 1:NB
-      if (abs(sum(fB_LU{1,i}-fB_ID{1,i})) > 1e-4)
+      if (abs(sum(fB_LU{1,i}-fB_ID{1,i})) > 1e-3)
          disp(['[LU_RNEA] Something wrong with the fB variable check ', num2str(abs(sum(fB_LU{1,i}-fB_ID{1,i})))]);
          res = 1;
       end

@@ -26,6 +26,8 @@ cp -v  $BNT_TIME_VARYING_FOLDER/extern/bnt/BNT/inference/@inf_engine/bnet_to_eng
 
 cp -v  $BNT_TIME_VARYING_FOLDER/extern/featherstone/dynamics/ID.m $SPATIAL_FOLDER/dynamics/ID.m
 
+cp -v  $BNT_TIME_VARYING_FOLDER/extern/featherstone/dynamics/FDab.m $SPATIAL_FOLDER/dynamics/FDab.m
+
 cp -v  $BNT_TIME_VARYING_FOLDER/extern/featherstone/dynamics/apply_external_forces.m $SPATIAL_FOLDER/dynamics/apply_external_forces.m
 
 cp -v  $BNT_TIME_VARYING_FOLDER/extern/featherstone/dynamics/jcalcderiv.m $SPATIAL_FOLDER/dynamics/jcalcderiv.m
