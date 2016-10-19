@@ -47,7 +47,7 @@ fx    = cell(1,NB);
 D  = sparse(myLU.iDs, myLU.jDs, myLU.Ds, 19*dmodel.NB, 26*dmodel.NB);
 Y  = myLU.IDsens.sensorsParams.Ys;
 
-if norm(full(triu(P*[WL*D*WR; Y]*Q,1))) < 1e-10
+if norm(full(triu(P*[WL{4}*WL{3}*WL{2}*WL{1}*D*WR; Y]*Q,1))) < 1e-10
    disp('[LU_ABA] Factorisation resulted in a lower trinagular matrix')
    res = 0;
 else
