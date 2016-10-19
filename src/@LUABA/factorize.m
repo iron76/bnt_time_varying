@@ -14,9 +14,16 @@ function [P, Q, WL, WR] = factorize(obj)
 %
 %   dy_i = [fx_i, d2q_i]
 %
-% computes permutation matrices P and Q such that P*[D;Y]*Q = L with L
-% lower triangular. 
-
+% computes permutation matrices P and Q, and some combination matrices
+% WL and WR such that P*[WL{4}*WL{3}*WL{2}*WL{1}*D*WR; Y]*Q = L with L
+% lower triangular. It can be seen that also the following holds true:
+%
+% P*[WL{4}*WL{3}*WL{2}*WL{1}*D; Y]*WR*Q = L
+%
+% The matrix WR*Q is just a redefinition of d which created the 
+% variables p1_A, ..., pN_A and f1_b, ..., fN_b which appear 
+% in the ABA algorithm for intermediate computations.
+ 
 NB = obj.IDmodel.modelParams.NB;
 
 
@@ -55,11 +62,11 @@ Y  = obj.IDsens.sensorsParams.Ys;
 %              |     0     0   ...    0 -In_A |
 %
 %
-Ws = zeros(6*NB, 6*NB);
+% Ws = zeros(6*NB, 6*NB);
 Ws_inv = zeros(6*NB, 6*NB);
 for i = 1 : NB
    %if obj.IDmodel.modelParams.parent(i) == 0
-      Ws(1+6*(i-1):6*i, 1+6*(i-1):6*i) = -obj.IA{i};
+      % Ws(1+6*(i-1):6*i, 1+6*(i-1):6*i) = -obj.IA{i};
       Ws_inv(1+6*(i-1):6*i, 1+6*(i-1):6*i) = obj.IA{i};
    %else
    %   j = obj.IDmodel.modelParams.parent(i);
@@ -83,70 +90,52 @@ end
 %              |   0    0   ... -IN |
 %
 %
-Wr = zeros(6*NB, 6*NB);
+% Wr = zeros(6*NB, 6*NB);
 Wr_inv = zeros(6*NB, 6*NB);
 for i = 1 : NB
-   Wr(1+6*(i-1):6*i, 1+6*(i-1):6*i) = -obj.IDmodel.modelParams.I{i};
+   % Wr(1+6*(i-1):6*i, 1+6*(i-1):6*i) = -obj.IDmodel.modelParams.I{i};
    Wr_inv(1+6*(i-1):6*i, 1+6*(i-1):6*i) = obj.IDmodel.modelParams.I{i};
 end
 
-W = eye(26*NB, 26*NB);
-W(obj.jF, obj.ja) = Ws;
-W(obj.jfB, obj.ja) = Wr;
-W = sparse(W);
+% W = eye(26*NB, 26*NB);
+% W(obj.jF, obj.ja) = Ws;
+% W(obj.jfB, obj.ja) = Wr;
+% W = sparse(W);
 
 W_inv = eye(26*NB, 26*NB);
 W_inv(obj.jF, obj.ja) = Ws_inv;
 W_inv(obj.jfB, obj.ja) = Wr_inv;
 WR = sparse(W_inv);
 
-WL = eye(19*NB, 19*NB);
+W1 = sparse(eye(19*NB, 19*NB));
+W2 = sparse(eye(19*NB, 19*NB));
+W3 = sparse(eye(19*NB, 19*NB));
+W4 = sparse(eye(19*NB, 19*NB));
 for i = 1:NB 
       
    I = obj.ia(1+6*(i-1):6*i);
-   J = obj.ja(1+6*(i-1):6*i);
    K = obj.itau(i);
-   % D(K,J) = obj.IDmodel.S{i}' * obj.IA{i}
-   W1 = zeros(19*NB, 19*NB);
-   W1(K,I) = obj.IDmodel.S{i}' * obj.IA{i};
-   W1 = eye(19*NB, 19*NB) + W1;
-   W1 = sparse(W1);
-   WL = W1*WL;
-   % D(K,J)
+   W1(K,I) = sparse(obj.IDmodel.S{i}' * obj.IA{i});
 
-   J = obj.jd2q(i);
    K = obj.itau(i);
-   % D(K,J) = obj.IDmodel.S{i}' * obj.IA{i} * obj.IDmodel.S{i}
-   W2 = eye(19*NB, 19*NB);
-   W2(K, K) = inv(obj.IDmodel.S{i}' * obj.IA{i} * obj.IDmodel.S{i});
-   W2 = sparse(W2);
-   WL = W2*WL;
+   W2(K, K) = sparse(inv(obj.IDmodel.S{i}' * obj.IA{i} * obj.IDmodel.S{i}));
    
    I = obj.itau(i);
-   J = obj.jd2q(i);
    K = obj.ia(1+6*(i-1):6*i);
-   % D(K,J) = obj.IDmodel.S{i}
-   W3 = zeros(19*NB, 19*NB);
-   W3(K,I) = -obj.IDmodel.S{i};
-   W3 = eye(19*NB, 19*NB) + W3;
-   W3 = sparse(W3);
-   WL = W3*WL;
-   %D(obj.itau(2), obj.jd2q(2))
-end
-
-for i = 1:NB 
+   W3(K,I) = sparse(-obj.IDmodel.S{i});
+   
    for j = obj.IDmodel.sparseParams.ind_j{i}
       I = obj.ia(1+6*(j-1):6*j);
-      J = obj.ja(1+6*(j-1):6*j);
       K = obj.iF(1+6*(i-1):6*i);
       % D(K,J) = obj.Xup{j}' * obj.IA{j}
-      W4 = zeros(19*NB, 19*NB);
-      W4(K,I) = obj.Xup{j}' * obj.IA{j};
-      W4 = eye(19*NB, 19*NB) + W4;
-      W4 = sparse(W4);
-      WL = W4*WL;
-   end
+      W4(K,I) = sparse(obj.Xup{j}' * obj.IA{j});
+   end   
 end
+WL{1} = W1;
+WL{2} = W2;
+WL{3} = W3;
+WL{4} = W4;
+
 
 I  = eye(size([D;Y]));
 Q  = I(:,q);
@@ -159,6 +148,9 @@ P = sparse(P);
 Q = sparse(Q);
 
 % The resulting P*[WL*D*WR; Y]*Q is lower triangular
+if norm(full(triu(P*[WL{4}*WL{3}*WL{2}*WL{1}*D*WR; Y]*Q, 1))) > 1e-12
+   error(['The trangulrization was not succesfull. Error is: ' num2str(norm(triu(P*[WL*D*WR; Y]*Q, 1)))])
+end
 return
 
 
