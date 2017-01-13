@@ -2,7 +2,7 @@ clear
 close all
 clc
 
-NB        = 30;
+NB        = 10;
 N         = 50;
 S_dmodel  = 1e-2;
 S_ymodel  = 1e-4;
@@ -85,6 +85,11 @@ m_ABA = 224*NB - 259;
 D     = sparse(myLU.iDs, myLU.jDs, myLU.Ds, 19*NB, 26*NB);
 Y     = myLU.IDsens.sensorsParams.Ys;
 b     = [sparse(myLU.ibs, ones(size(myLU.ibs)), myLU.bs, 19*NB, 1); ones(7*NB,1)];
+
+if norm(full(triu(P_ABA*[WL{4}*WL{3}*WL{2}*WL{1}*D*WR; Y]*Q_ABA,1))) > 1e-10
+   error('The factorisation was not succesfull!')
+end
+
 A_ABA = tril(P_ABA*[WL{4}*WL{3}*WL{2}*WL{1}*D*WR; Y]*Q_ABA);
 
 [a1_myABA, m1_myABA] = fw_cost(A_ABA, b);

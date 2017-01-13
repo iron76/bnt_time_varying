@@ -62,6 +62,12 @@ Y  = obj.IDsens.sensorsParams.Ys;
 %              |     0     0   ...    0 -In_A |
 %
 %
+% We notice that if we
+% have A x = b and y = C x, then A C^{-1} y = b.
+% Moreover in this case [y1; x2] = [I, C; 0, I] [x1; x2]
+% and [I, C; 0, I]^(-1) = [I, -C; 0, I].
+%
+%
 % Ws = zeros(6*NB, 6*NB);
 Ws_inv = zeros(6*NB, 6*NB);
 for i = 1 : NB
@@ -89,6 +95,11 @@ end
 %              |                    |
 %              |   0    0   ... -IN |
 %
+% Given that fi_B =  Ii ai +  vi x* I_i vi we have
+% that fi_b = vi x* I_i vi. We also note that if we
+% have A x = b and y = C x, then A C^{-1} y = b.
+% Moreover in this case [y1; x2] = [I, C; 0, I] [x1; x2]
+% and [I, C; 0, I]^(-1) = [I, -C; 0, I].
 %
 % Wr = zeros(6*NB, 6*NB);
 Wr_inv = zeros(6*NB, 6*NB);
@@ -149,7 +160,7 @@ Q = sparse(Q);
 
 % The resulting P*[WL*D*WR; Y]*Q is lower triangular
 if norm(full(triu(P*[WL{4}*WL{3}*WL{2}*WL{1}*D*WR; Y]*Q, 1))) > 1e-12
-   error(['The trangulrization was not succesfull. Error is: ' num2str(norm(triu(P*[WL*D*WR; Y]*Q, 1)))])
+   error(['The trangulrization was not succesfull. Error is: ' num2str(norm(full(triu(P*[WL{4}*WL{3}*WL{2}*WL{1}*D*WR; Y]*Q, 1))))])
 end
 return
 
