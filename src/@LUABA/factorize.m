@@ -26,17 +26,8 @@ function [P, Q, WL, WR] = factorize(obj)
  
 NB = obj.IDmodel.modelParams.NB;
 
-
-for i = 1 : length(obj.jd2q)
-   jd2q_a(1+7*(i-1):7*i,1) = [obj.jd2q(i); obj.ja(1+6*(i-1):6*i)];
-end
-for i = 1 : length(obj.jtau)
-   itau_a(1+7*(i-1):7*i,1) = [obj.itau(i); obj.ia(1+6*(i-1):6*i)];
-end
-
-
-p  = [obj.ifB(end:-1:1, 1); obj.iF(end:-1:1, 1); itau_a];
-q  = [obj.jfx; obj.jtau; obj.jfB(end:-1:1, 1); obj.jF(end:-1:1, 1); jd2q_a];
+p  = [obj.ifB(end:-1:1, 1); obj.iF(end:-1:1, 1); obj.ia; obj.itau];
+q  = [obj.jfx; obj.jtau; obj.jfB(end:-1:1, 1); obj.jF(end:-1:1, 1); obj.ja; obj.jd2q];
 D  = sparse(obj.iDs, obj.jDs, obj.Ds, 19*NB, 26*NB);
 Y  = obj.IDsens.sensorsParams.Ys;
 

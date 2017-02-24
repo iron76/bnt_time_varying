@@ -131,4 +131,7 @@ m_min         = m_min + m_fb;
 
 showmotion( dmodel, [1 2], repmat(q,1,2));
 
-
+[H,C] = HandC( dmodel, q, dq);
+if norm(H - full(Pvt{end-NB+1})) > 1e-10
+   error('error in computing the partial LU factor');
+end
