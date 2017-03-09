@@ -25,6 +25,8 @@ for k=1:nA-1
    m = m + nnz(R(r,k));
    R(r,r) = R(r,r) - R(r,k)*R(k,r);
    a = a + nnz(R(r,k).*R(k,r)');
-   m = m + nnz(R(r,k).*R(k,r)');
+   I = find(R(r,k).*R(k,r)');
+   % Count multiplications and remove mutiplications by 1
+   m = m + length(I)-nnz(R(I,k)-1)-nnz(R(I,k)+1)-nnz(R(k,I)-1)-nnz(R(k,I)+1);
    P{k}   = R(r,r);
 end
