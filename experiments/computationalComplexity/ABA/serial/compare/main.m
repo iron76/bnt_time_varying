@@ -2,15 +2,20 @@ clear
 close all
 clc
 
-max_NB  = 30;
+max_NB  = 100;
 a_matrixABA = zeros(max_NB,1);
 m_matrixABA = zeros(max_NB,1);
+t_matrixABA = zeros(max_NB,1);
 a_ABA   = zeros(max_NB,1);
 m_ABA   = zeros(max_NB,1);
 a_myLUABA    = zeros(max_NB,1);
 m_myLUABA    = zeros(max_NB,1);
 a_PLUQABA   = zeros(max_NB,1);
 m_PLUQABA   = zeros(max_NB,1);
+t_PLUQABA   = zeros(max_NB,1);
+a_LUABA     = zeros(max_NB,1);
+m_LUABA     = zeros(max_NB,1);
+t_LUABA     = zeros(max_NB,1);
 
 for NB = 2 : max_NB
     S_dmodel  = 1e-2;
@@ -79,6 +84,12 @@ for NB = 2 : max_NB
     a_matrixABA(NB,1) = a1_myABA + a2_myABA + a3_myABA + a4_myABA + a5_myABA;
     m_matrixABA(NB,1) = m1_myABA + m2_myABA + m3_myABA + m4_myABA + m5_myABA;
     
+    L = P_ABA*[WL{4}*WL{3}*WL{2}*WL{1}*D*WR; Y]*Q_ABA;
+    tstart = tic;
+    WL{4}*WL{3}*WL{2}*WL{1}*D*WR;
+    L\b; 
+    t_matrixABA(NB) = toc(tstart);
+    
     %%
     %  Performs a shuffle of the columns and rows so as to obtain a
     %  matrix on which we can gurantee the existence of the LU factorisation
@@ -103,6 +114,21 @@ for NB = 2 : max_NB
     a_myLUABA(NB,1)      = a1_my + a1_fb;
     m_myLUABA(NB,1)      = m1_my + m1_fb;
     
+    % Apply the LU factorisation without the permutaations
+    % that lead to the minimum number of fill-in.
+    [L,U,P] = lu([D; Y]);
+    
+    [a1_min,m1_min] = lu_cost(P*[D; Y]);
+    [a1_fb ,m1_fb]  = fb_cost(L, U, b);
+    a_LUABA(NB)     = a1_min + a1_fb;
+    m_LUABA(NB)     = m1_min + m1_fb;
+    
+    A = P*[D; Y];
+    tstart = tic;
+    [L,U] = lu(A);
+    L\(U\b); 
+    t_LUABA(NB) = toc(tstart);
+    
     % Apply the LU factorisation with the permutaations
     % that lead to the minimum number of fill-in.
     [~,~,P,Q] = lu([D; Y]);
@@ -113,6 +139,12 @@ for NB = 2 : max_NB
     a_PLUQABA(NB)     = a1_min + a1_fb;
     m_PLUQABA(NB)     = m1_min + m1_fb;
     
+    A = P*[D; Y]*Q;
+    tstart = tic;
+    [L,U] = lu(A);
+    L\(U\b); 
+    t_PLUQABA(NB) = toc(tstart);
+    
 end
 
 % plot([a_ABA, a_matrixABA, a_myLUABA, a_PLUQABA])
@@ -122,12 +154,13 @@ fH = figure;
 fontSize = 12;
 axes('Units', 'normalized', 'Parent',fH, 'FontSize', fontSize);
 hold on;
-plot([a_ABA, a_matrixABA, a_PLUQABA], 'LineWidth', 6)
+plot([a_LUABA, a_PLUQABA, a_matrixABA, a_ABA], 'LineWidth', 6)
 grid on;
-legend({'Forward dynamics solved with ABA', ...
+legend({'Forward dynamics solved with LU factorization', ...
+    'Forward dynamics solved with permuted LU factorization', ...
     'Forward dynamics solved with forward substitution', ...
-    'Forward dynamics solved with LU factorization'}, 'Interpreter', 'latex', 'FontSize', fontSize,  'Location','north','Orientation','vertical');
-ylabel({'Number of floating point additions'}, 'Interpreter', 'latex', 'FontSize', fontSize, 'DefaultAxesFontName', 'Times New Roman');
+    'Forward dynamics solved with ABA'}, 'Interpreter', 'latex', 'FontSize', fontSize,  'Location','northWest','Orientation','vertical');
+ylabel({'Number of floating point multiplications and additions'}, 'Interpreter', 'latex', 'FontSize', fontSize, 'DefaultAxesFontName', 'Times New Roman');
 xlabel('$N_B$ (number of links)', 'Interpreter', 'latex', 'FontSize', fontSize);
 
 save2pdf('a_luAB.pdf',fH,600);
@@ -136,12 +169,42 @@ fH = figure;
 fontSize = 12;
 axes('Units', 'normalized', 'Parent',fH, 'FontSize', fontSize);
 hold on;
-plot([m_ABA, m_matrixABA, m_PLUQABA], 'LineWidth', 6)
+plot([m_LUABA, m_PLUQABA, m_matrixABA, m_ABA], 'LineWidth', 6)
 grid on;
-legend({'Forward dynamics solved with ABA', ...
+legend({'Forward dynamics solved with LU factorization', ...
+    'Forward dynamics solved with permuted LU factorization', ...
     'Forward dynamics solved with forward substitution', ...
-    'Forward dynamics solved with LU factorization'}, 'Interpreter', 'latex', 'FontSize', fontSize,  'Location','north','Orientation','vertical');
-ylabel({'Number of floating point multiplications'}, 'Interpreter', 'latex', 'FontSize', fontSize, 'DefaultAxesFontName', 'Times New Roman');
+    'Forward dynamics solved with ABA'}, 'Interpreter', 'latex', 'FontSize', fontSize,  'Location','northWest','Orientation','vertical');
+ylabel({'Number of floating point multiplications and additions'}, 'Interpreter', 'latex', 'FontSize', fontSize, 'DefaultAxesFontName', 'Times New Roman');
 xlabel('$N_B$ (number of links)', 'Interpreter', 'latex', 'FontSize', fontSize);
 
 save2pdf('m_luAB.pdf',fH,600);
+
+fH = figure;
+fontSize = 12;
+axes('Units', 'normalized', 'Parent',fH, 'FontSize', fontSize);
+hold on;
+plot([m_LUABA+a_LUABA, m_PLUQABA+a_PLUQABA, m_matrixABA+a_matrixABA, m_ABA+a_ABA], 'LineWidth', 6)
+grid on;
+legend({'Forward dynamics solved with LU factorization', ...
+    'Forward dynamics solved with permuted LU factorization', ...
+    'Forward dynamics solved with forward substitution', ...
+    'Forward dynamics solved with ABA'}, 'Interpreter', 'latex', 'FontSize', fontSize,  'Location','northWest','Orientation','vertical');
+ylabel({'Number of floating point multiplications and additions'}, 'Interpreter', 'latex', 'FontSize', fontSize, 'DefaultAxesFontName', 'Times New Roman');
+xlabel('$N_B$ (number of links)', 'Interpreter', 'latex', 'FontSize', fontSize);
+
+save2pdf('luAB.pdf',fH,600);
+
+fH = figure;
+fontSize = 12;
+axes('Units', 'normalized', 'Parent',fH, 'FontSize', fontSize);
+hold on;
+plot([t_LUABA t_PLUQABA t_matrixABA ], 'LineWidth', 6)
+grid on;
+legend({'Forward dynamics solved with LU factorization', ...
+    'Forward dynamics solved with permuted LU factorization', ...
+    'Forward dynamics solved with forward substitution'}, 'Interpreter', 'latex', 'FontSize', fontSize,  'Location','northWest','Orientation','vertical');
+ylabel({'Execution time [sec]'}, 'Interpreter', 'latex', 'FontSize', fontSize, 'DefaultAxesFontName', 'Times New Roman');
+xlabel('$N_B$ (number of links)', 'Interpreter', 'latex', 'FontSize', fontSize);
+
+save2pdf('t_luAB.pdf',fH,600);
