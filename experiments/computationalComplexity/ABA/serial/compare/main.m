@@ -2,7 +2,7 @@ clear
 close all
 clc
 
-max_NB  = 100;
+max_NB  = 30;
 a_matrixABA = zeros(max_NB,1);
 m_matrixABA = zeros(max_NB,1);
 t_matrixABA = zeros(max_NB,1);
