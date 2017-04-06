@@ -2,7 +2,7 @@ clear
 close all
 clc
 
-max_NB  = 30;
+max_NB  = 20;
 a_PLUQABA   = zeros(max_NB,1);
 m_PLUQABA   = zeros(max_NB,1);
 t_PLUQABA   = zeros(max_NB,1);

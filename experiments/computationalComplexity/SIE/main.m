@@ -49,6 +49,7 @@ b     = [sparse(myLU.ibs, ones(size(myLU.ibs)), myLU.bs, 19*NB, 1); ones(7*NB,1)
 % Apply the LU factorisation with the permutaations
 % that lead to the minimum number of fill-in.
 [~,~,P,Q] = lu([D; Y]);
+det([D; Y])
 
 [minL, minU]  = lu(P*[D; Y]*Q, 0);
 [a1_min,m1_min] = lu_cost(P*[D; Y]*Q);
