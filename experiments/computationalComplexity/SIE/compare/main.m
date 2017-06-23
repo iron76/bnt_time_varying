@@ -88,37 +88,46 @@ for NB = 4 : max_NB
 end
 
 fH = figure;
-fontSize = 12;
+fontSize = 24;
 axes('Units', 'normalized', 'Parent',fH, 'FontSize', fontSize);
 hold on;
 plot(8 : max_NB, [a_LUABA(8 : max_NB) a_PLUQABA(8 : max_NB)], 'LineWidth', 6)
 grid on;
-legend({'Forward dynamics solved with LU factorization', 'Forward dynamics solved with permuted LU factorization'}, 'Interpreter', 'latex', 'FontSize', fontSize,  'Location','northWest','Orientation','vertical');
-ylabel({'Number of floating point additions'}, 'Interpreter', 'latex', 'FontSize', fontSize, 'DefaultAxesFontName', 'Times New Roman');
+title({'Inverse dynamics with', 'load-cells measurements'}, 'Interpreter', 'latex', 'FontSize', fontSize);
+legend({'LU factorization', 'LU factorization permuted '}, 'Interpreter', 'latex', 'FontSize', fontSize,  'Location','northWest','Orientation','vertical');
+ylabel({'Number of floating'; 'point additions'}, 'Interpreter', 'latex', 'FontSize', fontSize, 'DefaultAxesFontName', 'Times New Roman');
 xlabel('$N_B$ (number of links)', 'Interpreter', 'latex', 'FontSize', fontSize);
-
+span_axis = axis;
+span_axis(4) = span_axis(4)*1.2;
+axis(span_axis);
 save2pdf('a_luSIE.pdf',fH,600);
 
 fH = figure;
-fontSize = 12;
+fontSize = 24;
 axes('Units', 'normalized', 'Parent',fH, 'FontSize', fontSize);
 hold on;
 plot(8 : max_NB, [m_LUABA(8 : max_NB) m_PLUQABA(8 : max_NB)], 'LineWidth', 6)
 grid on;
-legend({'Forward dynamics solved with LU factorization', 'Forward dynamics solved with permuted LU factorization'}, 'Interpreter', 'latex', 'FontSize', fontSize,  'Location','northWest','Orientation','vertical');
-ylabel({'Number of floating point multiplications'}, 'Interpreter', 'latex', 'FontSize', fontSize, 'DefaultAxesFontName', 'Times New Roman');
+title({'Inverse dynamics with', 'load-cells measurements'}, 'Interpreter', 'latex', 'FontSize', fontSize);
+legend({'LU factorization', 'LU factorization permuted '}, 'Interpreter', 'latex', 'FontSize', fontSize,  'Location','northWest','Orientation','vertical');
+ylabel({'Number of floating'; 'point multiplications'}, 'Interpreter', 'latex', 'FontSize', fontSize, 'DefaultAxesFontName', 'Times New Roman');
 xlabel('$N_B$ (number of links)', 'Interpreter', 'latex', 'FontSize', fontSize);
-
+span_axis = axis;
+span_axis(4) = span_axis(4)*1.2;
+axis(span_axis);
 save2pdf('m_luSIE.pdf',fH,600);
 
 fH = figure;
-fontSize = 12;
+fontSize = 24;
 axes('Units', 'normalized', 'Parent',fH, 'FontSize', fontSize);
 hold on;
 plot(8 : max_NB, [t_LUABA(8 : max_NB) t_PLUQABA(8 : max_NB)], 'LineWidth', 6)
 grid on;
-legend({'Forward dynamics solved with LU factorization', 'Forward dynamics solved with permuted LU factorization'}, 'Interpreter', 'latex', 'FontSize', fontSize,  'Location','northWest','Orientation','vertical');
+title({'Inverse dynamics with', 'load-cells measurements'}, 'Interpreter', 'latex', 'FontSize', fontSize);
+legend({'LU factorization', 'LU factorization permuted '}, 'Interpreter', 'latex', 'FontSize', fontSize,  'Location','northWest','Orientation','vertical');
 ylabel({'Execution time [sec]'}, 'Interpreter', 'latex', 'FontSize', fontSize, 'DefaultAxesFontName', 'Times New Roman');
 xlabel('$N_B$ (number of links)', 'Interpreter', 'latex', 'FontSize', fontSize);
-
+span_axis = axis;
+span_axis(4) = span_axis(4)*1.2;
+axis(span_axis);
 save2pdf('t_luSIE.pdf',fH,600);

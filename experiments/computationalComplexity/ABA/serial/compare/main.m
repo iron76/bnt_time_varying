@@ -151,7 +151,7 @@ end
 % legend('ABA', 'matrix ABA', 'LU factorisation ABA', 'P*LU*Q ABA')
 
 fH = figure;
-fontSize = 12;
+fontSize = 24;
 axes('Units', 'normalized', 'Parent',fH, 'FontSize', fontSize);
 hold on;
 plot([a_LUABA, a_PLUQABA, a_matrixABA, a_ABA], 'LineWidth', 6)
@@ -159,29 +159,30 @@ grid on;
 legend({'Forward dynamics solved with LU factorization', ...
     'Forward dynamics solved with permuted LU factorization', ...
     'Forward dynamics solved with forward substitution', ...
-    'Forward dynamics solved with ABA'}, 'Interpreter', 'latex', 'FontSize', fontSize,  'Location','northWest','Orientation','vertical');
-ylabel({'Number of floating point multiplications and additions'}, 'Interpreter', 'latex', 'FontSize', fontSize, 'DefaultAxesFontName', 'Times New Roman');
+    'Forward dynamics solved with ABA'}, 'Interpreter', 'latex', 'FontSize', 12,  'Location','northWest','Orientation','vertical');
+ylabel({'Number of floating point additions'}, 'Interpreter', 'latex', 'FontSize', fontSize, 'DefaultAxesFontName', 'Times New Roman');
 xlabel('$N_B$ (number of links)', 'Interpreter', 'latex', 'FontSize', fontSize);
 
 save2pdf('a_luAB.pdf',fH,600);
 
 fH = figure;
-fontSize = 12;
+fontSize = 24;
 axes('Units', 'normalized', 'Parent',fH, 'FontSize', fontSize);
 hold on;
 plot([m_LUABA, m_PLUQABA, m_matrixABA, m_ABA], 'LineWidth', 6)
 grid on;
-legend({'Forward dynamics solved with LU factorization', ...
-    'Forward dynamics solved with permuted LU factorization', ...
-    'Forward dynamics solved with forward substitution', ...
-    'Forward dynamics solved with ABA'}, 'Interpreter', 'latex', 'FontSize', fontSize,  'Location','northWest','Orientation','vertical');
-ylabel({'Number of floating point multiplications and additions'}, 'Interpreter', 'latex', 'FontSize', fontSize, 'DefaultAxesFontName', 'Times New Roman');
+title('Forward dynamics', 'Interpreter', 'latex', 'FontSize', fontSize);
+legend({'LU factorization', ...
+    'LU factorization permuted', ...
+    'Forward substitution', ...
+    'ABA'}, 'Interpreter', 'latex', 'FontSize', fontSize,  'Location','northWest','Orientation','vertical');
+ylabel({'Number of floating'; 'point multiplications'}, 'Interpreter', 'latex', 'FontSize', fontSize, 'DefaultAxesFontName', 'Times New Roman');
 xlabel('$N_B$ (number of links)', 'Interpreter', 'latex', 'FontSize', fontSize);
 
 save2pdf('m_luAB.pdf',fH,600);
 
 fH = figure;
-fontSize = 12;
+fontSize = 24;
 axes('Units', 'normalized', 'Parent',fH, 'FontSize', fontSize);
 hold on;
 plot([m_LUABA+a_LUABA, m_PLUQABA+a_PLUQABA, m_matrixABA+a_matrixABA, m_ABA+a_ABA], 'LineWidth', 6)
@@ -189,21 +190,21 @@ grid on;
 legend({'Forward dynamics solved with LU factorization', ...
     'Forward dynamics solved with permuted LU factorization', ...
     'Forward dynamics solved with forward substitution', ...
-    'Forward dynamics solved with ABA'}, 'Interpreter', 'latex', 'FontSize', fontSize,  'Location','northWest','Orientation','vertical');
-ylabel({'Number of floating point multiplications and additions'}, 'Interpreter', 'latex', 'FontSize', fontSize, 'DefaultAxesFontName', 'Times New Roman');
+    'Forward dynamics solved with ABA'}, 'Interpreter', 'latex', 'FontSize', 12,  'Location','northWest','Orientation','vertical');
+ylabel({'Number of floating point'; 'multiplications and additions'}, 'Interpreter', 'latex', 'FontSize', fontSize, 'DefaultAxesFontName', 'Times New Roman');
 xlabel('$N_B$ (number of links)', 'Interpreter', 'latex', 'FontSize', fontSize);
 
 save2pdf('luAB.pdf',fH,600);
 
 fH = figure;
-fontSize = 12;
+fontSize = 24;
 axes('Units', 'normalized', 'Parent',fH, 'FontSize', fontSize);
 hold on;
 plot([t_LUABA t_PLUQABA t_matrixABA ], 'LineWidth', 6)
 grid on;
 legend({'Forward dynamics solved with LU factorization', ...
     'Forward dynamics solved with permuted LU factorization', ...
-    'Forward dynamics solved with forward substitution'}, 'Interpreter', 'latex', 'FontSize', fontSize,  'Location','northWest','Orientation','vertical');
+    'Forward dynamics solved with forward substitution'}, 'Interpreter', 'latex', 'FontSize', 12,  'Location','northWest','Orientation','vertical');
 ylabel({'Execution time [sec]'}, 'Interpreter', 'latex', 'FontSize', fontSize, 'DefaultAxesFontName', 'Times New Roman');
 xlabel('$N_B$ (number of links)', 'Interpreter', 'latex', 'FontSize', fontSize);
 
