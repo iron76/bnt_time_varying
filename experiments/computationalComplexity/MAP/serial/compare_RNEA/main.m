@@ -2,14 +2,16 @@ clear
 close all
 clc
 
-max_NB  = 5;
-max_y   = 20;
-a_ABA   = zeros(max_NB,1);
-m_ABA   = zeros(max_NB,1);
-c_ABA   = zeros(max_NB,1);
+max_NB  = 20;
+max_y   = 10;
+a_RNE   = zeros(max_NB,1);
+m_RNE   = zeros(max_NB,1);
+c_RNE   = zeros(max_NB,1);
+s_RNE   = zeros(max_NB,1);
 a_map   = zeros(max_NB,max_y);
 m_map   = zeros(max_NB,max_y);
 c_map   = zeros(max_NB,max_y);
+s_map   = zeros(max_NB,max_y);
 y_label = {'tau1'; 'd2q1'; 'f1'; 'fx1'; 'a1'; 'fB1'};
 y_label = [y_label; 'tau2'; 'd2q2'; 'f2'; 'fx2'; 'a2'; 'fB2'];
 
@@ -20,12 +22,13 @@ for NB = 2 : max_NB
    dmodel.gravity = [0; -9.81; 0];
    
    % Build the MAP problem to solve the forward dynamics
-   ymodel_LU  = autoSensABA(dmodel);
+   ymodel_LU  = autoSensRNEA(dmodel);
    ymodel     = ymodel_LU;
    
    y_label = [y_label; ['tau' num2str(NB)]; ['d2q' num2str(NB)]; ['f' num2str(NB)]; ['fx' num2str(NB)]; ['a' num2str(NB)]; ['fB' num2str(NB)]];
 
-   for ny = 1 : max_y
+   i_plot = round(linspace(1, max_y, 3));
+   for ny = i_plot
       r = randi([1 6*NB],1,ny);
       for k = 1 : ny
          ymodel     = addSens(ymodel, y_label{r(k)});
@@ -68,11 +71,12 @@ for NB = 2 : max_NB
       end
       
       if ny == 1
-         Y_ABA = Y(1:end-ymodel.sizes{end}, :);
+         Y_RNE = Y(1:end-ymodel.sizes{end}, :);
          
-         a_ABA(NB,1) = 205*NB - 248;
-         m_ABA(NB,1) = 224*NB - 259;
-         c_ABA(NB,1) = condest([D; Y_ABA]);
+         a_RNE(NB,1) = 81*NB - 100;
+         m_RNE(NB,1) = 93*NB - 108;
+         c_RNE(NB,1) = condest([D; Y_RNE]);
+         s_RNE(NB,1) = trace(inv([D; Y_RNE]'*[D; Y_RNE]));
       end
       
       % Apply the LU facorisation and compute its cost.
@@ -92,15 +96,41 @@ for NB = 2 : max_NB
       a_map(NB,ny) = ach + afb + atm;
       m_map(NB,ny) = mch + mfb + mtm;
       c_map(NB,ny) = sqrt(condest([D; Y]'*[D; Y]));
+      s_map(NB,ny) = trace((inv([D; Y]'*[D; Y])));
    end
 end
 
-i_plot = round(linspace(1, max_y, 6));
 
-plot([a_ABA, a_map(:,i_plot(1)), a_map(:,i_plot(2)), a_map(:,i_plot(3)), a_map(:,i_plot(4)), a_map(:,i_plot(5)), a_map(:,i_plot(6)) ])
-legend('ABA', ['chol MAP' num2str(i_plot(1))],  ['chol MAP' num2str(i_plot(2))],  ['chol MAP' num2str(i_plot(3))], ['chol MAP' num2str(i_plot(4))],  ['chol MAP' num2str(i_plot(5))], ['chol MAP' num2str(i_plot(6))])
 
-figure
+fH = figure;
+fontSize = 24;
+axes('Units', 'normalized', 'Parent',fH, 'FontSize', fontSize);
 
-plot([c_ABA, c_map(:,i_plot(1)), c_map(:,i_plot(2)), c_map(:,i_plot(3)), c_map(:,i_plot(4)), c_map(:,i_plot(5)), c_map(:,i_plot(6)) ])
-legend('ABA', ['cond MAP' num2str(i_plot(1))],  ['cond MAP' num2str(i_plot(2))],  ['cond MAP' num2str(i_plot(3))], ['cond MAP' num2str(i_plot(4))],  ['cond MAP' num2str(i_plot(5))], ['cond MAP' num2str(i_plot(6))])
+semilogy([a_RNE, a_map(:,i_plot(1)), a_map(:,i_plot(2)), a_map(:,i_plot(3))], 'LineWidth', 6)
+legend({'RNE', ['MAP with ' num2str(i_plot(1)) ' additional meas.'],  ['MAP with ' num2str(i_plot(2)) ' additional meas.'],  ['MAP with ' num2str(i_plot(3)) ' additional meas.']}, 'Interpreter', 'latex', 'FontSize', 18,  'Location','southEast','Orientation','vertical');
+ylabel({'Number of floating point'; 'multiplications and additions'}, 'Interpreter', 'latex', 'FontSize', fontSize, 'DefaultAxesFontName', 'Times New Roman');
+xlabel('$N_B$ (number of links)', 'Interpreter', 'latex', 'FontSize', fontSize)
+grid on
+save2pdf('RNE_complexity.pdf',fH,600);
+
+fH = figure;
+fontSize = 24;
+axes('Units', 'normalized', 'Parent',fH, 'FontSize', fontSize);
+
+semilogy([c_RNE, c_map(:,i_plot(1)), c_map(:,i_plot(2)), c_map(:,i_plot(3))], 'LineWidth', 6)
+legend({'RNE', ['MAP with ' num2str(i_plot(1)) ' additional meas.'],  ['MAP with ' num2str(i_plot(2)) ' additional meas.'],  ['MAP with ' num2str(i_plot(3)) ' additional meas.']}, 'Interpreter', 'latex', 'FontSize', 18,  'Location','northWest','Orientation','vertical');
+ylabel({'Condition number'}, 'Interpreter', 'latex', 'FontSize', fontSize, 'DefaultAxesFontName', 'Times New Roman');
+xlabel('$N_B$ (number of links)', 'Interpreter', 'latex', 'FontSize', fontSize)
+grid on
+save2pdf('RNE_condition.pdf',fH,600);
+
+fH = figure;
+fontSize = 24;
+axes('Units', 'normalized', 'Parent',fH, 'FontSize', fontSize);
+
+semilogy([s_RNE, s_map(:,i_plot(1)), s_map(:,i_plot(2)), s_map(:,i_plot(3))], 'LineWidth', 6)
+legend({'RNE', ['MAP with ' num2str(i_plot(1)) ' additional meas.'],  ['MAP with ' num2str(i_plot(2)) ' additional meas.'],  ['MAP with ' num2str(i_plot(3)) ' additional meas.']}, 'Interpreter', 'latex', 'FontSize', 18,  'Location','southEast','Orientation','vertical');
+ylabel({'Estimation variance'}, 'Interpreter', 'latex', 'FontSize', fontSize, 'DefaultAxesFontName', 'Times New Roman');
+xlabel('$N_B$ (number of links)', 'Interpreter', 'latex', 'FontSize', fontSize)
+grid on
+save2pdf('RNE_variance.pdf',fH,600);
